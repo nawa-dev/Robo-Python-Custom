@@ -30,6 +30,9 @@ function createProjectData() {
       x: s.x,
       y: s.y,
       name: s.name,
+      type: s.type || "light",
+      angle: s.angle || 0,
+      color: s.color || "#000000",
     })),
     sourceCode: editor.getValue(),
     robotState: {
@@ -101,24 +104,59 @@ function loadProject(inputElement) {
 }
 
 /**
- * โหลดโปรเจกต์ตัวอย่างจากไฟล์ sampleSetup.json
+ * โหลดรายชื่อตัวอย่างจาก examplemenu.json
  */
-function loadExampleProject() {
+function loadExampleMenu() {
+  const menuContainer = document.getElementById("example-list");
+  if (!menuContainer) return;
+
+  fetch("./examplemenu.json")
+    .then((response) => response.json())
+    .then((examples) => {
+      if (examples.length === 0) {
+        menuContainer.innerHTML = '<a href="#">No examples</a>';
+        return;
+      }
+      
+      menuContainer.innerHTML = ""; // Clear loading text
+      
+      examples.forEach((ex) => {
+        const link = document.createElement("a");
+        link.href = "javascript:void(0)";
+        link.innerHTML = `<i class="fas fa-file-code"></i> ${ex.name}`;
+        link.onclick = () => {
+             loadExampleProject(ex.file);
+             trackEvent('click', 'FileMenu', `Example:${ex.name}`);
+        };
+        menuContainer.appendChild(link);
+      });
+    })
+    .catch((err) => {
+      console.error("Failed to load example menu:", err);
+      menuContainer.innerHTML = '<a href="#" style="color:red">Error loading menu</a>';
+    });
+}
+
+/**
+ * โหลดโปรเจกต์ตัวอย่างจากไฟล์ที่ระบุ
+ * @param {string} filename - ชื่อไฟล์ JSON (default: sampleSetup.json)
+ */
+function loadExampleProject(filename = "sampleSetup.json") {
   if (
     confirm(
-      "โหลดตัวอย่างโปรเจกต์? ข้อมูลปัจจุบันที่ยังไม่บันทึกจะหายไป",
+      `โหลดตัวอย่าง "${filename}"? ข้อมูลปัจจุบันที่ยังไม่บันทึกจะหายไป`,
     )
   ) {
-    fetch("./sampleSetup.json")
+    fetch(`./${filename}`)
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Network response was not ok");
+          throw new Error(`Example file not found: ${filename}`);
         }
         return response.json();
       })
       .then((data) => {
         applyProjectData(data);
-        logToConsole("โหลดโปรเจกต์ตัวอย่างเรียบร้อย", "info");
+        logToConsole(`โหลดตัวอย่างเรียบร้อย: ${filename}`, "info");
       })
       .catch((error) => {
         console.error("Error loading example:", error);
@@ -170,6 +208,9 @@ function applyProjectData(projectData) {
     x: s.x,
     y: s.y,
     name: s.name,
+    type: s.type || "light",
+    angle: s.angle || 0,
+    color: s.color || "#000000",
     isNew: false,
   }));
   updateSensorPreview();

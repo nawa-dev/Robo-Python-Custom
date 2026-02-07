@@ -55,6 +55,7 @@
     <script src="src/executor.js" defer></script>
     <script src="src/storage.js" defer></script>
     <script src="src/script.js" defer></script>
+    <script src="src/config.js" defer></script>
   </head>
   <body>
     <header class="toolbar">
@@ -82,9 +83,16 @@
               <i class="fas fa-download"></i> Export
             </a>
             <!-- <div class="separator"></div> -->
-            <a href="javascript:void(0)" onclick="loadExampleProject(); trackEvent('click', 'FileMenu', 'Example')">
-              <i class="fas fa-lightbulb"></i> Example
-            </a>
+            <!-- <div class="separator"></div> -->
+            <div class="dropdown-submenu">
+              <a href="javascript:void(0)" class="submenu-trigger">
+                <i class="fas fa-lightbulb"></i> Example <i class="fas fa-caret-right" style="float: right; margin-top: 4px;"></i>
+              </a>
+              <div class="dropdown-content submenu-content" id="example-list">
+                <!-- Examples will be loaded here -->
+                <a href="javascript:void(0)" style="color: #999; pointer-events: none;">Loading...</a>
+              </div>
+            </div>
           </div>
         </div>
         <div class="separator"></div>
@@ -251,7 +259,12 @@
         <div class="modal-body">
           <div class="sensors-section">
             <div class="sensor-preview-container">
-              <h4>Sensor Preview</h4>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4 style="margin: 0;">Sensor Preview</h4>
+                <label style="font-size: 12px; display: flex; align-items: center; gap: 5px; color: #ccc; cursor: pointer;">
+                  <input type="checkbox" id="show-rays-checkbox" checked onchange="toggleSensorRays(this.checked)"> Ultrasonic Line
+                </label>
+              </div>
               <div id="sensor-preview" class="sensor-preview">
                 <svg
                   id="preview-svg"
@@ -304,7 +317,7 @@
                 </svg>
               </div>
             </div>
-            <div>
+            <div class="sensors-right-panel">
               <div class="motorPosition-container">
                 <h4>Wheel Position</h4>
                 <div class="motorPosition-input">
@@ -319,14 +332,19 @@
                   />
                 </div>
               </div>
-            </div>
 
-            <div class="sensors-list">
-              <button class="btn-add-sensor" onclick="addSensorToList()">
-                + Add Sensor
-              </button>
-
-              <div id="sensors-container" class="sensors-container"></div>
+              <div class="sensors-list">
+                <div class="add-sensor-controls">
+                  <button class="btn-add-sensor" onclick="addSensorToList('light')">
+                    + Light Sensor
+                  </button>
+                  <button class="btn-add-sensor" style="background-color: #0984e3;" onclick="addSensorToList('ultrasonic')">
+                    + Ultrasonic
+                  </button>
+                </div>
+  
+                <div id="sensors-container" class="sensors-container"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -350,8 +368,14 @@
       // เมื่อโหลดหน้าเว็บเสร็จ ให้ดึงข้อมูลจาก Storage มาใช้ทันที
       window.addEventListener("DOMContentLoaded", () => {
         // รอสักครู่เพื่อให้ Editor โหลดเสร็จ (ถ้ามี Delay)
-        setTimeout(loadFromWebStorage, 100);
+        setTimeout(() => {
+            loadFromWebStorage();
+            if (typeof loadExampleMenu === "function") {
+                loadExampleMenu();
+            }
+        }, 100);
       });
     </script>
+    <div class="version-overlay"></div>
   </body>
 </html>

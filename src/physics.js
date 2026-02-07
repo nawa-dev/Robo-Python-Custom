@@ -127,6 +127,14 @@ function updatePhysics(timestamp) {
 }
 
 // --- 3. ระบบการจัดการเซนเซอร์ (Sensor Management) ---
+
+let showSensorRays = true;
+
+function toggleSensorRays(enabled) {
+    showSensorRays = enabled;
+    updateSensorDots();
+}
+
 /**
  * อัปเดตตำแหน่งและการแสดงผลของจุดเซนเซอร์บนตัวหุ่นยนต์
  */
@@ -156,13 +164,51 @@ function updateSensorDots() {
     dot.style.left = canvasX + "px";
     dot.style.top = canvasY + "px";
 
-    // คำนวณค่าความสว่างพื้นผิวใต้ตำแหน่งเซนเซอร์
-    let brightness = 512;
-    if (canvasPixelData) {
-      brightness = getPixelBrightness(canvasX, canvasY);
+    if (sensor.type === "ultrasonic") {
+        dot.style.backgroundColor = sensor.color || "#0984e3";
+        // Calculate Direction of Sensor
+        // Sensor angle is relative to Robot angle
+        const sensorGlobalAngle = angle + (sensor.angle || 0); 
+        const dist = getUltrasonicDistance(canvasX, canvasY, sensorGlobalAngle, sensor.color || "#000000");
+        
+        sensor.value = dist; // Store current value
+        
+        dot.title = `${sensor.name} [${index}]\nDistance: ${dist.toFixed(1)} cm/px\nDetecting: ${sensor.color || "#000000"}`;
+
+        dot.title = `${sensor.name} [${index}]\nDistance: ${dist.toFixed(1)} cm/px\nDetecting: ${sensor.color || "#000000"}`;
+
+        // Visualize Ray
+        if (showSensorRays) {
+            const rayLine = document.createElement("div");
+            rayLine.style.position = "absolute";
+            rayLine.style.left = canvasX + "px";
+            rayLine.style.top = canvasY + "px";
+            rayLine.style.width = dist + "px";
+            rayLine.style.height = "1px";
+            
+            // Use sensor color for ray, but semi-transparent
+            const rayColor = sensor.color || "#0984e3";
+            rayLine.style.backgroundColor = rayColor; 
+            rayLine.style.opacity = "0.5";
+            
+            rayLine.style.transformOrigin = "0 0";
+            rayLine.style.transform = `rotate(${sensorGlobalAngle}deg)`;
+            rayLine.style.pointerEvents = "none";
+            rayLine.className = "sensor-dot"; // Add class to remove on next update
+            canvasArea.appendChild(rayLine);
+        }
+
+    } else {
+        // Light Sensor
+        // คำนวณค่าความสว่างพื้นผิวใต้ตำแหน่งเซนเซอร์
+        let brightness = 512;
+        if (canvasPixelData) {
+            brightness = getPixelBrightness(canvasX, canvasY);
+        }
+        sensor.value = brightness; // Store value
+        dot.title = `${sensor.name} [${index}]\nBrightness: ${brightness}`;
     }
 
-    dot.title = `${sensor.name} [${index}]\nความสว่าง: ${brightness}`;
     dot.dataset.sensorId = sensor.id;
 
     canvasArea.appendChild(dot);
@@ -205,4 +251,77 @@ function getPixelBrightness(x, y) {
   // ปรับให้ค่าสูง (ใกล้ 1024) แทนสีดำ และค่าต่ำแทนสีขาว เพื่อให้ง่ายต่อการเขียนโค้ดเดินตามเส้น
   const avgBrightness = (r + g + b) / 3;
   return Math.round((255 - avgBrightness) * 4);
+}
+
+/**
+ * Calculate distance using Raycasting
+ * @param {number} startX - Start X coordinate
+ * @param {number} startY - Start Y coordinate
+ * @param {number} angleDeg - Ray angle in degrees
+ * @returns {number} Distance in pixels (max 800)
+ */
+/**
+ * Calculate distance using Raycasting
+ * @param {number} startX - Start X coordinate
+ * @param {number} startY - Start Y coordinate
+ * @param {number} angleDeg - Ray angle in degrees
+ * @param {string} targetColor - Hex color to detect (e.g., "#000000")
+ * @returns {number} Distance in pixels (max 800)
+ */
+function getUltrasonicDistance(startX, startY, angleDeg, targetColor) {
+    if (!canvasPixelData) return 800;
+
+    const rad = (angleDeg * Math.PI) / 180;
+    const cosA = Math.cos(rad);
+    const sinA = Math.sin(rad);
+    
+    // Parse target color
+    let tr = 0, tg = 0, tb = 0;
+    if (targetColor && targetColor.startsWith("#")) {
+        const hex = targetColor.substring(1);
+        tr = parseInt(hex.substring(0, 2), 16);
+        tg = parseInt(hex.substring(2, 4), 16);
+        tb = parseInt(hex.substring(4, 6), 16);
+    }
+
+    let dist = 0;
+    const step = 2; // Step size for optimization
+    const maxDist = 800; // Max range
+    const threshold = 100; // Color distance threshold (0-441 approx)
+
+    while (dist < maxDist) {
+        dist += step;
+        const cx = startX + dist * cosA;
+        const cy = startY + dist * sinA;
+
+        // Check boundaries
+        if (cx < 0 || cx >= canvasArea.offsetWidth || cy < 0 || cy >= canvasArea.offsetHeight) {
+            return dist;
+        }
+
+        const pixelX = Math.round(cx);
+        const pixelY = Math.round(cy);
+        const width = canvasArea.offsetWidth;
+        const idx = (pixelY * width + pixelX) * 4;
+
+        if (idx < 0 || idx >= canvasPixelData.length) return dist;
+
+        const r = canvasPixelData[idx];
+        const g = canvasPixelData[idx+1];
+        const b = canvasPixelData[idx+2];
+        
+        // Calculate Euclidean distance between colors
+        // dist = sqrt((r1-r2)^2 + (g1-g2)^2 + (b1-b2)^2)
+        const colorDist = Math.sqrt(
+            Math.pow(r - tr, 2) + 
+            Math.pow(g - tg, 2) + 
+            Math.pow(b - tb, 2)
+        );
+
+        if (colorDist < threshold) {
+            return dist;
+        }
+    }
+
+    return maxDist;
 }

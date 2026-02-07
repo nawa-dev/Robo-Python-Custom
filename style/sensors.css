@@ -15,8 +15,34 @@
   background: #1e1e1e;
   padding: 15px;
   border-radius: 6px;
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; Removed to let flex gap handle it */
   border: 1px solid #3e3e3e;
+  flex: 1; /* Take available space */
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  z-index: 10;
+}
+
+.sensors-section {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  .sensors-section {
+    flex-direction: column;
+  }
+}
+
+.sensors-right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .sensor-preview-container h4 {

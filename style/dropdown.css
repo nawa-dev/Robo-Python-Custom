@@ -14,8 +14,8 @@
   background-color: #f9f9f9;
   min-width: 160px;
   box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-  z-index: 1;
-  border-radius: 4px;
+  z-index: 1000;
+  /* border-radius: 4px; */
   margin-top: 0.5px;
 }
 
@@ -32,10 +32,33 @@
   background-color: #f1f1f1;
 }
 
-.dropdown:hover .dropdown-content {
+.dropdown:hover > .dropdown-content {
   display: block;
 }
 
 .dropdown:hover .dropbtn {
   background-color: #e0e0e0;
+}
+
+/* Submenu styles */
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu .submenu-content {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-top: 0px;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  border-radius: 0px;
+}
+
+.dropdown-submenu:hover .submenu-content {
+  
+  display: block;
 }

@@ -44,8 +44,11 @@ function runCode() {
   // Prepend imports to make usage simpler for the user
   // This allows calling motor(), delay() directly without imports
   // delay(ms) is added to match the previous JS API (milliseconds)
-  const headerCode = "from robot import *\nfrom time import sleep\n\ndef delay(t):\n    sleep(t/1000)\n";
-  const finalCode = headerCode + code;
+  const headerCode = "from robot import *\n";
+  
+  // Inject automatic delay(1) into while loops to prevent freezing
+  const processedCode = preprocessCode(code);
+  const finalCode = headerCode + processedCode;
 
   // รันโค้ด
   executionPromise = Sk.misceval.asyncToPromise(() => {
@@ -67,6 +70,79 @@ function runCode() {
       isRunning = false;
       stopProgram();
     });
+}
+
+/**
+ * Preprocess Python code to inject delay(5) into while loops.
+ * This prevents the browser from freezing (infinite loops) without using yieldLimit.
+ * Supports:
+ * - Block while: while True:\n    ... -> while True:\n    delay(5)\n    ...
+ * - Inline while: while True: print(1) -> while True: delay(5); print(1)
+ */
+function preprocessCode(code) {
+    const lines = code.split("\n");
+    let result = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Check for 'while' statement (basic regex, ignores strings/comments for simplicity)
+        // Matches: whitespace + while + condition + :
+        if (/^\s*while\s+.*:/.test(line)) {
+            
+            // Case 1: Inline while (e.g. while 1: print(1))
+            // Check if there is content after the colon
+            const parts = line.split(":");
+            const afterColon = parts.slice(1).join(":").trim();
+            
+            if (afterColon.length > 0 && !afterColon.startsWith("#")) {
+                // Determine indentation of the while statement
+                const loopIndentMatch = line.match(/^(\s*)/);
+                const loopIndent = loopIndentMatch ? loopIndentMatch[1] : "";
+                
+                // Reconstruct: "while ... : delay(1); ..."
+                // parts[0] is "while ..."
+                const preColon = parts[0]; 
+                
+                // Need to be careful with nested colons? regex is safer.
+                // Improve regex to capture pre-colon and post-colon
+                const matchIndex = line.indexOf(":");
+                const declaration = line.substring(0, matchIndex + 1);
+                const content = line.substring(matchIndex + 1);
+                
+                result.push(`${declaration} delay(1); ${content}`);
+                continue;
+            }
+
+            // Case 2: Block while (e.g. while 1:\n    ...)
+            result.push(line);
+            
+            // Look ahead for the next non-empty line to find indentation
+            let nextLineIndex = i + 1;
+            let nextIndent = "";
+            
+            while (nextLineIndex < lines.length) {
+                const nextLine = lines[nextLineIndex];
+                if (nextLine.trim().length > 0 && !nextLine.trim().startsWith("#")) {
+                    const indentMatch = nextLine.match(/^(\s+)/);
+                    if (indentMatch) {
+                        nextIndent = indentMatch[1];
+                    }
+                    break;
+                }
+                nextLineIndex++;
+            }
+            
+            // If found valid indentation, inject delay
+            if (nextIndent) {
+                result.push(`${nextIndent}delay(1)`);
+            }
+        } else {
+            result.push(line);
+        }
+    }
+    
+    return result.join("\n");
 }
 
 function stopProgram() {
@@ -175,24 +251,55 @@ Sk.builtins.robot = {
   }),
 
   // analogRead(index)
+  // analogRead(index)
   analogRead: new Sk.builtin.func(function(index) {
     Sk.builtin.pyCheckArgs("analogRead", arguments, 1, 1);
     let i = Sk.builtin.asnum$(index);
     
-    if (i < 0 || i >= sensors.length) return new Sk.builtin.int_(0);
-    
-    const s = sensors[i];
-    const localX = s.x - 25;
-    const localY = s.y - 25;
-    const rad = (angle * Math.PI) / 180;
-    
-    const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
-    const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
-    
-    const canvasX = robotX + 25 + rotatedX;
-    const canvasY = robotY + 25 + rotatedY;
-    
-    return new Sk.builtin.int_(getPixelBrightness(canvasX, canvasY));
+    // Create a promise to yield to the browser's event loop
+    let promise = new Promise(function(resolve, reject) {
+        if (stopRequest) {
+            reject("StopExecution");
+            return;
+        }
+
+        // Use setTimeout(0) to allow UI updates/events to process
+        setTimeout(() => {
+            if (stopRequest) {
+                reject("StopExecution");
+                return;
+            }
+
+            if (i < 0 || i >= sensors.length) {
+                resolve(new Sk.builtin.int_(0));
+                return;
+            }
+            
+            const s = sensors[i];
+            let result;
+
+            if (s.type === "ultrasonic") {
+                result = Math.round(s.value || 0);
+            } else {
+                // Light Sensor Calculation
+                const localX = s.x - 25;
+                const localY = s.y - 25;
+                const rad = (angle * Math.PI) / 180;
+                
+                const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
+                const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
+                
+                const canvasX = robotX + 25 + rotatedX;
+                const canvasY = robotY + 25 + rotatedY;
+                
+                result = getPixelBrightness(canvasX, canvasY);
+            }
+            
+            resolve(new Sk.builtin.int_(result));
+        }, 0);
+    });
+
+    return new Sk.misceval.promiseToSuspension(promise);
   }),
 
   // SW(n) -> bool
@@ -227,6 +334,31 @@ Sk.builtins.robot = {
       checkBtn();
     });
     
+    return new Sk.misceval.promiseToSuspension(promise);
+  }),
+  
+  // delay(ms)
+  delay: new Sk.builtin.func(function(ms) {
+    Sk.builtin.pyCheckArgs("delay", arguments, 1, 1);
+    let duration = Sk.builtin.asnum$(ms);
+
+    let promise = new Promise(function(resolve, reject) {
+       // Initial check
+       if (stopRequest) {
+           reject("StopExecution");
+           return;
+       }
+       
+       setTimeout(() => {
+           // Check again when waking up
+           if (stopRequest) {
+               reject("StopExecution");
+           } else {
+               resolve(Sk.builtin.none.none$);
+           }
+       }, duration);
+    });
+
     return new Sk.misceval.promiseToSuspension(promise);
   }),
   

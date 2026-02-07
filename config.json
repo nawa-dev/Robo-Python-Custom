@@ -1,0 +1,11 @@
+{
+    "app": {
+        "name": "ROBO-PYTHON",
+        "version": "v1.2",
+        "title": "ROBO-PYTHON Simulator"
+    },
+    "ui": {
+        "logoPosition": "left",
+        "showVersionOverlay": true
+    }
+}

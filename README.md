@@ -10,34 +10,40 @@ A web-based **2D robot programming simulator** that allows users to control a ro
 
 ## ✨ Features
 
-- **2D robot simulation** with movement and rotation
-- **Up to 25 light intensity sensors** and **3 push buttons**
-- **Independent control of left and right motors** with speed range from `-100` to `100`
-- **In-browser Python execution** powered by [Skulpt](https://skulpt.org/)
-- **Customizable fields** (change field type and size)
-- **Import / Export projects** using JSON files
-- **Built-in debug console**
-- **Drag & drop the robot** while stopped or even while running
+- **2D robot simulation** with differential drive kinematics
+- **Multiple Sensor Types**: Support for **Light Sensors** (brightness) and **Ultrasonic Sensors** (distance)
+- **Color Detection**: Ultrasonic sensors can detect specific colors as obstacles
+- **Interactive UI**: Drag & drop robot, configurable map, and sensor settings
+- **Smart Python Environment**:
+    - **In-browser execution** via [Skulpt](https://skulpt.org/)
+    - **Auto-Delay Injection**: Automatically prevents browser freeze in infinite loops
+    - **Native Stop**: Stop button interrupts execution immediately
+- **Customizable**: Change sensor positions (X, Y), angles (-180° to 180°), and detection colors
 
 ---
 
 ## 🚀 Getting Started
 
-1. Download the sample project `sampleSetup.json` (optional)
-2. Open the simulator in your browser (index.html)
-3. Go to **File → Open** to load a project, or start coding in the editor!
-4. Click **Run** to execute your Python code.
+1. **Open** `index.html` in your browser.
+2. **Add Sensors**: Click "Sensor Settings" to add Light or Ultrasonic sensors.
+3. **Configure**: Set position, angle, and target color for each sensor.
+4. **Code**: Write Python code using the API below.
+5. **Run**: Click "Run" to simulate!
 
 ---
 
 ## 📟 Python API Reference
 
-| Command              | Description                                                                                |
-| :------------------- | :----------------------------------------------------------------------------------------- |
-| `motor(left, right)` | Control left and right wheel motors. Speed range: `-100` to `100`.                         |
-| `delay(ms)`          | Pause execution for the specified milliseconds (e.g., `delay(1000)` for 1 second).         |
-| `analogRead(index)`  | Read light intensity from a specific sensor (`0 - 1024`). `0` = Left, `1` = Right, etc.    |
-| `SW(n)`              | Check the state of button `SW1`, `SW2`, or `SW3`. Returns `True` if pressed, else `False`. |
-| `waitSW(n)`          | Pause program execution until the specified button (`1`, `2`, or `3`) is pressed.          |
-| `print(message)`     | Print text or values to the simulator console.                                             |
-| `getSensorCount()`   | Returns the total number of active sensors on the robot.                                   |
+| Command              | Description                                                                                                                                                                                                 |
+| :------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `motor(left, right)` | Control motors. Speed: `-100` to `100`.<br>Example: `motor(50, 50)` moves forward.                                                                                                                          |
+| `delay(ms)`          | Pause execution for `ms` milliseconds.<br>Example: `delay(1000)` pauses for 1 second.                                                                                                                       |
+| `analogRead(index)`  | Read value from sensor at `index` (0, 1, 2...).<br>- **Light Sensor**: Returns brightness (0-1024).<br>- **Ultrasonic Sensor**: Returns distance in pixels (0-800).                                         |
+| `SW()`               | Check the state of the switch button `SW1` (if available). Returns `True` if pressed.                                                                                                                       |
+| `waitSW()`           | Pause program until the switch button `SW1` is pressed.                                                                                                                                                     |
+| `print(message)`     | Print text to the debug console.                                                                                                                                                                            |
+| `getSensorCount()`   | Returns total number of sensors attached.                                                                                                                                                                   |
+
+### 💡 Tips
+- **Infinite Loops**: You can safely use `while True:` or `while 1:` loops. The system automatically inserts a small delay to keep the browser responsive.
+- **Ultrasonic Color**: In sensor settings, pick a color (e.g., Red). The simulator will treat *only* that color as an obstacle for that specific sensor.

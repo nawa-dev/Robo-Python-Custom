@@ -15,24 +15,32 @@ function closeRobotSettings() {
 }
 
 // --- Add sensor ---
-function addSensorToList() {
+function addSensorToList(type = "light") {
   if (sensors.length >= MAX_SENSORS) {
     logToConsole(`Maximum sensors (${MAX_SENSORS}) reached!`, "error");
     return;
   }
 
+  const id = Date.now();
+  // Count existing sensors of this type for naming
+  const count = sensors.filter((s) => s.type === type).length + 1;
+  const name = type === "light" ? `Light ${count}` : `Ultra ${count}`;
+
   sensors.push({
-    id: Date.now(),
+    id: id,
+    type: type, // "light" or "ultrasonic"
     x: 45,
     y: 25,
-    name: `Light Sensor ${sensors.length + 1}`,
+    angle: 0, // Ultrasonic mostly needs angle relative to robot
+    color: "#000000", // Default obstacle color (Black)
+    name: name,
     isNew: true,
   });
 
   updateSensorPreview();
   renderSensorsList();
   updateSensorDots();
-  logToConsole(`New sensor added. Edit position in the list.`, "info");
+  logToConsole(`New ${type} sensor added.`, "info");
 }
 
 // --- Delete sensor ---
@@ -51,29 +59,38 @@ function updateSensorValue(id, axis, value) {
 
   const numValue = parseFloat(value);
 
-  if (isNaN(numValue) || numValue < 0 || numValue > 50) {
+  // Validate X/Y Position (0-50)
+  if ((axis === "x" || axis === "y") && (isNaN(numValue) || numValue < 0 || numValue > 50)) {
     logToConsole(`Position must be between 0 and 50!`, "error");
-    if (axis === "x") {
-      document.getElementById(`sensor-${id}-x`).value = sensor.x;
-    } else {
-      document.getElementById(`sensor-${id}-y`).value = sensor.y;
-    }
+    document.getElementById(`sensor-${id}-${axis}`).value = sensor[axis];
+    return;
+  }
+
+  // Validate Angle (-180 to 180)
+  if (axis === "angle" && (isNaN(numValue) || numValue < -180 || numValue > 180)) {
+    logToConsole(`Angle must be between -180 and 180!`, "error");
+    document.getElementById(`sensor-${id}-angle`).value = sensor.angle;
     return;
   }
 
   if (axis === "x") {
     sensor.x = numValue;
-  } else {
+  } else if (axis === "y") {
     sensor.y = numValue;
+  } else if (axis === "angle") {
+      // Angle logic
+      if (isNaN(numValue)) return;
+      sensor.angle = numValue;
+  } else if (axis === "color") {
+      // Color logic
+      sensor.color = value;
   }
 
   sensor.isNew = false;
   updateSensorPreview();
   updateSensorDots();
   logToConsole(
-    `Sensor ${sensor.name} updated to (${sensor.x.toFixed(
-      1,
-    )}, ${sensor.y.toFixed(1)})`,
+    `Sensor ${sensor.name} updated to (${sensor.x.toFixed(1)}, ${sensor.y.toFixed(1)}${sensor.angle !== undefined ? ", " + sensor.angle + "°" : ""})`,
     "info",
   );
 }
@@ -85,6 +102,26 @@ function updateSensorPreview() {
   svg.querySelectorAll(".sensor-circle").forEach((el) => el.remove());
 
   sensors.forEach((sensor) => {
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    
+    // Draw direction line for Ultrasonic
+    if (sensor.type === "ultrasonic") {
+        const rad = ((sensor.angle || 0) * Math.PI) / 180;
+        const lineLen = 15; // Length of preview ray
+        const endX = sensor.x + Math.cos(rad) * lineLen;
+        const endY = sensor.y + Math.sin(rad) * lineLen;
+
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        line.setAttribute("x1", sensor.x);
+        line.setAttribute("y1", sensor.y);
+        line.setAttribute("x2", endX);
+        line.setAttribute("y2", endY);
+        line.setAttribute("stroke", "rgba(9, 132, 227, 0.7)");
+        line.setAttribute("stroke-width", "1");
+        line.setAttribute("class", "sensor-circle"); // Reuse class for cleanup
+        svg.appendChild(line);
+    }
+
     const circle = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "circle",
@@ -94,6 +131,12 @@ function updateSensorPreview() {
     circle.setAttribute("cx", sensor.x);
     circle.setAttribute("cy", sensor.y);
     circle.setAttribute("r", "2");
+
+    // Show different color for Ultrasonic
+    if (sensor.type === "ultrasonic") {
+        circle.style.fill = "#0984e3"; 
+        circle.setAttribute("fill", "#0984e3");
+    } 
     svg.appendChild(circle);
   });
 }
@@ -111,10 +154,11 @@ function renderSensorsList() {
   container.innerHTML = sensors
     .map(
       (sensor, index) => `
-    <div class="sensor-item ${sensor.isNew ? "sensor-item-new" : ""}">
+    <div class="sensor-item ${sensor.isNew ? "sensor-item-new" : ""}" style="border-left: 4px solid ${sensor.type === "ultrasonic" ? "#0984e3" : "#ff4757"}">
       <div class="sensor-item-info">
         <div class="sensor-item-label">
-          ${"Light Sensor " + index}
+          <i class="fas ${sensor.type === "ultrasonic" ? "fa-wifi" : "fa-lightbulb"}"></i>
+          <span>${index}: ${sensor.name}</span>
         </div>
         <div class="sensor-item-coords">
           <div class="sensor-coord-input">
@@ -141,6 +185,36 @@ function renderSensorsList() {
               onclick="event.stopPropagation()"
             />
           </div>
+          ${
+            sensor.type === "ultrasonic"
+              ? `
+          <div class="sensor-coord-input">
+            <label>∠:</label>
+            <input
+              type="number"
+              id="sensor-${sensor.id}-angle"
+              min="-180"
+              max="180"
+              value="${sensor.angle || 0}"
+              onchange="updateSensorValue(${sensor.id}, 'angle', this.value)"
+              onclick="event.stopPropagation()"
+              title="Angle relative to robot"
+            />
+          </div>
+          <div class="sensor-coord-input">
+            <label>Color:</label>
+            <input
+              type="color"
+              id="sensor-${sensor.id}-color"
+              value="${sensor.color || "#000000"}"
+              onchange="updateSensorValue(${sensor.id}, 'color', this.value)"
+              onclick="event.stopPropagation()"
+              title="Obstacle Color to detect"
+              style="width: 30px; padding: 0; border: none; background: none;"
+            />
+          </div>`
+              : ""
+          }
         </div>
       </div>
       <div class="sensor-item-actions">
@@ -153,14 +227,14 @@ function renderSensorsList() {
     )
     .join("");
 
-  const addBtn = document.querySelector(".btn-add-sensor");
-  if (sensors.length >= MAX_SENSORS) {
-    addBtn.disabled = true;
-    addBtn.innerText = `✓ Max Sensors Reached (${MAX_SENSORS})`;
-  } else {
-    addBtn.disabled = false;
-    addBtn.innerText = "+ Add Sensor";
-  }
+  const addBtns = document.querySelectorAll(".btn-add-sensor");
+  addBtns.forEach(btn => {
+     if (sensors.length >= MAX_SENSORS) {
+        btn.disabled = true;
+     } else {
+        btn.disabled = false;
+     }
+  });
 }
 
 // --- Close modal when clicking outside ---

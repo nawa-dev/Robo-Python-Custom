@@ -23,6 +23,19 @@ button {
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  box-sizing: border-box;
+}
+
+.version-overlay {
+  position: fixed;
+  bottom: 5px;
+  right: 10px;
+  color: #666;
+  font-size: 11px;
+  font-family: monospace;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 9999;
 }
 
 .separator {

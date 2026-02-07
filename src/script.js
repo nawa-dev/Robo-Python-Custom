@@ -208,7 +208,7 @@ function setupAutocomplete() {
       insertTextRules:
         monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
       documentation:
-        "Read sensor brightness value (0-1024). 0=light, 1024=dark",
+        "Read sensor value. Light: 0-1024 (Brightness), Ultrasonic: 0-800 (Distance pixels)",
       detail: "analogRead(index: number) -> number",
     },
     {
