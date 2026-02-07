@@ -88,11 +88,8 @@
           </div>
         </div>
         <div class="separator"></div>
-        <button id="run-btn" class="btn-run" onclick="runCode(); trackEvent('click', 'Toolbar', 'Run')">
+        <button id="run-stop-btn" class="btn-run" onclick="toggleRunStop(); trackEvent('click', 'Toolbar', 'RunStop')">
           <i class="fas fa-play"></i> Run
-        </button>
-        <button id="stop-btn" class="btn-stop" onclick="stopProgram(); trackEvent('click', 'Toolbar', 'Stop')">
-          <i class="fas fa-stop"></i> Stop
         </button>
         <button id="reset-btn" class="btn-reset" onclick="resetPosition(); trackEvent('click', 'Toolbar', 'Reset')">
           <i class="fas fa-undo"></i> Reset
@@ -171,7 +168,7 @@
         </div>
       </div>
 
-      <!-- <div class="github-container">
+      <div class="github-container">
         <a
           href="https://github.com/nawa-dev/Robo-Python"
           class="github-button"
@@ -180,7 +177,7 @@
           <i class="fa-brands fa-github"></i>
           <span>GITHUB</span>
         </a>
-      </div> -->
+      </div>
     </header>
 
     <main class="container">

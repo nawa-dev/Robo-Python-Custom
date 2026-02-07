@@ -17,6 +17,17 @@
   background: #ff6348;
 }
 
+.btn-stop-outline {
+  background: rgb(255, 255, 255);
+  color: #d63031;
+  border: 4px solid #d63031;
+}
+
+.btn-stop-outline:hover {
+  background: #d63031;
+  color: white;
+}
+
 .btn-reset {
   background: #555;
   color: white;

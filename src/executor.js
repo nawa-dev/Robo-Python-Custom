@@ -25,6 +25,7 @@ function runCode() {
   const code = editor.getValue();
   isRunning = true;
   stopRequest = false;
+  updateRunStopButtonIO("stop");
 
   logToConsole("Starting Python execution...", "info");
 
@@ -77,6 +78,7 @@ function stopProgram() {
   motorL = 0;
   motorR = 0;
   if (window.physics) window.physics.setTargets(0, 0);
+  updateRunStopButtonIO("run");
 }
 
 function resetPosition() {
@@ -88,10 +90,37 @@ function resetPosition() {
   logToConsole("Robot position reset.", "info");
 }
 
+/* =========================
+ * Toggle Run/Stop Logic
+ * ========================= */
+function toggleRunStop() {
+  if (isRunning) {
+    stopProgram();
+  } else {
+    runCode();
+  }
+}
+
+function updateRunStopButtonIO(state) {
+  const btn = document.getElementById("run-stop-btn");
+  if (!btn) return;
+
+  if (state === "run") {
+    // Show "Run"
+    btn.innerHTML = '<i class="fas fa-play"></i> Run';
+    btn.className = "btn-run";
+  } else {
+    // Show "Stop"
+    btn.innerHTML = '<i class="fas fa-stop"></i> Stop';
+    btn.className = "btn-stop";
+  }
+}
+
 // Expose functions to global scope for HTML buttons
 window.runCode = runCode;
 window.stopProgram = stopProgram;
 window.resetPosition = resetPosition;
+window.toggleRunStop = toggleRunStop;
 
 /* =========================
  * Skulpt Module Loader
