@@ -32,6 +32,7 @@ function updateCanvasImageData() {
           canvas.height,
         ).data;
         logToConsole("Canvas image data updated.", "info");
+        if (typeof updateSensorDots === 'function') updateSensorDots();
       };
       img.onerror = () => {
         logToConsole("Failed to load background image, using default.", "info");
@@ -41,6 +42,7 @@ function updateCanvasImageData() {
           canvas.width,
           canvas.height,
         ).data;
+        if (typeof updateSensorDots === 'function') updateSensorDots();
       };
       img.src = imageUrl;
     } catch (e) {
@@ -51,10 +53,12 @@ function updateCanvasImageData() {
         canvas.width,
         canvas.height,
       ).data;
+      if (typeof updateSensorDots === 'function') updateSensorDots();
     }
   } else {
     canvasPixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     logToConsole("Using default canvas background.", "info");
+    if (typeof updateSensorDots === 'function') updateSensorDots();
   }
 }
 
