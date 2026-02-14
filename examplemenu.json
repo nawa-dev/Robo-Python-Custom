@@ -1,10 +1,10 @@
 [
     {
         "name": "Follow Line",
-        "file": "example/followLine.json"
+        "file": "example/FollowLine.json"
     },
     {
         "name": "Ultrasonic",
-        "file": "example/ultrasonic.json"
+        "file": "example/Ultrasonic.json"
     }
 ]
