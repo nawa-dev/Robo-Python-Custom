@@ -1,0 +1,72 @@
+{
+  "version": "1.1",
+  "timestamp": "2026-03-21T17:14:17.661Z",
+  "projectName": "Gripper",
+  "canvas": {
+    "width": "800",
+    "height": "600"
+  },
+  "map": {
+    "type": "default",
+    "imageData": "none",
+    "fileName": ""
+  },
+  "sensors": [],
+  "grips": [
+    {
+      "id": 1774107747304,
+      "name": "Grip 1",
+      "x": 50,
+      "y": 0,
+      "angle": 0
+    },
+    {
+      "id": 1774107944312,
+      "name": "Grip 2",
+      "x": 50,
+      "y": 50,
+      "angle": 0
+    },
+    {
+      "id": 1774111053114,
+      "name": "Grip 3",
+      "x": 0,
+      "y": 0,
+      "angle": 180
+    },
+    {
+      "id": 1774111053426,
+      "name": "Grip 4",
+      "x": 0,
+      "y": 50,
+      "angle": 180
+    }
+  ],
+  "canvasObjects": [
+    {
+      "id": "obj_1774106459099",
+      "x": 503.79998779296875,
+      "y": 246.70931672727409,
+      "radius": 15,
+      "color": "#f1c40f",
+      "vx": 0,
+      "vy": 0
+    },
+    {
+      "id": "obj_1774108205527",
+      "x": 453.79998779296875,
+      "y": 246.70931672727409,
+      "radius": 15,
+      "color": "#e74c3c",
+      "vx": 0,
+      "vy": 0
+    }
+  ],
+  "sourceCode": "motor(50, 50) \ndelay(2000)    \nmotor(0, 0)   \n\ngrab(0)        \ngrab(1)         \n\n\nmotor(-50, -50)\ndelay(1000)\nmotor(0, 0)\n\nrelease(0)   \nrelease(1)\n\n\n   \nmotor(-50, -50)\ndelay(1000)\n\n\n   \n",
+  "robotState": {
+    "x": 452.79998779296875,
+    "y": 300,
+    "angle": 270,
+    "motorPos": 0
+  }
+}

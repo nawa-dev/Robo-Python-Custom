@@ -381,33 +381,44 @@ function clearConsole() {
 }
 
 // ส่วนที่ 6: ควบคุมมุม Robot
-function updateAngleDisplay(value) {
-  const angleInput = document.getElementById("angle-input");
-  angleInput.value = Math.round(value);
-}
 
 function handleAngleInput(value) {
   if (isRunning) {
     logToConsole("Cannot change angle while program is running!", "error");
-    document.getElementById("angle-input").value = Math.round(angle);
-    document.getElementById("angle-slider").value = angle;
     return;
   }
 
   let newAngle = parseFloat(value);
+  if (isNaN(newAngle)) return;
 
-  if (isNaN(newAngle)) {
-    document.getElementById("angle-input").value = Math.round(angle);
-    return;
-  }
-
+  // Wrap angle between 0-359
   newAngle = ((newAngle % 360) + 360) % 360;
 
   angle = newAngle;
-  document.getElementById("angle-slider").value = newAngle;
-  document.getElementById("angle-input").value = Math.round(newAngle);
   updateRobotDOM();
   logToConsole(`Robot angle set to ${Math.round(angle)}°`, "info");
+}
+
+function rotateRobot(delta) {
+  if (isRunning) {
+    logToConsole("Cannot rotate robot while program is running!", "error");
+    return;
+  }
+
+  // Snap to multiples of 45
+  let newAngle;
+  if (delta > 0) {
+    newAngle = (Math.floor(angle / 45) + 1) * 45;
+  } else {
+    newAngle = (Math.ceil(angle / 45) - 1) * 45;
+  }
+
+  // Wrap angle between 0-359
+  newAngle = ((newAngle % 360) + 360) % 360;
+
+  angle = newAngle;
+  updateRobotDOM();
+  logToConsole(`Robot rotated to ${Math.round(angle)}°`, "info");
 }
 
 function handleMotorPosition(value) {
@@ -430,13 +441,10 @@ function handleMotorPosition(value) {
 function updateRobotAngle(value) {
   if (isRunning) {
     logToConsole("Cannot change angle while program is running!", "error");
-    document.getElementById("angle-slider").value = angle;
-    document.getElementById("angle-input").value = Math.round(angle);
     return;
   }
 
   angle = parseFloat(value);
-  document.getElementById("angle-input").value = Math.round(angle);
   updateRobotDOM();
 }
 

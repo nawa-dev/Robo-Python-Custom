@@ -37,10 +37,30 @@
   font-size: 13px;
 }
 
-.angle-control input[type="range"] {
-  width: 100px;
+.angle-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-angle {
+  background: #2d2d2d;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 4px 8px;
   cursor: pointer;
-  accent-color: #ff4757;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.btn-angle:hover {
+  background: #4a4a4a;
+}
+
+.btn-angle i {
+  font-size: 12px;
 }
 
 #angle-display {

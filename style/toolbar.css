@@ -22,7 +22,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-right: auto;
+  margin-right: 30px; /* Space between logo and actions */
 }
 
 .image-logo img {
@@ -60,6 +60,7 @@
   min-width: 100px;
   justify-content: flex-end;
   padding: 10px;
+  margin-left: auto; /* Push to the far right */
 }
 
 .github-button {

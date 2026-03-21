@@ -165,23 +165,22 @@
 
         <div class="angle-control">
           <span>Angle:</span>
-          <input
-            type="range"
-            id="angle-slider"
-            min="0"
-            max="360"
-            value="0"
-            oninput="updateRobotAngle(this.value)"
-          />
-          <input
-            type="number"
-            id="angle-input"
-            min="0"
-            max="360"
-            value="0"
-            onchange="handleAngleInput(this.value)"
-            placeholder="0°"
-          />
+          <div class="angle-buttons">
+            <button
+              class="btn-angle"
+              onclick="rotateRobot(-45)"
+              title="Rotate Left 45°"
+            >
+              <i class="fas fa-undo"></i>
+            </button>
+            <button
+              class="btn-angle"
+              onclick="rotateRobot(45)"
+              title="Rotate Right 45°"
+            >
+              <i class="fas fa-redo"></i>
+            </button>
+          </div>
         </div>
 
         <div class="separator"></div>
