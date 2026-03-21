@@ -60,10 +60,15 @@
   </head>
   <body>
     <header class="toolbar">
-      <div class="logo">
-        <span class="logo-robo">ROBO</span>-<span class="logo-python"
-          >PYTHON</span
-        >
+      <div class="logo-section">
+        <div class="image-logo">
+          <img src="src/img/icon.png" alt="logo" />
+        </div>
+        <div class="logo">
+          <span class="logo-robo">ROBO</span>-<span class="logo-python"
+            >PYTHON</span
+          >
+        </div>
       </div>
 
       <div class="actions">
@@ -145,7 +150,18 @@
         </button>
         <div class="separator"></div>
 
+        <button
+          id="robot-settings-btn"
+          class="btn-tool"
+          onclick="
+            openRobotSettings();
+            trackEvent('click', 'Toolbar', 'SensorSettings');
+          "
+        >
+          <i class="fa-solid fa-gear"></i> Sensor
+        </button>
 
+        <div class="separator"></div>
 
         <div class="angle-control">
           <span>Angle:</span>
@@ -440,6 +456,144 @@
       </section>
     </main>
 
+    <!-- Robot Settings Modal -->
+    <div id="robot-settings-modal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Sensor</h2>
+          <button class="modal-close" onclick="closeRobotSettings()">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="sensors-section">
+            <div class="sensor-preview-container">
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 10px;
+                "
+              >
+                <h4 style="margin: 0">Sensor Preview</h4>
+                <label
+                  style="
+                    font-size: 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 5px;
+                    color: #ccc;
+                    cursor: pointer;
+                  "
+                >
+                  <input
+                    type="checkbox"
+                    id="show-rays-checkbox"
+                    checked
+                    onchange="toggleSensorRays(this.checked)"
+                  />
+                  Ultrasonic Line
+                </label>
+              </div>
+              <div id="sensor-preview" class="sensor-preview">
+                <svg
+                  id="preview-svg"
+                  viewBox="-25 -25 100 100"
+                  width="200"
+                  height="200"
+                >
+                  <rect
+                    x="0"
+                    y="0"
+                    width="50"
+                    height="50"
+                    fill="#ff4757"
+                    stroke="#333"
+                    stroke-width="1"
+                  />
+
+                  <rect
+                    id="motor-left"
+                    x="20"
+                    y="-10"
+                    width="10"
+                    height="15"
+                    fill="#ff"
+                    stroke="#333"
+                    stroke-width="1"
+                  />
+
+                  <rect
+                    id="motor-right"
+                    x="20"
+                    y="45"
+                    width="10"
+                    height="15"
+                    fill="#ff"
+                    stroke="#333"
+                    stroke-width="1"
+                  />
+
+                  <text
+                    x="25"
+                    y="28"
+                    text-anchor="middle"
+                    fill="white"
+                    font-size="8"
+                    font-weight="bold"
+                  >
+                    ROBOT
+                  </text>
+                </svg>
+              </div>
+            </div>
+            <div class="sensors-right-panel">
+              <div class="motorPosition-container">
+                <h4>Wheel Position</h4>
+                <div class="motorPosition-input">
+                  <input
+                    type="number"
+                    id="motorPos-input"
+                    min="-20"
+                    max="20"
+                    value="0"
+                    onchange="handleMotorPosition(this.value)"
+                    placeholder="0°"
+                  />
+                </div>
+              </div>
+
+              <div class="sensors-list">
+                <div class="add-sensor-controls">
+                  <button
+                    class="btn-add-sensor"
+                    onclick="addSensorToList('light')"
+                  >
+                    + Light Sensor
+                  </button>
+                  <button
+                    class="btn-add-sensor"
+                    style="background-color: #0984e3"
+                    onclick="addSensorToList('ultrasonic')"
+                  >
+                    + Ultrasonic
+                  </button>
+                </div>
+
+                <div id="sensors-container" class="sensors-container"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-primary" onclick="closeRobotSettings()">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+
     <input
       type="file"
       id="file-input"
@@ -462,9 +616,3 @@
     <div class="version-overlay"></div>
   </body>
 </html>
-
-<!--
-ฉันอยากให้ มีแทบให้เลือก ระหว่าง code กับ robot setting
-โดยให้เปลี่ยนจากต้องกด setting แล้วจะเป็น Modal ขึ้นมา
-เป็นมีแทบให้เลือก ระหว่าง code กับ robot setting
- -->

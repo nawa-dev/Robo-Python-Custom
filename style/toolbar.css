@@ -18,10 +18,21 @@
   gap: 6px;
 }
 
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+}
+
+.image-logo img {
+  height: 32px;
+  display: block;
+}
+
 .logo {
   font-weight: bold;
   font-size: 18px;
-  margin-right: 15px;
 }
 .logo-robo {
   color: #008dd4; /* ฟ้า/ไซไฟ */
