@@ -219,12 +219,12 @@ function renderGripsList() {
         <span class="sensor-panel-item-name grip-name">GRIP ${index + 1}</span>
         <label>X:</label>
         <input type="number" id="grip-${grip.id}-x"
-          min="-25" max="75" value="${grip.x}"
+          min="0" max="50" value="${grip.x}"
           onchange="updateGripValue(${grip.id}, 'x', this.value)"
           onclick="event.stopPropagation()" />
         <label>Y:</label>
         <input type="number" id="grip-${grip.id}-y"
-          min="-25" max="75" value="${grip.y}"
+          min="0" max="50" value="${grip.y}"
           onchange="updateGripValue(${grip.id}, 'y', this.value)"
           onclick="event.stopPropagation()" />
         <label>&#x2220;:</label>
