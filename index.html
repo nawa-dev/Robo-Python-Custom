@@ -262,94 +262,76 @@
 
         <!-- Robot Settings Tab -->
         <div id="tab-settings" class="tab-content">
-          <div class="sensors-section">
-            <div class="sensor-preview-container">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h4 style="margin: 0;">Sensor Preview</h4>
-                <label style="font-size: 12px; display: flex; align-items: center; gap: 5px; color: #ccc; cursor: pointer;">
-                  <input type="checkbox" id="show-rays-checkbox" checked onchange="toggleSensorRays(this.checked)"> Ultrasonic Line
+          <!-- Top Row: Preview + Device Selector -->
+          <div class="settings-top-row">
+            <!-- Top Left: Preview -->
+            <div class="settings-preview-box">
+              <div class="settings-preview-header">
+                <span>Preview</span>
+                <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: #aaa; cursor: pointer;">
+                  <input type="checkbox" id="show-rays-checkbox" checked onchange="toggleSensorRays(this.checked)"> Ray
                 </label>
               </div>
               <div id="sensor-preview" class="sensor-preview">
-                <svg
-                  id="preview-svg"
-                  viewBox="-25 -25 100 100"
-                  width="200"
-                  height="200"
-                >
-                  <rect
-                    x="0"
-                    y="0"
-                    width="50"
-                    height="50"
-                    fill="#ff4757"
-                    stroke="#333"
-                    stroke-width="1"
-                  />
-
-                  <rect
-                    id="motor-left"
-                    x="20"
-                    y="-10"
-                    width="10"
-                    height="15"
-                    fill="#ff"
-                    stroke="#333"
-                    stroke-width="1"
-                  />
-
-                  <rect
-                    id="motor-right"
-                    x="20"
-                    y="45"
-                    width="10"
-                    height="15"
-                    fill="#ff"
-                    stroke="#333"
-                    stroke-width="1"
-                  />
-
-                  <text
-                    x="25"
-                    y="28"
-                    text-anchor="middle"
-                    fill="white"
-                    font-size="8"
-                    font-weight="bold"
-                  >
-                    ROBOT
-                  </text>
+                <svg id="preview-svg" viewBox="-25 -25 100 100" width="160" height="160">
+                  <rect x="0" y="0" width="50" height="50" fill="#ff4757" stroke="#333" stroke-width="1"/>
+                  <rect id="motor-left" x="20" y="-10" width="10" height="15" fill="#ff" stroke="#333" stroke-width="1"/>
+                  <rect id="motor-right" x="20" y="45" width="10" height="15" fill="#ff" stroke="#333" stroke-width="1"/>
+                  <text x="25" y="28" text-anchor="middle" fill="white" font-size="8" font-weight="bold">ROBOT</text>
                 </svg>
               </div>
             </div>
-            <div class="sensors-right-panel">
-              <div class="motorPosition-container">
-                <h4>Wheel Position</h4>
-                <div class="motorPosition-input">
-                  <input
-                    type="number"
-                    id="motorPos-input"
-                    min="-20"
-                    max="20"
-                    value="0"
-                    onchange="handleMotorPosition(this.value)"
-                    placeholder="0°"
-                  />
-                </div>
-              </div>
 
-              <div class="sensors-list">
-                <div class="add-sensor-controls">
-                  <button class="btn-add-sensor" onclick="addSensorToList('light')">
-                    + Light Sensor
-                  </button>
-                  <button class="btn-add-sensor" style="background-color: #0984e3;" onclick="addSensorToList('ultrasonic')">
-                    + Ultrasonic
-                  </button>
-                </div>
-  
-                <div id="sensors-container" class="sensors-container"></div>
+            <!-- Vertical Resizer -->
+            <div class="settings-v-resizer" id="settings-v-resizer"></div>
+
+            <!-- Top Right: Device Selector -->
+            <div class="settings-device-selector">
+              <div class="device-selector-title">อุปกรณ์</div>
+              <button id="dev-btn-wheel" class="device-btn" onclick="selectDevice('wheel')">
+                <i class="fas fa-circle-notch"></i> WHEEL
+              </button>
+              <button id="dev-btn-ultrasonic" class="device-btn" onclick="selectDevice('ultrasonic')">
+                <i class="fas fa-wifi"></i> Ultrasonic
+              </button>
+              <button id="dev-btn-light" class="device-btn active" onclick="selectDevice('light')">
+                <i class="fas fa-lightbulb"></i> Light Sensor
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Device Config Panel -->
+          <div class="settings-bottom-row">
+            <!-- Wheel Panel -->
+            <div id="panel-wheel" class="device-panel" style="display: none;">
+              <div class="device-panel-header">
+                <span>WHEEL</span>
               </div>
+              <div class="device-panel-body">
+                <div class="wheel-position-row">
+                  <label>Wheel Position:</label>
+                  <input type="number" id="motorPos-input" min="-20" max="20" value="0"
+                    onchange="handleMotorPosition(this.value)" placeholder="0" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Ultrasonic Panel -->
+            <div id="panel-ultrasonic" class="device-panel" style="display: none;">
+              <div class="device-panel-header">
+                <span>ULTRASONIC</span>
+                <button class="btn-panel-add" onclick="addSensorToList('ultrasonic')">ADD</button>
+              </div>
+              <div id="list-ultrasonic" class="device-panel-body sensors-container"></div>
+            </div>
+
+            <!-- Light Sensor Panel -->
+            <div id="panel-light" class="device-panel" style="display: block;">
+              <div class="device-panel-header">
+                <span>LIGHT SENSOR</span>
+                <button class="btn-panel-add" onclick="addSensorToList('light')">ADD</button>
+              </div>
+              <div id="list-light" class="device-panel-body sensors-container"></div>
             </div>
           </div>
         </div>

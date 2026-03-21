@@ -5,30 +5,51 @@
 // --- Tab Switching ---
 function switchTab(tabId) {
   // Hide all tabs
-  document.querySelectorAll('.tab-content').forEach(el => {
-    el.classList.remove('active');
+  document.querySelectorAll(".tab-content").forEach((el) => {
+    el.classList.remove("active");
   });
-  
+
   // Remove active class from buttons
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.remove('active');
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.classList.remove("active");
   });
-  
+
   // Activate selected tab and button
-  document.getElementById(`tab-${tabId}`).classList.add('active');
-  document.getElementById(`tab-btn-${tabId}`).classList.add('active');
-  
+  document.getElementById(`tab-${tabId}`).classList.add("active");
+  document.getElementById(`tab-btn-${tabId}`).classList.add("active");
+
   if (tabId === "settings") {
     updateSensorPreview();
     renderSensorsList();
   } else if (tabId === "code") {
     // Refresh editor layout when switching back to code tab, otherwise Monaco may not render properly
-    if (typeof editor !== 'undefined' && editor !== null) {
+    if (typeof editor !== "undefined" && editor !== null) {
       setTimeout(() => {
         editor.layout();
       }, 0);
     }
   }
+}
+
+// --- Select Device in settings tab ---
+let currentDevice = "light";
+
+function selectDevice(type) {
+  currentDevice = type;
+
+  // Toggle panel visibility
+  ["wheel", "ultrasonic", "light"].forEach((t) => {
+    const panel = document.getElementById(`panel-${t}`);
+    if (panel) panel.style.display = t === type ? "flex" : "none";
+  });
+
+  // Toggle active state on device buttons
+  ["wheel", "ultrasonic", "light"].forEach((t) => {
+    const btn = document.getElementById(`dev-btn-${t}`);
+    if (btn) btn.classList.toggle("active", t === type);
+  });
+
+  renderSensorsList();
 }
 
 // --- Add sensor ---
@@ -77,14 +98,20 @@ function updateSensorValue(id, axis, value) {
   const numValue = parseFloat(value);
 
   // Validate X/Y Position (0-50)
-  if ((axis === "x" || axis === "y") && (isNaN(numValue) || numValue < 0 || numValue > 50)) {
+  if (
+    (axis === "x" || axis === "y") &&
+    (isNaN(numValue) || numValue < 0 || numValue > 50)
+  ) {
     logToConsole(`Position must be between 0 and 50!`, "error");
     document.getElementById(`sensor-${id}-${axis}`).value = sensor[axis];
     return;
   }
 
   // Validate Angle (-180 to 180)
-  if (axis === "angle" && (isNaN(numValue) || numValue < -180 || numValue > 180)) {
+  if (
+    axis === "angle" &&
+    (isNaN(numValue) || numValue < -180 || numValue > 180)
+  ) {
     logToConsole(`Angle must be between -180 and 180!`, "error");
     document.getElementById(`sensor-${id}-angle`).value = sensor.angle;
     return;
@@ -95,12 +122,12 @@ function updateSensorValue(id, axis, value) {
   } else if (axis === "y") {
     sensor.y = numValue;
   } else if (axis === "angle") {
-      // Angle logic
-      if (isNaN(numValue)) return;
-      sensor.angle = numValue;
+    // Angle logic
+    if (isNaN(numValue)) return;
+    sensor.angle = numValue;
   } else if (axis === "color") {
-      // Color logic
-      sensor.color = value;
+    // Color logic
+    sensor.color = value;
   }
 
   sensor.isNew = false;
@@ -120,23 +147,26 @@ function updateSensorPreview() {
 
   sensors.forEach((sensor) => {
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    
+
     // Draw direction line for Ultrasonic
     if (sensor.type === "ultrasonic") {
-        const rad = ((sensor.angle || 0) * Math.PI) / 180;
-        const lineLen = 15; // Length of preview ray
-        const endX = sensor.x + Math.cos(rad) * lineLen;
-        const endY = sensor.y + Math.sin(rad) * lineLen;
+      const rad = ((sensor.angle || 0) * Math.PI) / 180;
+      const lineLen = 15; // Length of preview ray
+      const endX = sensor.x + Math.cos(rad) * lineLen;
+      const endY = sensor.y + Math.sin(rad) * lineLen;
 
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", sensor.x);
-        line.setAttribute("y1", sensor.y);
-        line.setAttribute("x2", endX);
-        line.setAttribute("y2", endY);
-        line.setAttribute("stroke", "rgba(9, 132, 227, 0.7)");
-        line.setAttribute("stroke-width", "1");
-        line.setAttribute("class", "sensor-circle"); // Reuse class for cleanup
-        svg.appendChild(line);
+      const line = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "line",
+      );
+      line.setAttribute("x1", sensor.x);
+      line.setAttribute("y1", sensor.y);
+      line.setAttribute("x2", endX);
+      line.setAttribute("y2", endY);
+      line.setAttribute("stroke", "rgba(9, 132, 227, 0.7)");
+      line.setAttribute("stroke-width", "1");
+      line.setAttribute("class", "sensor-circle"); // Reuse class for cleanup
+      svg.appendChild(line);
     }
 
     const circle = document.createElementNS(
@@ -151,106 +181,131 @@ function updateSensorPreview() {
 
     // Show different color for Ultrasonic
     if (sensor.type === "ultrasonic") {
-        circle.style.fill = "#0984e3"; 
-        circle.setAttribute("fill", "#0984e3");
-    } 
+      circle.style.fill = "#0984e3";
+      circle.setAttribute("fill", "#0984e3");
+    }
     svg.appendChild(circle);
   });
 }
 
 // --- Render sensors list ---
 function renderSensorsList() {
-  const container = document.getElementById("sensors-container");
+  // Render into separate containers per type
+  renderSensorPanel("light", "list-light");
+  renderSensorPanel("ultrasonic", "list-ultrasonic");
 
-  if (sensors.length === 0) {
-    container.innerHTML =
-      '<div class="empty-message">No sensors added yet. Click "+ Add Sensor" to start.</div>';
-    return;
-  }
-
-  container.innerHTML = sensors
-    .map(
-      (sensor, index) => `
-    <div class="sensor-item ${sensor.isNew ? "sensor-item-new" : ""}" style="border-left: 4px solid ${sensor.type === "ultrasonic" ? "#0984e3" : "#ff4757"}">
-      <div class="sensor-item-info">
-        <div class="sensor-item-label">
-          <i class="fas ${sensor.type === "ultrasonic" ? "fa-wifi" : "fa-lightbulb"}"></i>
-          <span>${index}: ${sensor.name}</span>
-        </div>
-        <div class="sensor-item-coords">
-          <div class="sensor-coord-input">
-            <label>X:</label>
-            <input
-              type="number"
-              id="sensor-${sensor.id}-x"
-              min="0"
-              max="50"
-              value="${sensor.x}"
-              onchange="updateSensorValue(${sensor.id}, 'x', this.value)"
-              onclick="event.stopPropagation()"
-            />
-          </div>
-          <div class="sensor-coord-input">
-            <label>Y:</label>
-            <input
-              type="number"
-              id="sensor-${sensor.id}-y"
-              min="0"
-              max="50"
-              value="${sensor.y}"
-              onchange="updateSensorValue(${sensor.id}, 'y', this.value)"
-              onclick="event.stopPropagation()"
-            />
-          </div>
-          ${
-            sensor.type === "ultrasonic"
-              ? `
-          <div class="sensor-coord-input">
-            <label>∠:</label>
-            <input
-              type="number"
-              id="sensor-${sensor.id}-angle"
-              min="-180"
-              max="180"
-              value="${sensor.angle || 0}"
-              onchange="updateSensorValue(${sensor.id}, 'angle', this.value)"
-              onclick="event.stopPropagation()"
-              title="Angle relative to robot"
-            />
-          </div>
-          <div class="sensor-coord-input">
-            <label>Color:</label>
-            <input
-              type="color"
-              id="sensor-${sensor.id}-color"
-              value="${sensor.color || "#000000"}"
-              onchange="updateSensorValue(${sensor.id}, 'color', this.value)"
-              onclick="event.stopPropagation()"
-              title="Obstacle Color to detect"
-              style="width: 30px; padding: 0; border: none; background: none;"
-            />
-          </div>`
-              : ""
-          }
-        </div>
-      </div>
-      <div class="sensor-item-actions">
-        <button class="btn-delete-sensor" onclick="deleteSensor(${
-          sensor.id
-        })">Delete</button>
-      </div>
-    </div>
-  `,
-    )
-    .join("");
-
-  const addBtns = document.querySelectorAll(".btn-add-sensor");
-  addBtns.forEach(btn => {
-     if (sensors.length >= MAX_SENSORS) {
-        btn.disabled = true;
-     } else {
-        btn.disabled = false;
-     }
+  // Disable ADD buttons if max reached
+  const addBtns = document.querySelectorAll(".btn-panel-add");
+  addBtns.forEach((btn) => {
+    btn.disabled = sensors.length >= MAX_SENSORS;
   });
 }
 
+function renderSensorPanel(type, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const filtered = sensors.filter((s) => s.type === type);
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="panel-empty-message">No ${type} sensor added. Click ADD to start.</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered
+    .map((sensor, index) => {
+      if (sensor.type === "ultrasonic") {
+        return `
+      <div class="sensor-panel-item sensor-panel-item--multirow">
+        <!-- Left: 3 rows of info -->
+        <div class="sensor-multirow-left">
+          <div class="sensor-row sensor-row-header ">
+            <span class="sensor-panel-item-name">ULTRASONIC ${index}</span>
+          </div>
+          <div class="sensor-row">
+            <label>X:</label>
+            <input type="number" id="sensor-${sensor.id}-x"
+              min="0" max="50" value="${sensor.x}"
+              onchange="updateSensorValue(${sensor.id}, 'x', this.value)"
+              onclick="event.stopPropagation()" />
+            <label>Y:</label>
+            <input type="number" id="sensor-${sensor.id}-y"
+              min="0" max="50" value="${sensor.y}"
+              onchange="updateSensorValue(${sensor.id}, 'y', this.value)"
+              onclick="event.stopPropagation()" />
+          </div>
+          <div class="sensor-row">
+            <label>∠:</label>
+            <input type="number" id="sensor-${sensor.id}-angle"
+              min="-180" max="180" value="${sensor.angle || 0}"
+              onchange="updateSensorValue(${sensor.id}, 'angle', this.value)"
+              onclick="event.stopPropagation()" title="Angle" />
+            <label>Color:</label>
+            <input type="color" id="sensor-${sensor.id}-color"
+              value="${sensor.color || "#000000"}"
+              onchange="updateSensorValue(${sensor.id}, 'color', this.value)"
+              onclick="event.stopPropagation()" title="Detect Color" />
+          </div>
+        </div>
+        <!-- Right: DELETE button centered -->
+        <button class="btn-panel-delete" onclick="deleteSensor(${sensor.id})">DELETE</button>
+      </div>`;
+      }
+
+      // Light sensor (single row)
+      return `
+    <div class="sensor-panel-item">
+      <div class="sensor-panel-item-info">
+        <span class="sensor-panel-item-name">LIGHT ${index}</span>
+        <label>X:</label>
+        <input type="number" id="sensor-${sensor.id}-x"
+          min="0" max="50" value="${sensor.x}"
+          onchange="updateSensorValue(${sensor.id}, 'x', this.value)"
+          onclick="event.stopPropagation()" />
+        <label>Y:</label>
+        <input type="number" id="sensor-${sensor.id}-y"
+          min="0" max="50" value="${sensor.y}"
+          onchange="updateSensorValue(${sensor.id}, 'y', this.value)"
+          onclick="event.stopPropagation()" />
+      </div>
+      <button class="btn-panel-delete" onclick="deleteSensor(${sensor.id})">DELETE</button>
+    </div>`;
+    })
+    .join("");
+}
+
+// --- Settings top-row vertical resizer ---
+document.addEventListener("DOMContentLoaded", () => {
+  const resizer = document.getElementById("settings-v-resizer");
+  if (!resizer) return;
+
+  const topRow = resizer.parentElement; // .settings-top-row
+
+  resizer.addEventListener("mousedown", (e) => {
+    e.preventDefault();
+    resizer.classList.add("dragging");
+
+    const startX = e.clientX;
+    const previewBox = topRow.querySelector(".settings-preview-box");
+    const startWidth = previewBox.getBoundingClientRect().width;
+
+    function onMove(e) {
+      const delta = e.clientX - startX;
+      const newWidth = Math.max(
+        80,
+        Math.min(startWidth + delta, topRow.offsetWidth - 80),
+      );
+      previewBox.style.width = newWidth + "px";
+      previewBox.style.flex = "none";
+    }
+
+    function onUp() {
+      resizer.classList.remove("dragging");
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+    }
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  });
+});

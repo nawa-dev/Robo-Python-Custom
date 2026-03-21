@@ -1,8 +1,11 @@
-/* Tabs container inside the editor pane */
+/* =============================
+   Editor Tabs
+   ============================= */
 .editor-tabs {
   display: flex;
   background-color: #252526;
   border-bottom: 1px solid #3e3e3e;
+  flex-shrink: 0;
 }
 
 .tab-btn {
@@ -28,80 +31,335 @@
   border-top: 2px solid #007acc;
 }
 
-/* Tab contents */
+/* =============================
+   Tab Contents
+   ============================= */
 .tab-content {
   display: none;
   flex: 1;
   flex-direction: column;
-  overflow: hidden; /* For Code tab */
+  overflow: hidden;
+  min-height: 0;
 }
 
 .tab-content.active {
   display: flex;
 }
 
-/* Specific overrides for settings tab */
+/* =============================
+   Robot Settings Tab Layout
+   ============================= */
 #tab-settings.tab-content {
   overflow-y: auto;
   background-color: #1e1e1e;
   color: #d4d4d4;
-  padding: 15px;
-}
-
-#tab-settings .sensors-section {
-  display: flex;
+  padding: 12px;
+  gap: 12px;
   flex-direction: column;
-  gap: 20px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }
 
-#tab-settings .sensor-preview-container {
+#tab-settings.tab-content::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Override display to block (not flex) when settings tab is active
+   so content stacks vertically and the tab can scroll */
+#tab-settings.tab-content.active {
+  display: block;
+}
+
+/* --- Top Row --- */
+.settings-top-row {
+  display: flex;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+/* Vertical Resizer between preview and device selector */
+.settings-v-resizer {
+  width: 6px;
+  cursor: col-resize;
+  background: transparent;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.15s;
+}
+
+.settings-v-resizer::after {
+  content: '';
+  position: absolute;
+  top: 10%;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  background: #3e3e3e;
+  border-radius: 2px;
+  transition: background 0.15s;
+}
+
+.settings-v-resizer:hover::after,
+.settings-v-resizer.dragging::after {
+  background: #007acc;
+}
+
+/* Preview Box (top-left) */
+.settings-preview-box {
   background: #252526;
   border: 1px solid #3e3e3e;
   border-radius: 8px;
-  padding: 15px;
-}
-
-#tab-settings .sensors-right-panel {
+  padding: 10px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 8px;
+  min-width: 180px;
 }
 
-#tab-settings h4 {
-  margin-top: 0;
-  margin-bottom: 15px;
+.settings-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ccc;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Device Selector (top-right) */
+.settings-device-selector {
+  background: #252526;
+  border: 1px solid #3e3e3e;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.device-selector-title {
+  font-size: 14px;
+  font-weight: 700;
   color: #fff;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #3e3e3e;
+  padding-bottom: 6px;
 }
 
-#tab-settings .sensors-list {
-  background: #252526;
-  border: 1px solid #3e3e3e;
-  border-radius: 8px;
-  padding: 15px;
-}
-
-#tab-settings .add-sensor-controls {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-#tab-settings .btn-add-sensor {
+.device-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid #555;
+  color: #ccc;
   padding: 8px 12px;
-  border-radius: 4px;
-  border: none;
+  border-radius: 5px;
   cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.device-btn:hover {
+  background: #2d2d2d;
   color: #fff;
-  background-color: #007acc;
-  transition: background-color 0.2s;
 }
 
-#tab-settings .btn-add-sensor:hover {
-  filter: brightness(1.1);
+.device-btn.active {
+  border-color: #2ecc71;
+  color: #2ecc71;
+  font-weight: 700;
+  background: rgba(46, 204, 113, 0.08);
 }
 
-#tab-settings .empty-message {
-  color: #888;
+/* --- Bottom Row --- */
+.settings-bottom-row {
+  margin-top: 12px;
+}
+
+.device-panel {
+  background: #252526;
+  border: 1px solid #3e3e3e;
+  border-radius: 8px;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+}
+
+.device-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #2d2d2d;
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  border-bottom: 1px solid #3e3e3e;
+  flex-shrink: 0;
+}
+
+.btn-panel-add {
+  background: #2ecc71;
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+
+.btn-panel-add:hover {
+  background: #27ae60;
+}
+
+.device-panel-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Wheel position input row */
+.wheel-position-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  background: #2d2d2d;
+  border: 1px solid #3e3e3e;
+  border-radius: 5px;
+}
+
+.wheel-position-row label {
+  font-size: 13px;
+  color: #ccc;
+  white-space: nowrap;
+}
+
+.wheel-position-row input {
+  background: #1e1e1e;
+  border: 1px solid #555;
+  color: #d4d4d4;
+  padding: 4px 8px;
+  border-radius: 4px;
+  width: 80px;
+  font-size: 13px;
+}
+
+/* =============================
+   Sensor Items in Panels
+   ============================= */
+.sensor-panel-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #2d2d2d;
+  border: 1px solid #3e3e3e;
+  border-radius: 5px;
+  gap: 10px;
+}
+
+/* Multi-row item (Ultrasonic) */
+.sensor-panel-item--multirow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 8px 12px;
+  background: #2d2d2d;
+  border: 1px solid #3e3e3e;
+  border-radius: 5px;
+  gap: 10px;
+}
+
+/* Left content column */
+.sensor-multirow-left {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.sensor-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Row 1 header - just name, no special border needed */
+.sensor-row-header {
+  margin-bottom: 2px;
+}
+
+.sensor-panel-item-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #ccc;
+}
+
+.sensor-panel-item-info label {
+  font-size: 11px;
+  color: #999;
+  margin-right: 2px;
+}
+
+.sensor-panel-item-info input[type="number"],
+.sensor-row input[type="number"] {
+  background: #1e1e1e;
+  border: 1px solid #555;
+  color: #d4d4d4;
+  padding: 3px 6px;
+  border-radius: 4px;
+  width: 55px;
+  font-size: 12px;
+}
+
+.sensor-panel-item-info input[type="color"] {
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.sensor-panel-item-name {
+  font-weight: 600;
+  color: #fff;
+  min-width: 80px;
+  font-size: 12px;
+}
+
+.btn-panel-delete {
+  background: #e74c3c;
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.btn-panel-delete:hover {
+  background: #c0392b;
+}
+
+.panel-empty-message {
+  color: #666;
   font-style: italic;
-  padding: 10px 0;
+  font-size: 12px;
+  padding: 8px 0;
 }
