@@ -216,7 +216,7 @@ function renderGripsList() {
       (grip, index) => `
     <div class="sensor-panel-item grip-panel-item">
       <div class="sensor-panel-item-info">
-        <span class="sensor-panel-item-name grip-name">GRIP ${index + 1}</span>
+        <span class="sensor-panel-item-name grip-name">GRIP ${index}</span>
         <label>X:</label>
         <input type="number" id="grip-${grip.id}-x"
           min="0" max="50" value="${grip.x}"
