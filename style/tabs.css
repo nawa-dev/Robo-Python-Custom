@@ -1,0 +1,107 @@
+/* Tabs container inside the editor pane */
+.editor-tabs {
+  display: flex;
+  background-color: #252526;
+  border-bottom: 1px solid #3e3e3e;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: #969696;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  border-top: 2px solid transparent;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  color: #d4d4d4;
+  background-color: #2d2d2d;
+}
+
+.tab-btn.active {
+  color: #fff;
+  background-color: #1e1e1e;
+  border-top: 2px solid #007acc;
+}
+
+/* Tab contents */
+.tab-content {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden; /* For Code tab */
+}
+
+.tab-content.active {
+  display: flex;
+}
+
+/* Specific overrides for settings tab */
+#tab-settings.tab-content {
+  overflow-y: auto;
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  padding: 15px;
+}
+
+#tab-settings .sensors-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#tab-settings .sensor-preview-container {
+  background: #252526;
+  border: 1px solid #3e3e3e;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+#tab-settings .sensors-right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#tab-settings h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #fff;
+}
+
+#tab-settings .sensors-list {
+  background: #252526;
+  border: 1px solid #3e3e3e;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+#tab-settings .add-sensor-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+#tab-settings .btn-add-sensor {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  background-color: #007acc;
+  transition: background-color 0.2s;
+}
+
+#tab-settings .btn-add-sensor:hover {
+  filter: brightness(1.1);
+}
+
+#tab-settings .empty-message {
+  color: #888;
+  font-style: italic;
+  padding: 10px 0;
+}

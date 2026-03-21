@@ -2,16 +2,33 @@
  * Sensor Management System
  */
 
-// --- Open robot settings modal ---
-function openRobotSettings() {
-  document.getElementById("robot-settings-modal").style.display = "flex";
-  updateSensorPreview();
-  renderSensorsList();
-}
-
-// --- Close robot settings modal ---
-function closeRobotSettings() {
-  document.getElementById("robot-settings-modal").style.display = "none";
+// --- Tab Switching ---
+function switchTab(tabId) {
+  // Hide all tabs
+  document.querySelectorAll('.tab-content').forEach(el => {
+    el.classList.remove('active');
+  });
+  
+  // Remove active class from buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // Activate selected tab and button
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+  document.getElementById(`tab-btn-${tabId}`).classList.add('active');
+  
+  if (tabId === "settings") {
+    updateSensorPreview();
+    renderSensorsList();
+  } else if (tabId === "code") {
+    // Refresh editor layout when switching back to code tab, otherwise Monaco may not render properly
+    if (typeof editor !== 'undefined' && editor !== null) {
+      setTimeout(() => {
+        editor.layout();
+      }, 0);
+    }
+  }
 }
 
 // --- Add sensor ---
@@ -237,10 +254,3 @@ function renderSensorsList() {
   });
 }
 
-// --- Close modal when clicking outside ---
-window.addEventListener("click", (e) => {
-  const modal = document.getElementById("robot-settings-modal");
-  if (e.target === modal) {
-    closeRobotSettings();
-  }
-});

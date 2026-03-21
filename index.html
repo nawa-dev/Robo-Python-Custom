@@ -41,6 +41,7 @@
     <link rel="stylesheet" href="style/modal.css" />
     <link rel="stylesheet" href="style/sensors.css" />
     <link rel="stylesheet" href="style/input-buttons.css" />
+    <link rel="stylesheet" href="style/tabs.css" />
 
     <link rel="stylesheet" href="src/cdn_file/fontawesome/css/all.min.css" />
     <script src="src/cdn_file/skulpt/skulpt.min.js"></script>
@@ -73,46 +74,78 @@
           </button>
 
           <div class="dropdown-content">
-            <a href="javascript:void(0)" onclick="newProject(); trackEvent('click', 'FileMenu', 'New')">
+            <a
+              href="javascript:void(0)"
+              onclick="
+                newProject();
+                trackEvent('click', 'FileMenu', 'New');
+              "
+            >
               <i class="fas fa-file"></i> New
             </a>
-            <a href="javascript:void(0)" onclick="openProject(); trackEvent('click', 'FileMenu', 'Open')">
+            <a
+              href="javascript:void(0)"
+              onclick="
+                openProject();
+                trackEvent('click', 'FileMenu', 'Open');
+              "
+            >
               <i class="fas fa-folder-open"></i> Open
             </a>
-            <a href="javascript:void(0)" onclick="saveProjectAs(); trackEvent('click', 'FileMenu', 'Export')">
+            <a
+              href="javascript:void(0)"
+              onclick="
+                saveProjectAs();
+                trackEvent('click', 'FileMenu', 'Export');
+              "
+            >
               <i class="fas fa-download"></i> Export
             </a>
             <!-- <div class="separator"></div> -->
             <!-- <div class="separator"></div> -->
             <div class="dropdown-submenu">
               <a href="javascript:void(0)" class="submenu-trigger">
-                <i class="fas fa-lightbulb"></i> Example <i class="fas fa-caret-right" style="float: right; margin-top: 4px;"></i>
+                <i class="fas fa-lightbulb"></i> Example
+                <i
+                  class="fas fa-caret-right"
+                  style="float: right; margin-top: 4px"
+                ></i>
               </a>
               <div class="dropdown-content submenu-content" id="example-list">
                 <!-- Examples will be loaded here -->
-                <a href="javascript:void(0)" style="color: #999; pointer-events: none;">Loading...</a>
+                <a
+                  href="javascript:void(0)"
+                  style="color: #999; pointer-events: none"
+                  >Loading...</a
+                >
               </div>
             </div>
           </div>
         </div>
         <div class="separator"></div>
-        <button id="run-stop-btn" class="btn-run" onclick="toggleRunStop(); trackEvent('click', 'Toolbar', 'RunStop')">
+        <button
+          id="run-stop-btn"
+          class="btn-run"
+          onclick="
+            toggleRunStop();
+            trackEvent('click', 'Toolbar', 'RunStop');
+          "
+        >
           <i class="fas fa-play"></i> Run
         </button>
-        <button id="reset-btn" class="btn-reset" onclick="resetPosition(); trackEvent('click', 'Toolbar', 'Reset')">
+        <button
+          id="reset-btn"
+          class="btn-reset"
+          onclick="
+            resetPosition();
+            trackEvent('click', 'Toolbar', 'Reset');
+          "
+        >
           <i class="fas fa-undo"></i> Reset
         </button>
         <div class="separator"></div>
 
-        <button
-          id="robot-settings-btn"
-          class="btn-tool"
-          onclick="openRobotSettings(); trackEvent('click', 'Toolbar', 'SensorSettings')"
-        >
-          <i class="fa-solid fa-gear"></i> Sensor
-        </button>
 
-        <div class="separator"></div>
 
         <div class="angle-control">
           <span>Angle:</span>
@@ -157,7 +190,13 @@
 
           <!-- Map selector -->
           <label for="map-select">Map:</label>
-          <select id="map-select" onchange="handleMapSelectChange(this); trackEvent('change', 'Settings', 'MapSelect:' + this.value)">
+          <select
+            id="map-select"
+            onchange="
+              handleMapSelectChange(this);
+              trackEvent('change', 'Settings', 'MapSelect:' + this.value);
+            "
+          >
             <option value="default">Default Map</option>
             <option value="current" id="current-map-option" data-filename="">
               No map loaded
@@ -190,73 +229,39 @@
 
     <main class="container">
       <section class="editor-pane">
-        <div id="monaco-container"></div>
-
-        <div class="h-resizer" id="h-drag-resizer"></div>
-
-        <div class="console-pane">
-          <div class="console-header">
-            <span>Console</span>
-
-            <button
-              onclick="clearConsole(); trackEvent('click', 'Console', 'Clear')"
-              style="padding: 2px 8px; font-size: 10px"
-            >
-              Clear
-            </button>
-          </div>
-          <div id="console-output"></div>
+        <!-- Tab Headers -->
+        <div class="editor-tabs">
+          <button id="tab-btn-code" class="tab-btn active" onclick="switchTab('code')">
+            <i class="fas fa-code"></i> Code
+          </button>
+          <button id="tab-btn-settings" class="tab-btn" onclick="switchTab('settings')">
+            <i class="fa-solid fa-gear"></i> Robot Setting
+          </button>
         </div>
-      </section>
 
-      <div class="resizer" id="drag-resizer"></div>
-
-      <section class="canvas-pane">
-        <div class="button-sensor-container">
-          <span class="sensor-label">Input Buttons:</span>
-          <div class="button-sensor-group">
-            <div class="button-div">
-              <label for="" style="margin: 0px">SW1</label>
-              <button id="button1" class="sensor-btn" title="Button 1" onclick="trackEvent('click', 'Input', 'SW1')">
-                <img src="src/img/button.png" alt="btn1" />
+        <!-- Code Tab -->
+        <div id="tab-code" class="tab-content active">
+          <div id="monaco-container"></div>
+  
+          <div class="h-resizer" id="h-drag-resizer"></div>
+  
+          <div class="console-pane">
+            <div class="console-header">
+              <span>Console</span>
+  
+              <button
+                onclick="clearConsole(); trackEvent('click', 'Console', 'Clear')"
+                style="padding: 2px 8px; font-size: 10px"
+              >
+                Clear
               </button>
             </div>
-            <div class="button-div">
-              <label for="" style="margin: 0px">SW2</label>
-              <button id="button2" class="sensor-btn" title="Button 2" onclick="trackEvent('click', 'Input', 'SW2')">
-                <img src="src/img/button.png" alt="btn2" />
-              </button>
-            </div>
-            <div class="button-div">
-              <label for="" style="margin: 0px">SW3</label>
-              <button id="button3" class="sensor-btn" title="Button 3" onclick="trackEvent('click', 'Input', 'SW3')">
-                <img src="src/img/button.png" alt="btn3" />
-              </button>
-            </div>
+            <div id="console-output"></div>
           </div>
         </div>
-        <div id="canvas-area">
-          <div
-            id="robot"
-            style="left: 100px; top: 100px; transform: rotate(0deg)"
-          >
-            <div class="wheel w-l"></div>
-            ROBOT
-            <div class="wheel w-r"></div>
-          </div>
-        </div>
-      </section>
-    </main>
 
-    <!-- Robot Settings Modal -->
-    <div id="robot-settings-modal" class="modal" style="display: none">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Sensor</h2>
-          <button class="modal-close" onclick="closeRobotSettings()">✕</button>
-        </div>
-
-        <div class="modal-body">
+        <!-- Robot Settings Tab -->
+        <div id="tab-settings" class="tab-content">
           <div class="sensors-section">
             <div class="sensor-preview-container">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -348,14 +353,93 @@
             </div>
           </div>
         </div>
+      </section>
 
-        <div class="modal-footer">
-          <button class="btn-primary" onclick="closeRobotSettings()">
-            Done
-          </button>
+      <div class="resizer" id="drag-resizer"></div>
+
+      <section class="canvas-pane">
+        <div class="button-sensor-container">
+          <span class="sensor-label">Input Buttons:</span>
+          <div class="button-sensor-group">
+            <div class="button-div">
+              <label for="" style="margin: 0px">SW1</label>
+              <button
+                id="button1"
+                class="sensor-btn"
+                title="Button 1"
+                onclick="trackEvent('click', 'Input', 'SW1')"
+              >
+                <img src="src/img/button.png" alt="btn1" />
+              </button>
+            </div>
+            <div class="button-div">
+              <label for="" style="margin: 0px">SW2</label>
+              <button
+                id="button2"
+                class="sensor-btn"
+                title="Button 2"
+                onclick="trackEvent('click', 'Input', 'SW2')"
+              >
+                <img src="src/img/button.png" alt="btn2" />
+              </button>
+            </div>
+            <div class="button-div">
+              <label for="" style="margin: 0px">SW3</label>
+              <button
+                id="button3"
+                class="sensor-btn"
+                title="Button 3"
+                onclick="trackEvent('click', 'Input', 'SW3')"
+              >
+                <img src="src/img/button.png" alt="btn3" />
+              </button>
+            </div>
+          </div>
+
+          <span class="sensor-label" style="margin-left: 15px">Objects:</span>
+          <div class="button-sensor-group" id="object-palette">
+            <div
+              class="draggable-obj"
+              draggable="true"
+              data-color="#e74c3c"
+              title="Red Object"
+              style="background-color: #e74c3c"
+            ></div>
+            <div
+              class="draggable-obj"
+              draggable="true"
+              data-color="#3498db"
+              title="Blue Object"
+              style="background-color: #3498db"
+            ></div>
+            <div
+              class="draggable-obj"
+              draggable="true"
+              data-color="#2ecc71"
+              title="Green Object"
+              style="background-color: #2ecc71"
+            ></div>
+            <div
+              class="draggable-obj"
+              draggable="true"
+              data-color="#f1c40f"
+              title="Yellow Object"
+              style="background-color: #f1c40f"
+            ></div>
+          </div>
         </div>
-      </div>
-    </div>
+        <div id="canvas-area">
+          <div
+            id="robot"
+            style="left: 100px; top: 100px; transform: rotate(0deg)"
+          >
+            <div class="wheel w-l"></div>
+            ROBOT
+            <div class="wheel w-r"></div>
+          </div>
+        </div>
+      </section>
+    </main>
 
     <input
       type="file"
@@ -369,13 +453,19 @@
       window.addEventListener("DOMContentLoaded", () => {
         // รอสักครู่เพื่อให้ Editor โหลดเสร็จ (ถ้ามี Delay)
         setTimeout(() => {
-            loadFromWebStorage();
-            if (typeof loadExampleMenu === "function") {
-                loadExampleMenu();
-            }
+          loadFromWebStorage();
+          if (typeof loadExampleMenu === "function") {
+            loadExampleMenu();
+          }
         }, 100);
       });
     </script>
     <div class="version-overlay"></div>
   </body>
 </html>
+
+<!--
+ฉันอยากให้ มีแทบให้เลือก ระหว่าง code กับ robot setting
+โดยให้เปลี่ยนจากต้องกด setting แล้วจะเป็น Modal ขึ้นมา
+เป็นมีแทบให้เลือก ระหว่าง code กับ robot setting
+ -->
