@@ -150,7 +150,7 @@
         </button>
         <div class="separator"></div>
 
-        <button
+        <!-- <button
           id="robot-settings-btn"
           class="btn-tool"
           onclick="
@@ -159,7 +159,7 @@
           "
         >
           <i class="fa-solid fa-gear"></i> Sensor
-        </button>
+        </button> -->
 
         <div class="separator"></div>
 
@@ -247,10 +247,18 @@
       <section class="editor-pane">
         <!-- Tab Headers -->
         <div class="editor-tabs">
-          <button id="tab-btn-code" class="tab-btn active" onclick="switchTab('code')">
+          <button
+            id="tab-btn-code"
+            class="tab-btn active"
+            onclick="switchTab('code')"
+          >
             <i class="fas fa-code"></i> Code
           </button>
-          <button id="tab-btn-settings" class="tab-btn" onclick="switchTab('settings')">
+          <button
+            id="tab-btn-settings"
+            class="tab-btn"
+            onclick="switchTab('settings')"
+          >
             <i class="fa-solid fa-gear"></i> Robot Setting
           </button>
         </div>
@@ -258,15 +266,18 @@
         <!-- Code Tab -->
         <div id="tab-code" class="tab-content active">
           <div id="monaco-container"></div>
-  
+
           <div class="h-resizer" id="h-drag-resizer"></div>
-  
+
           <div class="console-pane">
             <div class="console-header">
               <span>Console</span>
-  
+
               <button
-                onclick="clearConsole(); trackEvent('click', 'Console', 'Clear')"
+                onclick="
+                  clearConsole();
+                  trackEvent('click', 'Console', 'Clear');
+                "
                 style="padding: 2px 8px; font-size: 10px"
               >
                 Clear
@@ -284,21 +295,91 @@
             <div class="settings-preview-box">
               <div class="settings-preview-header">
                 <span>Preview</span>
-                <div style="display:flex; gap:8px; align-items:center;">
-                  <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: #aaa; cursor: pointer;">
-                    <input type="checkbox" id="show-rays-checkbox" checked onchange="toggleSensorRays(this.checked)"> Ray
+                <div style="display: flex; gap: 8px; align-items: center">
+                  <label
+                    style="
+                      font-size: 11px;
+                      display: flex;
+                      align-items: center;
+                      gap: 4px;
+                      color: #aaa;
+                      cursor: pointer;
+                    "
+                  >
+                    <input
+                      type="checkbox"
+                      id="show-rays-checkbox"
+                      checked
+                      onchange="toggleSensorRays(this.checked)"
+                    />
+                    Ray
                   </label>
-                  <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: #aaa; cursor: pointer;">
-                    <input type="checkbox" id="show-grips-checkbox" checked onchange="toggleGripPreview(this.checked)"> Grip
+                  <label
+                    style="
+                      font-size: 11px;
+                      display: flex;
+                      align-items: center;
+                      gap: 4px;
+                      color: #aaa;
+                      cursor: pointer;
+                    "
+                  >
+                    <input
+                      type="checkbox"
+                      id="show-grips-checkbox"
+                      checked
+                      onchange="toggleGripPreview(this.checked)"
+                    />
+                    Grip
                   </label>
                 </div>
               </div>
               <div id="sensor-preview" class="sensor-preview">
-                <svg id="preview-svg" viewBox="-25 -25 100 100" width="160" height="160">
-                  <rect x="0" y="0" width="50" height="50" fill="#ff4757" stroke="#333" stroke-width="1"/>
-                  <rect id="motor-left" x="20" y="-10" width="10" height="15" fill="#ff" stroke="#333" stroke-width="1"/>
-                  <rect id="motor-right" x="20" y="45" width="10" height="15" fill="#ff" stroke="#333" stroke-width="1"/>
-                  <text x="25" y="28" text-anchor="middle" fill="white" font-size="8" font-weight="bold">ROBOT</text>
+                <svg
+                  id="preview-svg"
+                  viewBox="-25 -25 100 100"
+                  width="160"
+                  height="160"
+                >
+                  <rect
+                    x="0"
+                    y="0"
+                    width="50"
+                    height="50"
+                    fill="#ff4757"
+                    stroke="#333"
+                    stroke-width="1"
+                  />
+                  <rect
+                    id="motor-left"
+                    x="20"
+                    y="-10"
+                    width="10"
+                    height="15"
+                    fill="#ff"
+                    stroke="#333"
+                    stroke-width="1"
+                  />
+                  <rect
+                    id="motor-right"
+                    x="20"
+                    y="45"
+                    width="10"
+                    height="15"
+                    fill="#ff"
+                    stroke="#333"
+                    stroke-width="1"
+                  />
+                  <text
+                    x="25"
+                    y="28"
+                    text-anchor="middle"
+                    fill="white"
+                    font-size="8"
+                    font-weight="bold"
+                  >
+                    ROBOT
+                  </text>
                 </svg>
               </div>
             </div>
@@ -309,16 +390,32 @@
             <!-- Top Right: Device Selector -->
             <div class="settings-device-selector">
               <div class="device-selector-title">อุปกรณ์</div>
-              <button id="dev-btn-wheel" class="device-btn" onclick="selectDevice('wheel')">
+              <button
+                id="dev-btn-wheel"
+                class="device-btn"
+                onclick="selectDevice('wheel')"
+              >
                 <i class="fas fa-circle-notch"></i> WHEEL
               </button>
-              <button id="dev-btn-ultrasonic" class="device-btn" onclick="selectDevice('ultrasonic')">
+              <button
+                id="dev-btn-ultrasonic"
+                class="device-btn"
+                onclick="selectDevice('ultrasonic')"
+              >
                 <i class="fas fa-wifi"></i> Ultrasonic
               </button>
-              <button id="dev-btn-light" class="device-btn active" onclick="selectDevice('light')">
+              <button
+                id="dev-btn-light"
+                class="device-btn active"
+                onclick="selectDevice('light')"
+              >
                 <i class="fas fa-lightbulb"></i> Light Sensor
               </button>
-              <button id="dev-btn-grip" class="device-btn" onclick="selectDevice('grip')">
+              <button
+                id="dev-btn-grip"
+                class="device-btn"
+                onclick="selectDevice('grip')"
+              >
                 <i class="fas fa-hand-rock"></i> Grip
               </button>
             </div>
@@ -327,44 +424,85 @@
           <!-- Bottom Row: Device Config Panel -->
           <div class="settings-bottom-row">
             <!-- Wheel Panel -->
-            <div id="panel-wheel" class="device-panel" style="display: none;">
+            <div id="panel-wheel" class="device-panel" style="display: none">
               <div class="device-panel-header">
                 <span>WHEEL</span>
               </div>
               <div class="device-panel-body">
                 <div class="wheel-position-row">
                   <label>Wheel Position:</label>
-                  <input type="number" id="motorPos-input" min="-20" max="20" value="0"
-                    onchange="handleMotorPosition(this.value)" placeholder="0" />
+                  <input
+                    type="number"
+                    id="motorPos-input"
+                    min="-20"
+                    max="20"
+                    value="0"
+                    onchange="handleMotorPosition(this.value)"
+                    placeholder="0"
+                  />
                 </div>
               </div>
             </div>
 
             <!-- Ultrasonic Panel -->
-            <div id="panel-ultrasonic" class="device-panel" style="display: none;">
+            <div
+              id="panel-ultrasonic"
+              class="device-panel"
+              style="display: none"
+            >
               <div class="device-panel-header">
                 <span>ULTRASONIC</span>
-                <button class="btn-panel-add" onclick="addSensorToList('ultrasonic')">ADD</button>
+                <button
+                  class="btn-panel-add"
+                  onclick="addSensorToList('ultrasonic')"
+                >
+                  ADD
+                </button>
               </div>
-              <div id="list-ultrasonic" class="device-panel-body sensors-container"></div>
+              <div
+                id="list-ultrasonic"
+                class="device-panel-body sensors-container"
+              ></div>
             </div>
 
             <!-- Light Sensor Panel -->
-            <div id="panel-light" class="device-panel" style="display: block;">
+            <div id="panel-light" class="device-panel" style="display: block">
               <div class="device-panel-header">
                 <span>LIGHT SENSOR</span>
-                <button class="btn-panel-add" onclick="addSensorToList('light')">ADD</button>
+                <button
+                  class="btn-panel-add"
+                  onclick="addSensorToList('light')"
+                >
+                  ADD
+                </button>
               </div>
-              <div id="list-light" class="device-panel-body sensors-container"></div>
+              <div
+                id="list-light"
+                class="device-panel-body sensors-container"
+              ></div>
             </div>
 
             <!-- Grip Panel -->
-            <div id="panel-grip" class="device-panel" style="display: none;">
+            <div id="panel-grip" class="device-panel" style="display: none">
               <div class="device-panel-header">
-                <span>GRIP <span id="grip-count-label" style="font-weight:400; font-size:12px; color:#aaa;"></span></span>
-                <button class="btn-panel-add btn-panel-add-grip" onclick="addGrip()">ADD</button>
+                <span
+                  >GRIP
+                  <span
+                    id="grip-count-label"
+                    style="font-weight: 400; font-size: 12px; color: #aaa"
+                  ></span
+                ></span>
+                <button
+                  class="btn-panel-add btn-panel-add-grip"
+                  onclick="addGrip()"
+                >
+                  ADD
+                </button>
               </div>
-              <div id="list-grip" class="device-panel-body sensors-container"></div>
+              <div
+                id="list-grip"
+                class="device-panel-body sensors-container"
+              ></div>
             </div>
           </div>
         </div>
