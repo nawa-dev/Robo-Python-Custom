@@ -372,11 +372,12 @@
                   />
                   <text
                     x="25"
-                    y="28"
+                    y="-23"
                     text-anchor="middle"
                     fill="white"
                     font-size="8"
                     font-weight="bold"
+                    transform="rotate(90)"
                   >
                     ROBOT
                   </text>
@@ -389,7 +390,7 @@
 
             <!-- Top Right: Device Selector -->
             <div class="settings-device-selector">
-              <div class="device-selector-title">อุปกรณ์</div>
+              <div class="device-selector-title">Devices</div>
               <button
                 id="dev-btn-wheel"
                 class="device-btn"
@@ -587,7 +588,14 @@
             style="left: 100px; top: 100px; transform: rotate(0deg)"
           >
             <div class="wheel w-l"></div>
-            ROBOT
+            <span
+              style="
+                font-size: 8px;
+                display: inline-block;
+                transform: rotate(90deg) translate(0px, 0px);
+              "
+              >ROBOT</span
+            >
             <div class="wheel w-r"></div>
           </div>
         </div>
@@ -679,6 +687,7 @@
                     fill="white"
                     font-size="8"
                     font-weight="bold"
+                    transform="rotate(90 25 25)"
                   >
                     ROBOT
                   </text>
