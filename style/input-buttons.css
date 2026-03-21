@@ -66,3 +66,48 @@
   background: #007acc;
   border-color: #0098ff;
 }
+
+/* Draggable Objects Palette */
+.draggable-obj {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: grab;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.draggable-obj:hover {
+  transform: scale(1.1);
+}
+
+.draggable-obj:active {
+  cursor: grabbing;
+}
+
+/* Objects on Canvas */
+.canvas-object-item {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #333;
+  cursor: grab;
+  z-index: 5;
+  box-sizing: border-box;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: border-color 0.2s;
+}
+
+.canvas-object-item:hover {
+  border-color: #fff;
+}
+
+.canvas-object-item:active {
+  cursor: grabbing;
+}

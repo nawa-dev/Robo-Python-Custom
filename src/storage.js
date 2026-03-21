@@ -34,6 +34,22 @@ function createProjectData() {
       angle: s.angle || 0,
       color: s.color || "#000000",
     })),
+    grips: (grips || []).map((g) => ({
+      id: g.id,
+      name: g.name,
+      x: g.x,
+      y: g.y,
+      angle: g.angle || 0,
+    })),
+    canvasObjects: (canvasObjects || []).map((obj) => ({
+      id: obj.id,
+      x: obj.x,
+      y: obj.y,
+      radius: obj.radius || 15,
+      color: obj.color,
+      vx: 0,
+      vy: 0,
+    })),
     sourceCode: editor.getValue(),
     robotState: {
       x: robotX,
@@ -213,9 +229,30 @@ function applyProjectData(projectData) {
     color: s.color || "#000000",
     isNew: false,
   }));
+
+  // 2b. คืนค่า Grip
+  grips = (projectData.grips || []).map((g) => ({
+    id: g.id,
+    name: g.name || `Grip`,
+    x: g.x !== undefined ? g.x : 45,
+    y: g.y !== undefined ? g.y : 25,
+    angle: g.angle !== undefined ? g.angle : 0,
+  }));
+
   updateSensorPreview();
   renderSensorsList();
   updateSensorDots();
+
+  // 2c. คืนค่าวัตถุบนแคนวาส
+  if (typeof canvasObjects !== "undefined") {
+    canvasObjects.length = 0;
+    if (projectData.canvasObjects) {
+      projectData.canvasObjects.forEach((obj) => {
+        canvasObjects.push(obj);
+      });
+    }
+    if (typeof updateObjectsDOM === "function") updateObjectsDOM();
+  }
 
   // 3. คืนค่ารหัสต้นฉบับใน Editor
   if (editor) editor.setValue(projectData.sourceCode);
@@ -302,8 +339,11 @@ function newProject() {
     }
     updateCanvasImageData();
 
-    // ล้างข้อมูลเซนเซอร์
+    // ล้างข้อมูลเซนเซอร์และ Grip
     sensors = [];
+    grips = [];
+    canvasObjects = [];
+    if (typeof updateObjectsDOM === "function") updateObjectsDOM();
     updateSensorPreview();
     renderSensorsList();
     updateSensorDots();

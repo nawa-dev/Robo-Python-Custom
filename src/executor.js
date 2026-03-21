@@ -154,6 +154,9 @@ function stopProgram() {
   motorL = 0;
   motorR = 0;
   if (window.physics) window.physics.setTargets(0, 0);
+  if (typeof window.releaseAllObjects === "function") {
+    window.releaseAllObjects();
+  }
   updateRunStopButtonIO("run");
 }
 
@@ -365,6 +368,41 @@ Sk.builtins.robot = {
   // getSensorCount()
   getSensorCount: new Sk.builtin.func(function() {
      return new Sk.builtin.int_(sensors.length);
+  }),
+
+  // grab(index)
+  grab: new Sk.builtin.func(function(index) {
+    Sk.builtin.pyCheckArgs("grab", arguments, 1, 1);
+    if(stopRequest) throw "StopExecution";
+    let idx = Sk.builtin.asnum$(index);
+    if (typeof window.grabObject === "function") {
+      window.grabObject(idx);
+    }
+    return Sk.builtin.none.none$;
+  }),
+
+  // release(index)
+  release: new Sk.builtin.func(function(index) {
+    Sk.builtin.pyCheckArgs("release", arguments, 1, 1);
+    if(stopRequest) throw "StopExecution";
+    let idx = Sk.builtin.asnum$(index);
+    if (typeof window.releaseObject === "function") {
+      window.releaseObject(idx);
+    }
+    return Sk.builtin.none.none$;
+  }),
+
+
+
+  // spawn_object(color)
+  spawn_object: new Sk.builtin.func(function(color) {
+    Sk.builtin.pyCheckArgs("spawn_object", arguments, 1, 1);
+    if(stopRequest) throw "StopExecution";
+    let c = Sk.builtin.asnum$(color);
+    if (typeof window.addCanvasObject === "function") {
+      window.addCanvasObject(c);
+    }
+    return Sk.builtin.none.none$;
   })
 };
 

@@ -268,9 +268,14 @@
             <div class="settings-preview-box">
               <div class="settings-preview-header">
                 <span>Preview</span>
-                <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: #aaa; cursor: pointer;">
-                  <input type="checkbox" id="show-rays-checkbox" checked onchange="toggleSensorRays(this.checked)"> Ray
-                </label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: #aaa; cursor: pointer;">
+                    <input type="checkbox" id="show-rays-checkbox" checked onchange="toggleSensorRays(this.checked)"> Ray
+                  </label>
+                  <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: #aaa; cursor: pointer;">
+                    <input type="checkbox" id="show-grips-checkbox" checked onchange="toggleGripPreview(this.checked)"> Grip
+                  </label>
+                </div>
               </div>
               <div id="sensor-preview" class="sensor-preview">
                 <svg id="preview-svg" viewBox="-25 -25 100 100" width="160" height="160">
@@ -296,6 +301,9 @@
               </button>
               <button id="dev-btn-light" class="device-btn active" onclick="selectDevice('light')">
                 <i class="fas fa-lightbulb"></i> Light Sensor
+              </button>
+              <button id="dev-btn-grip" class="device-btn" onclick="selectDevice('grip')">
+                <i class="fas fa-hand-rock"></i> Grip
               </button>
             </div>
           </div>
@@ -332,6 +340,15 @@
                 <button class="btn-panel-add" onclick="addSensorToList('light')">ADD</button>
               </div>
               <div id="list-light" class="device-panel-body sensors-container"></div>
+            </div>
+
+            <!-- Grip Panel -->
+            <div id="panel-grip" class="device-panel" style="display: none;">
+              <div class="device-panel-header">
+                <span>GRIP <span id="grip-count-label" style="font-weight:400; font-size:12px; color:#aaa;"></span></span>
+                <button class="btn-panel-add btn-panel-add-grip" onclick="addGrip()">ADD</button>
+              </div>
+              <div id="list-grip" class="device-panel-body sensors-container"></div>
             </div>
           </div>
         </div>

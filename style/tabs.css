@@ -88,7 +88,7 @@
 }
 
 .settings-v-resizer::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 10%;
   bottom: 10%;
@@ -266,41 +266,10 @@
   gap: 10px;
 }
 
-/* Multi-row item (Ultrasonic) */
-.sensor-panel-item--multirow {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 8px 12px;
-  background: #2d2d2d;
-  border: 1px solid #3e3e3e;
-  border-radius: 5px;
-  gap: 10px;
-}
-
-/* Left content column */
-.sensor-multirow-left {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  flex: 1;
-}
-
-.sensor-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Row 1 header - just name, no special border needed */
-.sensor-row-header {
-  margin-bottom: 2px;
-}
-
 .sensor-panel-item-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 5px;
   flex: 1;
   flex-wrap: wrap;
   font-size: 13px;
@@ -313,14 +282,13 @@
   margin-right: 2px;
 }
 
-.sensor-panel-item-info input[type="number"],
-.sensor-row input[type="number"] {
+.sensor-panel-item-info input[type="number"] {
   background: #1e1e1e;
   border: 1px solid #555;
   color: #d4d4d4;
   padding: 3px 6px;
   border-radius: 4px;
-  width: 55px;
+  width: 30px;
   font-size: 12px;
 }
 
@@ -363,3 +331,39 @@
   font-size: 12px;
   padding: 8px 0;
 }
+
+/* =============================
+   Grip Device Button Style
+   ============================= */
+#dev-btn-grip.active {
+  border-color: #f39c12;
+  color: #f39c12;
+  font-weight: 700;
+  background: rgba(243, 156, 18, 0.08);
+}
+
+/* =============================
+   Grip Panel Item Style
+   ============================= */
+.grip-panel-item {
+  border-left: 3px solid #f39c12;
+}
+
+.grip-name {
+  color: #f39c12 !important;
+}
+
+.btn-panel-add-grip {
+  background: #f39c12 !important;
+}
+
+.btn-panel-add-grip:hover {
+  background: #d68910 !important;
+}
+
+.btn-panel-add-grip:disabled {
+  background: #555 !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+

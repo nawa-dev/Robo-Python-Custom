@@ -133,7 +133,7 @@ require(["vs/editor/editor.main"], function () {
 // ตั้งค่าการไฮไลต์สำหรับ Robot API
 function setupRobotHighlighting(editor) {
   const robotRegex =
-    /\b(motor|delay|sleep|analogRead|getSensorCount|print)|SW|waitSW\b/g;
+    /\b(motor|delay|sleep|analogRead|getSensorCount|print|grab|release|spawn_object)|SW|waitSW\b/g;
   let decorationIds = [];
 
   function updateDecorations() {
@@ -265,6 +265,29 @@ function setupAutocomplete() {
       documentation:
         "Pause program for specified milliseconds (e.g. 1000 = 1s)",
       detail: "delay(ms) -> void",
+    },
+    {
+      label: "grab",
+      kind: monaco.languages.CompletionItemKind.Function,
+      insertText: "grab()",
+      documentation: "Grab an object in front of the robot",
+      detail: "grab() -> void",
+    },
+    {
+      label: "release",
+      kind: monaco.languages.CompletionItemKind.Function,
+      insertText: "release()",
+      documentation: "Release the currently grabbed object",
+      detail: "release() -> void",
+    },
+    {
+      label: "spawn_object",
+      kind: monaco.languages.CompletionItemKind.Function,
+      insertText: "spawn_object('${1:red}')",
+      insertTextRules:
+        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      documentation: "Spawn a new object on the canvas. Colors: red, blue, green, yellow",
+      detail: "spawn_object(color: string) -> void",
     },
   ];
 
@@ -461,6 +484,132 @@ function initCanvasRenderer() {
   logToConsole("Canvas 2D renderer initialized.", "info");
 }
 
+// --- Object Drag & Drop System ---
+let draggingObjectFromPalette = null;
+let draggingObjectOnCanvas = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+
+// 1. จาก Palette สู่ Canvas
+document.querySelectorAll(".draggable-obj").forEach((obj) => {
+  obj.addEventListener("dragstart", (e) => {
+    draggingObjectFromPalette = {
+      color: e.target.dataset.color,
+    };
+  });
+});
+
+canvasArea.addEventListener("dragover", (e) => {
+  e.preventDefault();
+});
+
+canvasArea.addEventListener("drop", (e) => {
+  e.preventDefault();
+  if (draggingObjectFromPalette) {
+    const rect = canvasArea.getBoundingClientRect();
+    const x = Math.round(e.clientX - rect.left);
+    const y = Math.round(e.clientY - rect.top);
+
+    const newObj = {
+      id: "obj_" + Date.now(),
+      x: x,
+      y: y,
+      radius: 15,
+      color: draggingObjectFromPalette.color,
+      vx: 0,
+      vy: 0,
+    };
+    canvasObjects.push(newObj);
+
+    logToConsole(`Placed object at (${x}, ${y}) [Drop]`, "info");
+
+    draggingObjectFromPalette = null;
+    updateObjectsDOM();
+    updateSensorDots();
+  }
+});
+
+// 2. การลากย้ายบน Canvas และการลบทิ้ง
+function updateObjectsDOM() {
+  // ลบ Element เก่าที่ไม่ได้อยู่ในอาเรย์ออก
+  const existingElements = document.querySelectorAll(".canvas-object-item");
+  existingElements.forEach((el) => {
+    const id = el.dataset.id;
+    if (!canvasObjects.find((o) => o.id === id)) {
+      el.remove();
+    }
+  });
+
+  // สร้างหรืออัปเดต Element
+  canvasObjects.forEach((obj) => {
+    let el = document.querySelector(`.canvas-object-item[data-id="${obj.id}"]`);
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "canvas-object-item";
+      el.dataset.id = obj.id;
+      el.style.backgroundColor = obj.color;
+
+      el.addEventListener("mousedown", (e) => {
+        if (isRunning) return;
+        draggingObjectOnCanvas = obj;
+        const rect = el.getBoundingClientRect();
+        // คำนวณ offset จากกึ่งกลางวัตถุ
+        dragOffsetX = e.clientX - rect.left - rect.width / 2;
+        dragOffsetY = e.clientY - rect.top - rect.height / 2;
+        e.stopPropagation();
+      });
+
+      canvasArea.appendChild(el);
+    }
+
+    el.style.left = obj.x - 15 + "px";
+    el.style.top = obj.y - 15 + "px";
+  });
+}
+
+window.addEventListener("mousemove", (e) => {
+  if (draggingObjectOnCanvas) {
+    const rect = canvasArea.getBoundingClientRect();
+    draggingObjectOnCanvas.x = Math.round(e.clientX - rect.left - dragOffsetX);
+    draggingObjectOnCanvas.y = Math.round(e.clientY - rect.top - dragOffsetY);
+    draggingObjectOnCanvas.vx = 0;
+    draggingObjectOnCanvas.vy = 0;
+
+    updateObjectsDOM();
+    updateSensorDots();
+  }
+});
+
+window.addEventListener("mouseup", (e) => {
+  if (draggingObjectOnCanvas) {
+    // ลบวัตถุหากลากออกนอกขอบ Canvas
+    const rect = canvasArea.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+
+    if (
+      x < rect.left ||
+      x > rect.right ||
+      y < rect.top ||
+      y > rect.bottom
+    ) {
+      canvasObjects = canvasObjects.filter(
+        (o) => o.id !== draggingObjectOnCanvas.id,
+      );
+      logToConsole("Object deleted.", "info");
+    } else {
+      logToConsole(
+        `Moved object to (${draggingObjectOnCanvas.x}, ${draggingObjectOnCanvas.y})`,
+        "info",
+      );
+    }
+
+    draggingObjectOnCanvas = null;
+    updateObjectsDOM();
+    updateSensorDots();
+  }
+});
+
 function renderCanvasFrame() {
   if (!canvasRenderer) return;
 
@@ -554,3 +703,8 @@ window.stopProgram = function () {
     stopSimulationLoop();
   }
 };
+
+// --- Initialization ---
+if (typeof updateObjectsDOM === "function") {
+  updateObjectsDOM();
+}

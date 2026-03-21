@@ -68,3 +68,34 @@
   background: #66bb6a;
   box-shadow: 0 0 10px rgba(76, 175, 80, 0.9);
 }
+
+/* Grip On Canvas */
+.grip-canvas-el {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.grip-arm-canvas-el {
+  position: absolute;
+  background-color: #f39c12;
+  height: 2px;
+  transform-origin: 0 50%;
+}
+
+.grip-jaw-canvas-el {
+  position: absolute;
+  background-color: #f39c12;
+  height: 1.5px;
+  transform-origin: 0 50%;
+}
+
+.grip-base-canvas-el {
+  position: absolute;
+  background-color: #e67e22;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
