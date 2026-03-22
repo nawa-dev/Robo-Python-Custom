@@ -57,6 +57,7 @@
     <script src="src/storage.js" defer></script>
     <script src="src/script.js" defer></script>
     <script src="src/config.js" defer></script>
+    <script src="src/sensorLoader.js" defer></script>
   </head>
   <body>
     <header class="toolbar">
@@ -388,122 +389,15 @@
             <div class="settings-v-resizer" id="settings-v-resizer"></div>
 
             <!-- Top Right: Device Selector -->
-            <div class="settings-device-selector">
+            <div class="settings-device-selector" id="dynamic-device-selector">
               <div class="device-selector-title">Devices</div>
-              <button
-                id="dev-btn-wheel"
-                class="device-btn"
-                onclick="selectDevice('wheel')"
-              >
-                <i class="fas fa-circle-notch"></i> WHEEL
-              </button>
-              <button
-                id="dev-btn-ultrasonic"
-                class="device-btn"
-                onclick="selectDevice('ultrasonic')"
-              >
-                <i class="fas fa-wifi"></i> Ultrasonic
-              </button>
-              <button
-                id="dev-btn-light"
-                class="device-btn active"
-                onclick="selectDevice('light')"
-              >
-                <i class="fas fa-lightbulb"></i> Light Sensor
-              </button>
-              <button
-                id="dev-btn-grip"
-                class="device-btn"
-                onclick="selectDevice('grip')"
-              >
-                <i class="fas fa-hand-rock"></i> Grip
-              </button>
+              <!-- Buttons injected dynamically -->
             </div>
           </div>
 
           <!-- Bottom Row: Device Config Panel -->
-          <div class="settings-bottom-row">
-            <!-- Wheel Panel -->
-            <div id="panel-wheel" class="device-panel" style="display: none">
-              <div class="device-panel-header">
-                <span>WHEEL</span>
-              </div>
-              <div class="device-panel-body">
-                <div class="wheel-position-row">
-                  <label>Wheel Position:</label>
-                  <input
-                    type="number"
-                    id="motorPos-input"
-                    min="-20"
-                    max="20"
-                    value="0"
-                    onchange="handleMotorPosition(this.value)"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Ultrasonic Panel -->
-            <div
-              id="panel-ultrasonic"
-              class="device-panel"
-              style="display: none"
-            >
-              <div class="device-panel-header">
-                <span>ULTRASONIC</span>
-                <button
-                  class="btn-panel-add"
-                  onclick="addSensorToList('ultrasonic')"
-                >
-                  ADD
-                </button>
-              </div>
-              <div
-                id="list-ultrasonic"
-                class="device-panel-body sensors-container"
-              ></div>
-            </div>
-
-            <!-- Light Sensor Panel -->
-            <div id="panel-light" class="device-panel" style="display: block">
-              <div class="device-panel-header">
-                <span>LIGHT SENSOR</span>
-                <button
-                  class="btn-panel-add"
-                  onclick="addSensorToList('light')"
-                >
-                  ADD
-                </button>
-              </div>
-              <div
-                id="list-light"
-                class="device-panel-body sensors-container"
-              ></div>
-            </div>
-
-            <!-- Grip Panel -->
-            <div id="panel-grip" class="device-panel" style="display: none">
-              <div class="device-panel-header">
-                <span
-                  >GRIP
-                  <span
-                    id="grip-count-label"
-                    style="font-weight: 400; font-size: 12px; color: #aaa"
-                  ></span
-                ></span>
-                <button
-                  class="btn-panel-add btn-panel-add-grip"
-                  onclick="addGrip()"
-                >
-                  ADD
-                </button>
-              </div>
-              <div
-                id="list-grip"
-                class="device-panel-body sensors-container"
-              ></div>
-            </div>
+          <div class="settings-bottom-row" id="dynamic-device-panels">
+            <!-- Panels injected dynamically -->
           </div>
         </div>
       </section>

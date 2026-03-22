@@ -1,0 +1,10 @@
+<div class="sensor-panel-item" id="sensor-item-{id}">
+  <div class="sensor-panel-item-info">
+    <span class="sensor-panel-item-name">{NAME} {INDEX}</span>
+    <label>X:</label>
+    <input type="number" id="sensor-{id}-x" min="0" max="50" value="{x}" onchange="window.SensorRegistry['{TYPE}'].updateValue({id}, 'x', this.value)" onclick="event.stopPropagation()" />
+    <label>Y:</label>
+    <input type="number" id="sensor-{id}-y" min="0" max="50" value="{y}" onchange="window.SensorRegistry['{TYPE}'].updateValue({id}, 'y', this.value)" onclick="event.stopPropagation()" />
+  </div>
+  <button class="btn-panel-delete" onclick="window.SensorRegistry['{TYPE}'].deleteItem({id})">DELETE</button>
+</div>

@@ -1,0 +1,8 @@
+{
+  "name": "Wheel",
+  "icon": "fas fa-circle-notch",
+  "maxLimit": 1,
+  "inputs": [
+    { "id": "motorPos", "label": "Wheel Position", "type": "number", "min": -20, "max": 20, "default": 0 }
+  ]
+}

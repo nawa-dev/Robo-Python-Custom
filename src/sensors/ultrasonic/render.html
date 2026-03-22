@@ -1,0 +1,14 @@
+<div class="sensor-panel-item" id="sensor-item-{id}">
+  <div class="sensor-panel-item-info">
+    <span class="sensor-panel-item-name">{NAME} {INDEX}</span>
+    <label>X:</label>
+    <input type="number" id="sensor-{id}-x" min="0" max="50" value="{x}" onchange="window.SensorRegistry['{TYPE}'].updateValue({id}, 'x', this.value)" onclick="event.stopPropagation()" />
+    <label>Y:</label>
+    <input type="number" id="sensor-{id}-y" min="0" max="50" value="{y}" onchange="window.SensorRegistry['{TYPE}'].updateValue({id}, 'y', this.value)" onclick="event.stopPropagation()" />
+    <label>&#x2220;:</label>
+    <input type="number" id="sensor-{id}-angle" min="-180" max="180" value="{angle}" onchange="window.SensorRegistry['{TYPE}'].updateValue({id}, 'angle', this.value)" onclick="event.stopPropagation()" title="Angle" />
+    <label>Color:</label>
+    <input type="color" id="sensor-{id}-color" value="{color}" onchange="window.SensorRegistry['{TYPE}'].updateValue({id}, 'color', this.value)" onclick="event.stopPropagation()" title="Detect Color" />
+  </div>
+  <button class="btn-panel-delete" onclick="window.SensorRegistry['{TYPE}'].deleteItem({id})">DELETE</button>
+</div>

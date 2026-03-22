@@ -167,6 +167,16 @@ function resetPosition() {
   angle = 0;
   updateRobotDOM();
   logToConsole("Robot position reset.", "info");
+
+  // --- DYNAMIC HOOK: onReset ---
+  if (window.SensorConfigs) {
+      Object.keys(window.SensorConfigs).forEach(type => {
+          const registry = window.SensorRegistry[type];
+          if (registry && typeof registry.onReset === "function") {
+              registry.onReset({ sensors: typeof sensors !== 'undefined' ? sensors : [], grips: typeof grips !== 'undefined' ? grips : [] });
+          }
+      });
+  }
 }
 
 /* =========================
@@ -211,6 +221,16 @@ function builtinRead(x) {
   // logToConsole("Loading: " + x); // Debug logging
 
   if (x === "src/lib/robot.js" || x.endsWith("/robot.js")) {
+    // --- DYNAMIC HOOK: Allow sensors to register custom Python functions ---
+    if (window.SensorConfigs) {
+      Object.keys(window.SensorConfigs).forEach(type => {
+          const registry = window.SensorRegistry[type];
+          if (registry && typeof registry.registerPythonAPI === "function") {
+              registry.registerPythonAPI(Sk, Sk.builtins.robot, { sensors: typeof sensors !== 'undefined' ? sensors : [], grips: typeof grips !== 'undefined' ? grips : [] });
+          }
+      });
+    }
+
     // Skulpt expects a $builtinmodule function when loading a JS module.
     // We bridge it to our manually defined Sk.builtins.robot.
     return "var $builtinmodule = function(name) { return Sk.builtins.robot; };";
@@ -279,23 +299,11 @@ Sk.builtins.robot = {
             }
             
             const s = sensors[i];
-            let result;
-
-            if (s.type === "ultrasonic") {
-                result = Math.round(s.value || 0);
-            } else {
-                // Light Sensor Calculation
-                const localX = s.x - 25;
-                const localY = s.y - 25;
-                const rad = (angle * Math.PI) / 180;
-                
-                const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
-                const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
-                
-                const canvasX = robotX + 25 + rotatedX;
-                const canvasY = robotY + 25 + rotatedY;
-                
-                result = getPixelBrightness(canvasX, canvasY);
+            let result = 0;
+            const registry = window.SensorRegistry[s.type];
+            if (registry && typeof registry.read === "function") {
+                const globals = { robotX, robotY, angle, motorPos };
+                result = registry.read(s, globals);
             }
             
             resolve(new Sk.builtin.int_(result));
@@ -402,9 +410,11 @@ Sk.builtins.robot = {
     if (typeof window.addCanvasObject === "function") {
       window.addCanvasObject(c);
     }
-    return Sk.builtin.none.none$;
   })
 };
+
+// --- DYNAMIC HOOK MOVED TO builtinRead ---
+
 
 /* ==================
  * Override time.sleep to use Browser Logic

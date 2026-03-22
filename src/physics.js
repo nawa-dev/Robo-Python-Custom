@@ -118,6 +118,14 @@ function updatePhysics(timestamp) {
       angle = pose.theta * (180 / Math.PI);
     }
 
+    const physicsGlobals = { robotX, robotY, angle, dt };
+    [...sensors, ...grips].forEach((sensor, index) => {
+        const registry = window.SensorRegistry[sensor.type];
+        if (registry && typeof registry.physicsStep === "function") {
+            registry.physicsStep(sensor, index, physicsGlobals);
+        }
+    });
+
     // --- อัปเดตฟิสิกส์ของวัตถุบนแคนวาส ---
     if (typeof canvasObjects !== "undefined" && canvasObjects) {
       canvasObjects.forEach((obj) => {
@@ -155,37 +163,6 @@ function updatePhysics(timestamp) {
           obj.vy *= -0.8;
         }
       });
-
-      // จัดการวัตถุที่ถูกจับ (ตามตำแหน่งของแต่ละ Grip)
-      if (typeof grabbedObjects !== "undefined" && grabbedObjects.length > 0) {
-        const rad_val = (angle * Math.PI) / 180;
-        const cos_v = Math.cos(rad_val);
-        const sin_v = Math.sin(rad_val);
-
-        grips.forEach((grip, idx) => {
-          const obj = grabbedObjects[idx];
-          if (!obj) return;
-
-          // คำนวณตำแหน่ง global ของ grip
-          const localX = grip.x - 25;
-          const localY = grip.y - 25;
-          const rotatedX = localX * cos_v - localY * sin_v;
-          const rotatedY = localX * sin_v + localY * cos_v;
-          const gripCanvasX = robotX + 25 + rotatedX;
-          const gripCanvasY = robotY + 25 + rotatedY;
-          
-          // มุม global ของ grip
-          const gripGlobalAngle = (angle + (grip.angle || 0)) * (Math.PI / 180);
-          
-          // ระยะห่างจากจุดยึด grip ไปยังจุดศูนย์กลางวัตถุ
-          const grabDist = 15; // รัศมีวัตถุโดยประมาณ
-          
-          obj.x = gripCanvasX + grabDist * Math.cos(gripGlobalAngle);
-          obj.y = gripCanvasY + grabDist * Math.sin(gripGlobalAngle);
-          obj.vx = 0;
-          obj.vy = 0;
-        });
-      }
 
       // เช็คการชนระหว่างหุ่นยนต์กับวัตถุที่ไม่ได้ถูกจับ
       const robotCenter = { x: robotX + 25, y: robotY + 25 };
@@ -237,331 +214,30 @@ function toggleSensorRays(enabled) {
  * อัปเดตตำแหน่งและการแสดงผลของจุดเซนเซอร์บนตัวหุ่นยนต์
  */
 function updateSensorDots() {
-  const oldDots = document.querySelectorAll(".sensor-dot");
+  const oldDots = document.querySelectorAll(".sensor-dot, .grip-canvas-el");
   oldDots.forEach((dot) => dot.remove());
 
-  // Remove old grip elements
-  const oldGrips = document.querySelectorAll(".grip-canvas-el");
-  oldGrips.forEach((el) => el.remove());
+  const globals = {
+      robotX: robotX,
+      robotY: robotY,
+      angle: angle,
+      showSensorRays: showSensorRays,
+      showGripPreview: typeof showGripPreview !== "undefined" ? showGripPreview : true
+  };
 
-  const rad = (angle * Math.PI) / 180;
-  const cos_a = Math.cos(rad);
-  const sin_a = Math.sin(rad);
-
-  // 1. Render Sensors
-  sensors.forEach((sensor, index) => {
-    const dot = document.createElement("div");
-    dot.className = "sensor-dot";
-
-    const localX = sensor.x - 25;
-    const localY = sensor.y - 25;
-
-    const rotatedX = localX * cos_a - localY * sin_a;
-    const rotatedY = localX * sin_a + localY * cos_a;
-
-    const canvasX = robotX + 25 + rotatedX;
-    const canvasY = robotY + 25 + rotatedY;
-
-    dot.style.left = canvasX + "px";
-    dot.style.top = canvasY + "px";
-
-    if (sensor.type === "ultrasonic") {
-      dot.style.backgroundColor = sensor.color || "#0984e3";
-      const sensorGlobalAngle = angle + (sensor.angle || 0);
-      const dist = getUltrasonicDistance(
-        canvasX,
-        canvasY,
-        sensorGlobalAngle,
-        sensor.color || "#000000",
-      );
-      sensor.value = dist;
-      dot.title = `${sensor.name} [${index}]\nDistance: ${dist.toFixed(1)} cm/px`;
-
-      if (showSensorRays) {
-        const rayLine = document.createElement("div");
-        rayLine.style.position = "absolute";
-        rayLine.style.left = canvasX + "px";
-        rayLine.style.top = canvasY + "px";
-        rayLine.style.width = dist + "px";
-        rayLine.style.height = "1px";
-        rayLine.style.backgroundColor = sensor.color || "#0984e3";
-        rayLine.style.opacity = "0.5";
-        rayLine.style.transformOrigin = "0 0";
-        rayLine.style.transform = `rotate(${sensorGlobalAngle}deg)`;
-        rayLine.style.pointerEvents = "none";
-        rayLine.className = "sensor-dot";
-        canvasArea.appendChild(rayLine);
+  [...sensors, ...grips].forEach((sensor, index) => {
+      const registry = window.SensorRegistry[sensor.type];
+      if (registry && typeof registry.drawCanvas === "function") {
+          registry.drawCanvas(canvasArea, sensor, globals, index);
       }
-    } else {
-      let brightness = 512;
-      if (canvasPixelData) brightness = getPixelBrightness(canvasX, canvasY);
-      sensor.value = brightness;
-      dot.title = `${sensor.name} [${index}]\nBrightness: ${brightness}`;
-    }
-    canvasArea.appendChild(dot);
   });
-
-  // 2. Render Grips
-  if (typeof showGripPreview !== "undefined" && showGripPreview) {
-    grips.forEach((grip) => {
-      const localX = grip.x - 25;
-      const localY = grip.y - 25;
-      const rotatedX = localX * cos_a - localY * sin_a;
-      const rotatedY = localX * sin_a + localY * cos_a;
-      const canvasX = robotX + 25 + rotatedX;
-      const canvasY = robotY + 25 + rotatedY;
-      const globalAngle = angle + (grip.angle || 0);
-
-      const gripContainer = document.createElement("div");
-      gripContainer.className = "grip-canvas-el";
-      gripContainer.style.left = canvasX + "px";
-      gripContainer.style.top = canvasY + "px";
-      gripContainer.style.transform = `rotate(${globalAngle}deg)`;
-
-      // Arm
-      const arm = document.createElement("div");
-      arm.className = "grip-arm-canvas-el";
-      arm.style.width = "10px";
-      gripContainer.appendChild(arm);
-
-      // Tip (where jaws start)
-      const tipX = 10;
-      const tipY = 0;
-
-      // Jaws
-      const jawL = document.createElement("div");
-      jawL.className = "grip-jaw-canvas-el";
-      jawL.style.width = "5px";
-      jawL.style.left = tipX + "px";
-      jawL.style.top = tipY + "px";
-      jawL.style.transform = "rotate(30deg)";
-      gripContainer.appendChild(jawL);
-
-      const jawR = document.createElement("div");
-      jawR.className = "grip-jaw-canvas-el";
-      jawR.style.width = "5px";
-      jawR.style.left = tipX + "px";
-      jawR.style.top = tipY + "px";
-      jawR.style.transform = "rotate(-30deg)";
-      gripContainer.appendChild(jawR);
-
-      // Base
-      const base = document.createElement("div");
-      base.className = "grip-base-canvas-el";
-      gripContainer.appendChild(base);
-
-      canvasArea.appendChild(gripContainer);
-    });
-  }
 }
 
-/**
- * อ่านค่าความสว่างของพิกเซลที่กำหนดจากข้อมูลภาพในหน่วยความจำ
- * @param {number} x - พิกัดแนวนอนบนแคนวาส
- * @param {number} y - พิกัดแนวตั้งบนแคนวาส
- * @returns {number} ค่าความสว่าง (0 = ขาว, 1024 = ดำ)
- */
-function getPixelBrightness(x, y) {
-  if (!canvasPixelData) return 512;
 
-  const pixelX = Math.round(x);
-  const pixelY = Math.round(y);
 
-  // ตรวจสอบขอบเขตของพิกัด
-  if (
-    pixelX < 0 ||
-    pixelX >= canvasArea.offsetWidth ||
-    pixelY < 0 ||
-    pixelY >= canvasArea.offsetHeight
-  ) {
-    return 512;
-  }
 
-  const imageWidth = canvasArea.offsetWidth;
-  const pixelIndex = (pixelY * imageWidth + pixelX) * 4;
 
-  if (pixelIndex + 2 >= canvasPixelData.length) return 512;
 
-  // อ่านค่าสี Red, Green, Blue
-  const r = canvasPixelData[pixelIndex];
-  const g = canvasPixelData[pixelIndex + 1];
-  const b = canvasPixelData[pixelIndex + 2];
-
-  // คำนวณค่าเฉลี่ยความสว่างและแปลงช่วงค่า
-  // ปรับให้ค่าสูง (ใกล้ 1024) แทนสีดำ และค่าต่ำแทนสีขาว เพื่อให้ง่ายต่อการเขียนโค้ดเดินตามเส้น
-  const avgBrightness = (r + g + b) / 3;
-  return Math.round((255 - avgBrightness) * 4);
-}
-
-/**
- * Calculate distance using Raycasting
- * @param {number} startX - Start X coordinate
- * @param {number} startY - Start Y coordinate
- * @param {number} angleDeg - Ray angle in degrees
- * @returns {number} Distance in pixels (max 800)
- */
-/**
- * Calculate distance using Raycasting
- * @param {number} startX - Start X coordinate
- * @param {number} startY - Start Y coordinate
- * @param {number} angleDeg - Ray angle in degrees
- * @param {string} targetColor - Hex color to detect (e.g., "#000000")
- * @returns {number} Distance in pixels (max 800)
- */
-function getUltrasonicDistance(startX, startY, angleDeg, targetColor) {
-  if (!canvasPixelData) return 800;
-
-  const rad = (angleDeg * Math.PI) / 180;
-  const cosA = Math.cos(rad);
-  const sinA = Math.sin(rad);
-
-  // Parse target color
-  let tr = 0,
-    tg = 0,
-    tb = 0;
-  if (targetColor && targetColor.startsWith("#")) {
-    const hex = targetColor.substring(1);
-    tr = parseInt(hex.substring(0, 2), 16);
-    tg = parseInt(hex.substring(2, 4), 16);
-    tb = parseInt(hex.substring(4, 6), 16);
-  }
-
-  let minDist = 800;
-  // --- 1. ตรวจสอบระยะห่างจากวัตถุบนแคนวาส (canvasObjects) ---
-  if (typeof canvasObjects !== "undefined" && canvasObjects) {
-    for (let i = 0; i < canvasObjects.length; i++) {
-      const obj = canvasObjects[i];
-      const ocX = startX - obj.x;
-      const ocY = startY - obj.y;
-      const b = 2 * (cosA * ocX + sinA * ocY);
-      const c = ocX * ocX + ocY * ocY - (obj.radius || 15) * (obj.radius || 15);
-      const disc = b * b - 4 * c;
-      if (disc >= 0) {
-        const t = (-b - Math.sqrt(disc)) / 2;
-        if (t >= 0 && t < minDist) {
-          minDist = t;
-        }
-      }
-    }
-  }
-
-  let dist = 0;
-  const step = 2; // Step size for optimization
-  const maxDist = minDist; // Max range
-  const threshold = 100; // Color distance threshold (0-441 approx)
-
-  while (dist < maxDist) {
-    dist += step;
-    const cx = startX + dist * cosA;
-    const cy = startY + dist * sinA;
-
-    // Check boundaries
-    if (
-      cx < 0 ||
-      cx >= canvasArea.offsetWidth ||
-      cy < 0 ||
-      cy >= canvasArea.offsetHeight
-    ) {
-      return dist;
-    }
-
-    const pixelX = Math.round(cx);
-    const pixelY = Math.round(cy);
-    const width = canvasArea.offsetWidth;
-    const idx = (pixelY * width + pixelX) * 4;
-
-    if (idx < 0 || idx >= canvasPixelData.length) return dist;
-
-    const r = canvasPixelData[idx];
-    const g = canvasPixelData[idx + 1];
-    const b = canvasPixelData[idx + 2];
-
-    // Calculate Euclidean distance between colors
-    // dist = sqrt((r1-r2)^2 + (g1-g2)^2 + (b1-b2)^2)
-    const colorDist = Math.sqrt(
-      Math.pow(r - tr, 2) + Math.pow(g - tg, 2) + Math.pow(b - tb, 2),
-    );
-
-    if (colorDist < threshold) {
-      return dist;
-    }
-  }
-
-  return maxDist;
-}
-
-// --- 8. ระบบหยิบจับวัตถุ (Grabbing System) ---
-window.grabObject = function (index = 0) {
-  if (typeof grips === "undefined" || !grips[index]) return;
-  if (typeof grabbedObjects !== "undefined" && grabbedObjects[index]) return;
-
-  const rad = (angle * Math.PI) / 180;
-  const cos_a = Math.cos(rad);
-  const sin_a = Math.sin(rad);
-
-  // หาตำแหน่ง global ของกริปที่ต้องการ
-  const grip = grips[index];
-  const localX = grip.x - 25;
-  const localY = grip.y - 25;
-  const rotatedX = localX * cos_a - localY * sin_a;
-  const rotatedY = localX * sin_a + localY * cos_a;
-  const gripCanvasX = robotX + 25 + rotatedX;
-  const gripCanvasY = robotY + 25 + rotatedY;
-  
-  const gripGlobalAngle = (angle + (grip.angle || 0)) * (Math.PI / 180);
-
-  let closestObj = null;
-  let closestDist = 30; // รัศมีวัตถุ 15 + ระยะเอื้อม 15
-
-  if (typeof canvasObjects !== "undefined" && canvasObjects) {
-    canvasObjects.forEach((obj) => {
-      // ข้ามวัตถุที่ถูกจับโดยกริปอื่นอยู่แล้ว
-      if (grabbedObjects.includes(obj)) return;
-
-      const dx = obj.x - gripCanvasX;
-      const dy = obj.y - gripCanvasY;
-      const dist = Math.hypot(dx, dy);
-
-      if (dist <= closestDist) {
-        const angleToObj = Math.atan2(dy, dx);
-        let angleDiff = Math.abs(angleToObj - gripGlobalAngle);
-        while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-        angleDiff = Math.abs(angleDiff);
-
-        if (angleDiff <= Math.PI / 3) {
-          closestObj = obj;
-          closestDist = dist;
-        }
-      }
-    });
-  }
-
-  if (closestObj) {
-    grabbedObjects[index] = closestObj;
-    closestObj.isGrabbed = true;
-    if (typeof updateObjectsDOM === "function") updateObjectsDOM();
-  }
-};
-
-window.releaseObject = function (index = 0) {
-  if (typeof grabbedObjects !== "undefined" && grabbedObjects[index]) {
-    const obj = grabbedObjects[index];
-    obj.isGrabbed = false;
-
-    // ปล่อยวัตถุไว้ที่ตำแหน่งกริป (บวกระยะยื่นเล็กน้อย)
-    const grip = grips[index];
-    const gripGlobalAngle = (angle + (grip.angle || 0)) * (Math.PI / 180);
-    
-    // obj.x += Math.cos(gripGlobalAngle) * 5;
-    // obj.y += Math.sin(gripGlobalAngle) * 5;
-
-    obj.vx = 0;
-    obj.vy = 0;
-
-    grabbedObjects[index] = null;
-    if (typeof updateObjectsDOM === "function") updateObjectsDOM();
-  }
-};
 
 window.addCanvasObject = function (color = "#e74c3c") {
   if (typeof canvasObjects !== "undefined") {

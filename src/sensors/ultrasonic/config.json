@@ -1,0 +1,11 @@
+{
+  "name": "Ultrasonic",
+  "icon": "fas fa-wifi",
+  "maxLimit": 25,
+  "inputs": [
+    { "id": "x", "label": "X", "type": "number", "min": 0, "max": 50, "default": 45 },
+    { "id": "y", "label": "Y", "type": "number", "min": 0, "max": 50, "default": 25 },
+    { "id": "angle", "label": "∠", "type": "number", "min": -180, "max": 180, "default": 0 },
+    { "id": "color", "label": "Color", "type": "color", "default": "#000000" }
+  ]
+}

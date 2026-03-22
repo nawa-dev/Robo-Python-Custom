@@ -699,6 +699,16 @@ window.runCode = function () {
   if (typeof startSimulationLoop === "function") {
     startSimulationLoop();
   }
+
+  // --- DYNAMIC HOOK: onProgramStart ---
+  if (window.SensorConfigs) {
+      Object.keys(window.SensorConfigs).forEach(type => {
+          const registry = window.SensorRegistry[type];
+          if (registry && typeof registry.onProgramStart === "function") {
+              registry.onProgramStart({ sensors: typeof sensors !== 'undefined' ? sensors : [], grips: typeof grips !== 'undefined' ? grips : [] });
+          }
+      });
+  }
 };
 
 const originalStopProgram = window.stopProgram;
@@ -709,6 +719,16 @@ window.stopProgram = function () {
   // หยุดลูป RAF เมื่อโค้ดของผู้ใช้หยุดทำงาน
   if (typeof stopSimulationLoop === "function") {
     stopSimulationLoop();
+  }
+
+  // --- DYNAMIC HOOK: onProgramStop ---
+  if (window.SensorConfigs) {
+      Object.keys(window.SensorConfigs).forEach(type => {
+          const registry = window.SensorRegistry[type];
+          if (registry && typeof registry.onProgramStop === "function") {
+              registry.onProgramStop({ sensors: typeof sensors !== 'undefined' ? sensors : [], grips: typeof grips !== 'undefined' ? grips : [] });
+          }
+      });
   }
 };
 

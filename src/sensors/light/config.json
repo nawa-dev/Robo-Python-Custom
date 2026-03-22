@@ -1,0 +1,9 @@
+{
+  "name": "Light Sensor",
+  "icon": "fas fa-lightbulb",
+  "maxLimit": 25,
+  "inputs": [
+    { "id": "x", "label": "X", "type": "number", "min": 0, "max": 50, "default": 45 },
+    { "id": "y", "label": "Y", "type": "number", "min": 0, "max": 50, "default": 25 }
+  ]
+}
