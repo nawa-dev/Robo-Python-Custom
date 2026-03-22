@@ -5,7 +5,7 @@ if (window.SensorRegistry["ultrasonic"]) {
         if (index !== undefined) i = Sk.builtin.asnum$(index);
         
         // กรองเฉพาะเซนเซอร์ชนิด ultrasonic
-        const ultraSensors = sensors.filter(s => s.type === "ultrasonic");
+        const ultraSensors = state.sensors.filter(s => s.type === "ultrasonic");
         
         if (i >= 0 && i < ultraSensors.length) {
             return new Sk.builtin.int_(Math.round(ultraSensors[i].value || 0));

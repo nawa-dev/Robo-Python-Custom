@@ -25,7 +25,7 @@ function updateCanvasImageData() {
       img.crossOrigin = "anonymous";
       img.onload = () => {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        canvasPixelData = ctx.getImageData(
+        state.canvasPixelData = ctx.getImageData(
           0,
           0,
           canvas.width,
@@ -36,7 +36,7 @@ function updateCanvasImageData() {
       };
       img.onerror = () => {
         logToConsole("Failed to load background image, using default.", "info");
-        canvasPixelData = ctx.getImageData(
+        state.canvasPixelData = ctx.getImageData(
           0,
           0,
           canvas.width,
@@ -47,7 +47,7 @@ function updateCanvasImageData() {
       img.src = imageUrl;
     } catch (e) {
       logToConsole("Error parsing background image URL.", "info");
-      canvasPixelData = ctx.getImageData(
+      state.canvasPixelData = ctx.getImageData(
         0,
         0,
         canvas.width,
@@ -56,7 +56,7 @@ function updateCanvasImageData() {
       if (typeof updateSensorDots === 'function') updateSensorDots();
     }
   } else {
-    canvasPixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    state.canvasPixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     logToConsole("Using default canvas background.", "info");
     if (typeof updateSensorDots === 'function') updateSensorDots();
   }

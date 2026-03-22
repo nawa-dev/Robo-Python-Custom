@@ -7,7 +7,7 @@
  * @returns {number} Distance in pixels (max 800)
  */
 window.getUltrasonicDistance = function(startX, startY, angleDeg, targetColor) {
-  if (!canvasPixelData) return 800;
+  if (!state.canvasPixelData) return 800;
 
   const rad = (angleDeg * Math.PI) / 180;
   const cosA = Math.cos(rad);
@@ -26,9 +26,9 @@ window.getUltrasonicDistance = function(startX, startY, angleDeg, targetColor) {
 
   let minDist = 800;
   // --- 1. ตรวจสอบระยะห่างจากวัตถุบนแคนวาส (canvasObjects) ---
-  if (typeof canvasObjects !== "undefined" && canvasObjects) {
-    for (let i = 0; i < canvasObjects.length; i++) {
-      const obj = canvasObjects[i];
+  if (typeof state.canvasObjects !== "undefined" && state.canvasObjects) {
+    for (let i = 0; i < state.canvasObjects.length; i++) {
+      const obj = state.canvasObjects[i];
       const ocX = startX - obj.x;
       const ocY = startY - obj.y;
       const b = 2 * (cosA * ocX + sinA * ocY);
@@ -68,11 +68,11 @@ window.getUltrasonicDistance = function(startX, startY, angleDeg, targetColor) {
     const width = canvasArea.offsetWidth;
     const idx = (pixelY * width + pixelX) * 4;
 
-    if (idx < 0 || idx >= canvasPixelData.length) return dist;
+    if (idx < 0 || idx >= state.canvasPixelData.length) return dist;
 
-    const r = canvasPixelData[idx];
-    const g = canvasPixelData[idx + 1];
-    const b = canvasPixelData[idx + 2];
+    const r = state.canvasPixelData[idx];
+    const g = state.canvasPixelData[idx + 1];
+    const b = state.canvasPixelData[idx + 2];
 
     // Calculate Euclidean distance between colors
     // dist = sqrt((r1-r2)^2 + (g1-g2)^2 + (b1-b2)^2)

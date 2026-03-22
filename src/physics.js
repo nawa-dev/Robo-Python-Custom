@@ -113,13 +113,12 @@ const robotDrive = new DifferentialDrive({
 /**
  * Reset all current wheel speeds to 0 immediately.
  */
-DifferentialDrive.prototype.resetCurrentSpeeds = function() {
+DifferentialDrive.prototype.resetCurrentSpeeds = function () {
   this.fl.current = 0;
   this.fr.current = 0;
   this.bl.current = 0;
   this.br.current = 0;
 };
-
 
 let lastPhysicTime = 0;
 let physicsAccumulator = 0;
@@ -131,10 +130,10 @@ const FIXED_DT = 1 / 60; // 60Hz
  * @param {number} timestamp - เวลาปัจจุบันจากเบราว์เซอร์
  */
 function updatePhysics(timestamp) {
-  if (isRunning && !isDragging) {
+  if (state.isRunning && !state.isDragging) {
     if (!lastPhysicTime) lastPhysicTime = timestamp;
     let frameTime = (timestamp - lastPhysicTime) / 1000;
-    if (frameTime > 0.25) frameTime = 0.25; // ป้องกันการคำนวณมหาศาลหากเบราว์เซอร์ค้าง (Spiral of Death) 
+    if (frameTime > 0.25) frameTime = 0.25; // ป้องกันการคำนวณมหาศาลหากเบราว์เซอร์ค้าง (Spiral of Death)
     lastPhysicTime = timestamp;
 
     physicsAccumulator += frameTime;
@@ -148,6 +147,7 @@ function updatePhysics(timestamp) {
     // อัปเดตการแสดงผล (Rendering) ทำเพียงครั้งเดียวต่อเฟรม
     updateRobotDOM();
     if (typeof updateObjectsDOM === "function") updateObjectsDOM();
+    if (typeof updateTrackBuffer === "function") updateTrackBuffer();
     if (typeof updateSensorDots === "function") updateSensorDots();
   } else {
     // รีเซ็ตค่าเวลาเมื่อหยุดการทำงาน เพื่อป้องกันการกระโดดของตำแหน่ง (Time Warping)
@@ -165,22 +165,25 @@ function applyPhysicsStep(dt) {
   // ตั้งค่าความเร็วมอเตอร์พร้อมตัวคูณเพื่อความเร็วที่สมจริงในโปรแกรมจำลอง
   if (typeof robotDrive.setTargets4 === "function") {
     robotDrive.setTargets4(
-      motorFL * MOTOR_SPEED_FACTOR,
-      motorFR * MOTOR_SPEED_FACTOR,
-      motorBL * MOTOR_SPEED_FACTOR,
-      motorBR * MOTOR_SPEED_FACTOR
+      state.motorFL * MOTOR_SPEED_FACTOR,
+      state.motorFR * MOTOR_SPEED_FACTOR,
+      state.motorBL * MOTOR_SPEED_FACTOR,
+      state.motorBR * MOTOR_SPEED_FACTOR,
     );
   } else {
-    robotDrive.setTargets(motorL * MOTOR_SPEED_FACTOR, motorR * MOTOR_SPEED_FACTOR);
+    robotDrive.setTargets(
+      state.motorL * MOTOR_SPEED_FACTOR,
+      state.motorR * MOTOR_SPEED_FACTOR,
+    );
   }
 
   // ดึงค่า motorPos จากเซนเซอร์ล้อ
-  const wheelSensors = sensors.filter(s => s.type === "wheel");
-  const normalWheels = wheelSensors.filter(s => s.wheelType !== "omni");
-  const omniWheels = wheelSensors.filter(s => s.wheelType === "omni");
-  
-  let activeMotorPos = (typeof motorPos !== "undefined") ? motorPos : 0;
-  
+  const wheelSensors = state.sensors.filter((s) => s.type === "wheel");
+  const normalWheels = wheelSensors.filter((s) => s.wheelType !== "omni");
+  const omniWheels = wheelSensors.filter((s) => s.wheelType === "omni");
+
+  let activeMotorPos = typeof state.motorPos !== "undefined" ? state.motorPos : 0;
+
   // ถ้ามีล้อธรรมดา ให้ใช้ตำแหน่งล้อธรรมดาเป็นจุดหมุนหลัก (เพราะล้อออมนิสไลด์ข้างได้)
   if (normalWheels.length > 0) {
     const sumPos = normalWheels.reduce((sum, s) => sum + (s.motorPos || 0), 0);
@@ -193,13 +196,21 @@ function applyPhysicsStep(dt) {
 
   // คำนวณตำแหน่งปัจจุบันโดยอ้างอิงจากแกนล้อ
   let pose = {
-    x: robotX + 25 + activeMotorPos * Math.cos((angle * Math.PI) / 180),
-    y: robotY + 25 + activeMotorPos * Math.sin((angle * Math.PI) / 180),
-    theta: angle * (Math.PI / 180),
+    x:
+      state.robotX +
+      25 +
+      activeMotorPos * Math.cos((state.angle * Math.PI) / 180),
+    y:
+      state.robotY +
+      25 +
+      activeMotorPos * Math.sin((state.angle * Math.PI) / 180),
+    theta: state.angle * (Math.PI / 180),
   };
 
   // ตรวจสอบว่าเป็น Holonomic Mode หรือไม่ (ต้องมี 2 รายการล้อ และทุกตัวเป็น Omni)
-  const isHolonomic = wheelSensors.length === 2 && wheelSensors.every(s => s.wheelType === "omni");
+  const isHolonomic =
+    wheelSensors.length === 2 &&
+    wheelSensors.every((s) => s.wheelType === "omni");
   robotDrive.step(pose, dt, isHolonomic);
 
   // แปลงพิกัดกลับจากจุดกึ่งกลางแกนล้อ มาเป็นพิกัดมุมซ้ายบนของหุ่นยนต์ (Global Coordinates)
@@ -220,29 +231,37 @@ function applyPhysicsStep(dt) {
     logToConsole("ข้อผิดพลาดการชน: หุ่นยนต์ชนขอบสนาม!", "error");
   } else {
     // อัปเดตค่าตัวแปรหลักของระบบ
-    robotX = nextX;
-    robotY = nextY;
-    angle = pose.theta * (180 / Math.PI);
+    state.robotX = nextX;
+    state.robotY = nextY;
+    state.angle = pose.theta * (180 / Math.PI);
   }
 
-  const physicsGlobals = { robotX, robotY, angle, dt };
+  const physicsGlobals = {
+    robotX: state.robotX,
+    robotY: state.robotY,
+    angle: state.angle,
+    dt,
+  };
   const typeCounters = {};
-  [...sensors, ...grips].forEach((sensor) => {
-      const type = sensor.type;
-      if (!typeCounters[type]) typeCounters[type] = 0;
-      const typeIdx = typeCounters[type]++;
+  [...state.sensors, ...state.grips].forEach((sensor) => {
+    const type = sensor.type;
+    if (!typeCounters[type]) typeCounters[type] = 0;
+    const typeIdx = typeCounters[type]++;
 
-      const registry = window.SensorRegistry[type];
-      if (registry && typeof registry.physicsStep === "function") {
-          registry.physicsStep(sensor, typeIdx, physicsGlobals);
-      }
+    const registry = window.SensorRegistry[type];
+    if (registry && typeof registry.physicsStep === "function") {
+      registry.physicsStep(sensor, typeIdx, physicsGlobals);
+    }
   });
 
   // --- อัปเดตฟิสิกส์ของวัตถุบนแคนวาส ---
-  if (typeof canvasObjects !== "undefined" && canvasObjects) {
-    canvasObjects.forEach((obj) => {
+  if (typeof state.canvasObjects !== "undefined" && state.canvasObjects) {
+    state.canvasObjects.forEach((obj) => {
       // ข้ามวัตถุที่ถูกจับอยู่ (ในกริปใดๆ)
-      if (typeof grabbedObjects !== "undefined" && grabbedObjects.includes(obj))
+      if (
+        typeof state.grabbedObjects !== "undefined" &&
+        state.grabbedObjects.includes(obj)
+      )
         return;
 
       // อัปเดตตำแหน่งตามความเร็ว
@@ -277,9 +296,12 @@ function applyPhysicsStep(dt) {
     });
 
     // เช็คการชนระหว่างหุ่นยนต์กับวัตถุที่ไม่ได้ถูกจับ
-    const robotCenter = { x: robotX + 25, y: robotY + 25 };
-    canvasObjects.forEach((obj) => {
-      if (typeof grabbedObjects !== "undefined" && grabbedObjects.includes(obj))
+    const robotCenter = { x: state.robotX + 25, y: state.robotY + 25 };
+    state.canvasObjects.forEach((obj) => {
+      if (
+        typeof state.grabbedObjects !== "undefined" &&
+        state.grabbedObjects.includes(obj)
+      )
         return;
 
       const dx = obj.x - robotCenter.x;
@@ -298,8 +320,8 @@ function applyPhysicsStep(dt) {
 
         // ถ่ายเทความเร็วจากหุ่นยนต์ไปยังวัตถุ
         const v = 0.5 * (robotDrive.left.current + robotDrive.right.current);
-        obj.vx += v * Math.cos((angle * Math.PI) / 180) * 0.8;
-        obj.vy += v * Math.sin((angle * Math.PI) / 180) * 0.8;
+        obj.vx += v * Math.cos((state.angle * Math.PI) / 180) * 0.8;
+        obj.vy += v * Math.sin((state.angle * Math.PI) / 180) * 0.8;
       }
     });
   }
@@ -325,33 +347,29 @@ function updateSensorDots() {
   if (sensorsSvg) sensorsSvg.innerHTML = "";
 
   const globals = {
-      robotX: robotX,
-      robotY: robotY,
-      angle: angle,
-      sensorVisibility: window.SensorSettings ? window.SensorSettings.visibility : {}
+    robotX: state.robotX,
+    robotY: state.robotY,
+    angle: state.angle,
+    sensorVisibility: window.SensorSettings
+      ? window.SensorSettings.visibility
+      : {},
   };
 
   const typeCountersDraw = {};
-  [...sensors, ...grips].forEach((sensor) => {
-      const type = sensor.type;
-      if (typeCountersDraw[type] === undefined) typeCountersDraw[type] = 0;
-      const typeIdx = typeCountersDraw[type]++;
+  [...state.sensors, ...state.grips].forEach((sensor) => {
+    const type = sensor.type;
+    if (typeCountersDraw[type] === undefined) typeCountersDraw[type] = 0;
+    const typeIdx = typeCountersDraw[type]++;
 
-      const registry = window.SensorRegistry[type];
-      if (registry && typeof registry.drawCanvas === "function") {
-          registry.drawCanvas(sensorsSvg, sensor, globals, typeIdx);
-      }
+    const registry = window.SensorRegistry[type];
+    if (registry && typeof registry.drawCanvas === "function") {
+      registry.drawCanvas(sensorsSvg, sensor, globals, typeIdx);
+    }
   });
 }
 
-
-
-
-
-
-
 window.addCanvasObject = function (color = "#e74c3c") {
-  if (typeof canvasObjects !== "undefined") {
+  if (typeof state.canvasObjects !== "undefined") {
     const obj = {
       id: "obj_" + Date.now(),
       x: Math.random() * (canvasArea.offsetWidth - 100) + 50,
@@ -362,18 +380,18 @@ window.addCanvasObject = function (color = "#e74c3c") {
       vy: 0,
       isGrabbed: false,
     };
-    canvasObjects.push(obj);
+    state.canvasObjects.push(obj);
     if (typeof updateObjectsDOM === "function") updateObjectsDOM();
     return obj;
   }
 };
 
 window.releaseAllObjects = function () {
-  if (typeof grabbedObjects !== "undefined") {
-    grabbedObjects.forEach((obj) => {
+  if (typeof state.grabbedObjects !== "undefined") {
+    state.grabbedObjects.forEach((obj) => {
       if (obj) obj.isGrabbed = false;
     });
-    grabbedObjects.length = 0;
+    state.grabbedObjects.length = 0;
     if (typeof updateObjectsDOM === "function") updateObjectsDOM();
   }
 };
@@ -383,15 +401,19 @@ function handleGenericSensorCollision(sensor, globals) {
   const rad = (globals.angle * Math.PI) / 180;
   const localX = (sensor.x || 0) - 25;
   const localY = (sensor.y || 0) - 25;
-  
+
   // คำนวณตำแหน่งโลกของเซนเซอร์
   const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
   const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
   const worldX = globals.robotX + 25 + rotatedX;
   const worldY = globals.robotY + 25 + rotatedY;
 
-  canvasObjects.forEach((obj) => {
-    if (typeof grabbedObjects !== "undefined" && grabbedObjects.includes(obj)) return;
+  state.canvasObjects.forEach((obj) => {
+    if (
+      typeof state.grabbedObjects !== "undefined" &&
+      state.grabbedObjects.includes(obj)
+    )
+      return;
 
     const dx = obj.x - worldX;
     const dy = obj.y - worldY;

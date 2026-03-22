@@ -132,11 +132,20 @@ require(["vs/editor/editor.main"], function () {
 
 // ตั้งค่าการไฮไลต์สำหรับ Robot API
 function getDynamicAPIKeywords() {
-  const baseKeywords = ["motor", "motor4", "delay", "sleep", "analogRead", "getSensorCount", "print", "spawn_object"];
+  const baseKeywords = [
+    "motor",
+    "motor4",
+    "delay",
+    "sleep",
+    "analogRead",
+    "getSensorCount",
+    "print",
+    "spawn_object",
+  ];
   if (window.SensorConfigs) {
-    Object.values(window.SensorConfigs).forEach(config => {
+    Object.values(window.SensorConfigs).forEach((config) => {
       if (config.api && Array.isArray(config.api)) {
-        config.api.forEach(apiDef => {
+        config.api.forEach((apiDef) => {
           if (apiDef.keyword && !baseKeywords.includes(apiDef.keyword)) {
             baseKeywords.push(apiDef.keyword);
           }
@@ -156,9 +165,10 @@ function setupRobotHighlighting(editor) {
 
     const keywords = getDynamicAPIKeywords();
     // Sort by length descending to ensure longer words (like motor4) match before shorter ones (like motor)
-    const sortedKeywords = [...keywords, "SW", "waitSW"].sort((a, b) => b.length - a.length);
+    const sortedKeywords = [...keywords, "SW", "waitSW"].sort(
+      (a, b) => b.length - a.length,
+    );
     const robotRegex = new RegExp(`\\b(${sortedKeywords.join("|")})\\b`, "g");
-
 
     const text = model.getValue();
     const decorations = [];
@@ -305,30 +315,34 @@ function setupAutocomplete() {
       insertText: "spawn_object('${1:red}')",
       insertTextRules:
         monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-      documentation: "Spawn a new object on the canvas. Colors: red, blue, green, yellow",
+      documentation:
+        "Spawn a new object on the canvas. Colors: red, blue, green, yellow",
       detail: "spawn_object(color: string) -> void",
-    }
+    },
   ];
 
   monaco.languages.registerCompletionItemProvider("python", {
     provideCompletionItems: (model, position) => {
       // Create a fresh copy of the base auto-completes
       let dynamicAPI = [...robotAPI];
-      
+
       // Inject dynamically from loaded components
       if (window.SensorConfigs) {
-        Object.values(window.SensorConfigs).forEach(config => {
+        Object.values(window.SensorConfigs).forEach((config) => {
           if (config.api && Array.isArray(config.api)) {
-            config.api.forEach(apiDef => {
+            config.api.forEach((apiDef) => {
               if (apiDef.snippet) {
                 dynamicAPI.push({
                   label: apiDef.snippet.label,
                   kind: monaco.languages.CompletionItemKind.Function,
                   insertText: apiDef.snippet.insertText,
-                  insertTextRules: apiDef.snippet.insertTextRules === "snippet" ? 
-                      monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet : undefined,
+                  insertTextRules:
+                    apiDef.snippet.insertTextRules === "snippet"
+                      ? monaco.languages.CompletionItemInsertTextRule
+                          .InsertAsSnippet
+                      : undefined,
                   documentation: apiDef.snippet.documentation,
-                  detail: apiDef.snippet.detail
+                  detail: apiDef.snippet.detail,
                 });
               }
             });
@@ -380,13 +394,13 @@ function resizeHorizontal(e) {
 
 // ส่วนที่ 3: ฟังก์ชันลาก-วาง Robot
 robot.addEventListener("mousedown", () => {
-  isDragging = true;
+  state.isDragging = true;
 });
 
-window.addEventListener("mouseup", () => (isDragging = false));
+window.addEventListener("mouseup", () => (state.isDragging = false));
 
 window.addEventListener("mousemove", (e) => {
-  if (!isDragging) return;
+  if (!state.isDragging) return;
   const rect = canvasArea.getBoundingClientRect();
 
   let nextX = e.clientX - rect.left - 25;
@@ -395,17 +409,17 @@ window.addEventListener("mousemove", (e) => {
   const maxX = canvasArea.offsetWidth - 50;
   const maxY = canvasArea.offsetHeight - 50;
 
-  robotX = Math.max(0, Math.min(nextX, maxX));
-  robotY = Math.max(0, Math.min(nextY, maxY));
+  state.robotX = Math.max(0, Math.min(nextX, maxX));
+  state.robotY = Math.max(0, Math.min(nextY, maxY));
 
   updateRobotDOM();
 });
 
 // ส่วนที่ 4: อัปเดตตำแหน่ง Robot บน DOM
 function updateRobotDOM() {
-  robot.style.left = robotX + "px";
-  robot.style.top = robotY + "px";
-  robot.style.transform = `rotate(${angle}deg)`;
+  robot.style.left = state.robotX + "px";
+  robot.style.top = state.robotY + "px";
+  robot.style.transform = `rotate(${state.angle}deg)`;
   updateSensorDots();
   if (typeof syncWheelDOM === "function") syncWheelDOM();
 }
@@ -427,7 +441,7 @@ function clearConsole() {
 // ส่วนที่ 6: ควบคุมมุม Robot
 
 function handleAngleInput(value) {
-  if (isRunning) {
+  if (state.isRunning) {
     logToConsole("Cannot change angle while program is running!", "error");
     return;
   }
@@ -438,13 +452,13 @@ function handleAngleInput(value) {
   // Wrap angle between 0-359
   newAngle = ((newAngle % 360) + 360) % 360;
 
-  angle = newAngle;
+  state.angle = newAngle;
   updateRobotDOM();
-  logToConsole(`Robot angle set to ${Math.round(angle)}°`, "info");
+  logToConsole(`Robot angle set to ${Math.round(state.angle)}°`, "info");
 }
 
 function rotateRobot(delta) {
-  if (isRunning) {
+  if (state.isRunning) {
     logToConsole("Cannot rotate robot while program is running!", "error");
     return;
   }
@@ -452,17 +466,17 @@ function rotateRobot(delta) {
   // Snap to multiples of 45
   let newAngle;
   if (delta > 0) {
-    newAngle = (Math.floor(angle / 45) + 1) * 45;
+    newAngle = (Math.floor(state.angle / 45) + 1) * 45;
   } else {
-    newAngle = (Math.ceil(angle / 45) - 1) * 45;
+    newAngle = (Math.ceil(state.angle / 45) - 1) * 45;
   }
 
   // Wrap angle between 0-359
   newAngle = ((newAngle % 360) + 360) % 360;
 
-  angle = newAngle;
+  state.angle = newAngle;
   updateRobotDOM();
-  logToConsole(`Robot rotated to ${Math.round(angle)}°`, "info");
+  logToConsole(`Robot rotated to ${Math.round(state.angle)}°`, "info");
 }
 
 function handleMotorPosition(value) {
@@ -471,14 +485,20 @@ function handleMotorPosition(value) {
 }
 
 function syncWheelDOM() {
-  const isVisible = !(window.SensorSettings && window.SensorSettings.visibility && window.SensorSettings.visibility.wheel === false);
-  const wheelSensors = isVisible ? sensors.filter(s => s.type === "wheel") : [];
-  
+  const isVisible = !(
+    window.SensorSettings &&
+    window.SensorSettings.visibility &&
+    window.SensorSettings.visibility.wheel === false
+  );
+  const wheelSensors = isVisible
+    ? state.sensors.filter((s) => s.type === "wheel")
+    : [];
+
   // Relative position helper for SVG: Center of wheel (25) means 'x' = 25 - 4 = 21.
   const getSvgX = (offset) => 21 + (parseFloat(offset) || 0);
 
   // Front Wheels (Always index 0 if exists)
-  const displayFront = (isVisible && wheelSensors.length > 0) ? "block" : "none";
+  const displayFront = isVisible && wheelSensors.length > 0 ? "block" : "none";
   const ml = document.getElementById("motor-left");
   const mr = document.getElementById("motor-right");
   if (ml) ml.style.display = displayFront;
@@ -491,7 +511,7 @@ function syncWheelDOM() {
     const color = isOmni ? "#888" : "#000";
 
     robot.style.setProperty("--motorPos", rawPos);
-    
+
     // Canvas update
     const wl = robot.querySelector(".w-l");
     const wr = robot.querySelector(".w-r");
@@ -545,7 +565,7 @@ function syncWheelDOM() {
     // Canvas update
     if (lb) lb.style.backgroundColor = colorBack;
     if (rb) rb.style.backgroundColor = colorBack;
-    
+
     // SVG update
     const dPosSvgBack = getSvgX(rawPosBack);
     if (mlb) {
@@ -562,12 +582,12 @@ function syncWheelDOM() {
 window.syncWheelDOM = syncWheelDOM;
 
 function updateRobotAngle(value) {
-  if (isRunning) {
+  if (state.isRunning) {
     logToConsole("Cannot change angle while program is running!", "error");
     return;
   }
 
-  angle = parseFloat(value);
+  state.angle = parseFloat(value);
   updateRobotDOM();
 }
 
@@ -650,7 +670,7 @@ canvasArea.addEventListener("drop", (e) => {
       vx: 0,
       vy: 0,
     };
-    canvasObjects.push(newObj);
+    state.canvasObjects.push(newObj);
 
     logToConsole(`Placed object at (${x}, ${y}) [Drop]`, "info");
 
@@ -666,13 +686,13 @@ function updateObjectsDOM() {
   const existingElements = document.querySelectorAll(".canvas-object-item");
   existingElements.forEach((el) => {
     const id = el.dataset.id;
-    if (!canvasObjects.find((o) => o.id === id)) {
+    if (!state.canvasObjects.find((o) => o.id === id)) {
       el.remove();
     }
   });
 
   // สร้างหรืออัปเดต Element
-  canvasObjects.forEach((obj) => {
+  state.canvasObjects.forEach((obj) => {
     let el = document.querySelector(`.canvas-object-item[data-id="${obj.id}"]`);
     if (!el) {
       el = document.createElement("div");
@@ -718,13 +738,8 @@ window.addEventListener("mouseup", (e) => {
     const x = e.clientX;
     const y = e.clientY;
 
-    if (
-      x < rect.left ||
-      x > rect.right ||
-      y < rect.top ||
-      y > rect.bottom
-    ) {
-      canvasObjects = canvasObjects.filter(
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      state.canvasObjects = state.canvasObjects.filter(
         (o) => o.id !== draggingObjectOnCanvas.id,
       );
       logToConsole("Object deleted.", "info");
@@ -761,32 +776,32 @@ function renderCanvasFrame() {
   const robotSize = 25;
   ctx.fillStyle = "#2d3436";
   ctx.beginPath();
-  ctx.arc(robotX + 25, robotY + 25, robotSize, 0, Math.PI * 2);
+  ctx.arc(state.robotX + 25, state.robotY + 25, robotSize, 0, Math.PI * 2);
   ctx.fill();
 
   // วาดเส้นทิศทาง
-  const rad = (angle * Math.PI) / 180;
+  const rad = (state.angle * Math.PI) / 180;
   ctx.strokeStyle = "rgba(255,255,255,0.8)";
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(robotX + 25, robotY + 25);
+  ctx.moveTo(state.robotX + 25, state.robotY + 25);
   ctx.lineTo(
-    robotX + 25 + Math.cos(rad) * robotSize,
-    robotY + 25 + Math.sin(rad) * robotSize,
+    state.robotX + 25 + Math.cos(rad) * robotSize,
+    state.robotY + 25 + Math.sin(rad) * robotSize,
   );
   ctx.stroke();
 
   // วาดตำแหน่งของเซนเซอร์เป็นจุดเล็ก ๆ
   ctx.fillStyle = "rgba(100,200,255,0.6)";
-  sensors.forEach((s) => {
+  state.sensors.forEach((s) => {
     const localX = s.x - 25;
     const localY = s.y - 25;
     const cos_a = Math.cos(rad);
     const sin_a = Math.sin(rad);
     const rotatedX = localX * cos_a - localY * sin_a;
     const rotatedY = localX * sin_a + localY * cos_a;
-    const canvasX = robotX + 25 + rotatedX;
-    const canvasY = robotY + 25 + rotatedY;
+    const canvasX = state.robotX + 25 + rotatedX;
+    const canvasY = state.robotY + 25 + rotatedY;
     ctx.beginPath();
     ctx.arc(canvasX, canvasY, 2, 0, Math.PI * 2);
     ctx.fill();
@@ -807,6 +822,10 @@ function updateTrackBuffer() {
     trackBufferCanvas.height,
   );
   trackBufferCtx.putImageData(imgData, 0, 0);
+
+  // Update global state for sensors
+  state.canvasImageData = imgData;
+  state.canvasPixelData = imgData.data;
 }
 
 // เชื่อมต่อปุ่ม Run/Stop กับลูปการจำลอง
@@ -825,12 +844,15 @@ window.runCode = function () {
 
   // --- DYNAMIC HOOK: onProgramStart ---
   if (window.SensorConfigs) {
-      Object.keys(window.SensorConfigs).forEach(type => {
-          const registry = window.SensorRegistry[type];
-          if (registry && typeof registry.onProgramStart === "function") {
-              registry.onProgramStart({ sensors: typeof sensors !== 'undefined' ? sensors : [], grips: typeof grips !== 'undefined' ? grips : [] });
-          }
-      });
+    Object.keys(window.SensorConfigs).forEach((type) => {
+      const registry = window.SensorRegistry[type];
+      if (registry && typeof registry.onProgramStart === "function") {
+        registry.onProgramStart({
+          sensors: state.sensors,
+          grips: state.grips,
+        });
+      }
+    });
   }
 };
 
@@ -846,12 +868,15 @@ window.stopProgram = function () {
 
   // --- DYNAMIC HOOK: onProgramStop ---
   if (window.SensorConfigs) {
-      Object.keys(window.SensorConfigs).forEach(type => {
-          const registry = window.SensorRegistry[type];
-          if (registry && typeof registry.onProgramStop === "function") {
-              registry.onProgramStop({ sensors: typeof sensors !== 'undefined' ? sensors : [], grips: typeof grips !== 'undefined' ? grips : [] });
-          }
-      });
+    Object.keys(window.SensorConfigs).forEach((type) => {
+      const registry = window.SensorRegistry[type];
+      if (registry && typeof registry.onProgramStop === "function") {
+        registry.onProgramStop({
+          sensors: state.sensors,
+          grips: state.grips,
+        });
+      }
+    });
   }
 };
 

@@ -59,8 +59,8 @@ window.SensorRegistry["grip"] = {
     window.deleteSensor(id, "grip");
   },
   physicsStep: function (grip, index, globals) {
-    if (typeof grabbedObjects !== "undefined") {
-      const obj = grabbedObjects[index];
+    if (typeof state.grabbedObjects !== "undefined") {
+      const obj = state.grabbedObjects[index];
       const armLen = grip.armLength || 20;
       const rad = (globals.angle * Math.PI) / 180;
       const gripRad = (globals.angle + (grip.angle || 0)) * (Math.PI / 180);
@@ -88,9 +88,9 @@ window.SensorRegistry["grip"] = {
           const tipX = gripCanvasX + totalLen * Math.cos(gripRad);
           const tipY = gripCanvasY + totalLen * Math.sin(gripRad);
 
-          if (typeof canvasObjects !== "undefined") {
-            canvasObjects.forEach((targetObj) => {
-              if (grabbedObjects.includes(targetObj)) return;
+          if (typeof state.canvasObjects !== "undefined") {
+            state.canvasObjects.forEach((targetObj) => {
+              if (state.grabbedObjects.includes(targetObj)) return;
 
               const dx = targetObj.x - tipX;
               const dy = targetObj.y - tipY;

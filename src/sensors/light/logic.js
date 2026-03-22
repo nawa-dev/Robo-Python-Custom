@@ -89,7 +89,7 @@ window.SensorRegistry["light"] = {
 
       // Add title for tooltip (SVG <title> tag works well)
       let brightness = 512;
-      if (typeof canvasPixelData !== "undefined" && canvasPixelData) {
+      if (typeof state.canvasPixelData !== "undefined" && state.canvasPixelData) {
         brightness =
           typeof getPixelBrightness === "function"
             ? getPixelBrightness(canvasX, canvasY, sensor.color)

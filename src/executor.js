@@ -23,7 +23,7 @@ function runCode() {
   clearConsole();
 
   const code = editor.getValue();
-  isRunning = true;
+  state.isRunning = true;
   stopRequest = false;
   updateRunStopButtonIO("stop");
 
@@ -56,7 +56,7 @@ function runCode() {
       return Sk.importMainWithBody("<stdin>", false, finalCode, true);
     })
     .then((mod) => {
-      if (isRunning) {
+      if (state.isRunning) {
         logToConsole("Program finished.", "info");
       }
     })
@@ -68,7 +68,7 @@ function runCode() {
       }
     })
     .finally(() => {
-      isRunning = false;
+      state.isRunning = false;
       stopProgram();
     });
 }
@@ -146,17 +146,17 @@ function preprocessCode(code) {
 }
 
 function stopProgram() {
-  if (isRunning) {
+  if (state.isRunning) {
     stopRequest = true; // บอกให้ custom functions รู้ว่าต้องหยุด
-    isRunning = false;
+    state.isRunning = false;
     logToConsole("Stopping...", "info");
   }
-  motorL = 0;
-  motorR = 0;
-  motorFL = 0;
-  motorFR = 0;
-  motorBL = 0;
-  motorBR = 0;
+  state.motorL = 0;
+  state.motorR = 0;
+  state.motorFL = 0;
+  state.motorFR = 0;
+  state.motorBL = 0;
+  state.motorBR = 0;
   if (window.physics) {
     if (typeof window.physics.resetCurrentSpeeds === "function") {
       window.physics.resetCurrentSpeeds();
@@ -175,9 +175,9 @@ function stopProgram() {
 
 function resetPosition() {
   stopProgram();
-  robotX = 100;
-  robotY = 100;
-  angle = 0;
+  state.robotX = 100;
+  state.robotY = 100;
+  state.angle = 0;
   updateRobotDOM();
   logToConsole("Robot position reset.", "info");
 
@@ -187,8 +187,8 @@ function resetPosition() {
       const registry = window.SensorRegistry[type];
       if (registry && typeof registry.onReset === "function") {
         registry.onReset({
-          sensors: typeof sensors !== "undefined" ? sensors : [],
-          grips: typeof grips !== "undefined" ? grips : [],
+          sensors: typeof state.sensors !== "undefined" ? state.sensors : [],
+          grips: typeof state.grips !== "undefined" ? state.grips : [],
         });
       }
     });
@@ -199,7 +199,7 @@ function resetPosition() {
  * Toggle Run/Stop Logic
  * ========================= */
 function toggleRunStop() {
-  if (isRunning) {
+  if (state.isRunning) {
     stopProgram();
   } else {
     runCode();
@@ -243,8 +243,8 @@ function builtinRead(x) {
         const registry = window.SensorRegistry[type];
         if (registry && typeof registry.registerPythonAPI === "function") {
           registry.registerPythonAPI(Sk, Sk.builtins.robot, {
-            sensors: typeof sensors !== "undefined" ? sensors : [],
-            grips: typeof grips !== "undefined" ? grips : [],
+            sensors: typeof state.sensors !== "undefined" ? state.sensors : [],
+            grips: typeof state.grips !== "undefined" ? state.grips : [],
           });
         }
       });
@@ -285,12 +285,12 @@ Sk.builtins.robot = {
     let r = Sk.builtin.asnum$(right);
 
     // Update global motors (Set front and back same for 2-channel call)
-    motorL = l;
-    motorR = r;
-    motorFL = l;
-    motorBL = l;
-    motorFR = r;
-    motorBR = r;
+    state.motorL = l;
+    state.motorR = r;
+    state.motorFL = l;
+    state.motorBL = l;
+    state.motorFR = r;
+    state.motorBR = r;
 
     if (window.physics) {
       // In physics.js we will handle 4-wheel targets
@@ -311,14 +311,14 @@ Sk.builtins.robot = {
     let vBR = Sk.builtin.asnum$(br);
 
     // Update global motors
-    motorFL = vFL;
-    motorFR = vFR;
-    motorBL = vBL;
-    motorBR = vBR;
+    state.motorFL = vFL;
+    state.motorFR = vFR;
+    state.motorBL = vBL;
+    state.motorBR = vBR;
 
     // Sync legacy motorL/motorR for general use
-    motorL = (vFL + vBL) / 2;
-    motorR = (vFR + vBR) / 2;
+    state.motorL = (vFL + vBL) / 2;
+    state.motorR = (vFR + vBR) / 2;
 
     if (window.physics) {
       window.physics.setTargets4(vFL, vFR, vBL, vBR);
@@ -389,7 +389,7 @@ Sk.builtins.robot = {
 
   // getSensorCount()
   getSensorCount: new Sk.builtin.func(function () {
-    return new Sk.builtin.int_(sensors.length);
+    return new Sk.builtin.int_(state.sensors.length);
   }),
 
   // grab: MOVED to grip/logic.js

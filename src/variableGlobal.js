@@ -3,61 +3,59 @@
  * ใช้สำหรับจัดเก็บค่าพื้นฐานที่ทุกส่วนของโปรแกรมต้องเข้าถึงร่วมกัน
  */
 
+class SimulationState {
+  constructor() {
+    // --- 2. สถานะตำแหน่งและทิศทางของหุ่นยนต์ ---
+    this.robotX = 100;
+    this.robotY = 100;
+    this.angle = 0;
+
+    // --- 3. สถานะการทำงานของมอเตอร์ ---
+    this.motorL = 0;
+    this.motorR = 0;
+    this.motorFL = 0;
+    this.motorFR = 0;
+    this.motorBL = 0;
+    this.motorBR = 0;
+
+    // --- 4. สถานะการรันโปรแกรมและอินเตอร์เฟซ ---
+    this.isRunning = false;
+    this.isDragging = false;
+    this.myInterpreter = null;
+
+    // --- 5. ระบบเซนเซอร์ ---
+    this.sensors = [];
+    
+    // --- 8. ระบบ Grip ---
+    this.grips = [];
+
+    // --- 7. ระบบวัตถุบนแคนวาส (Movable Canvas Objects) ---
+    this.canvasObjects = [];
+    this.grabbedObjects = [];
+
+    // --- 6. ข้อมูลภาพสำหรับประมวลผลเซนเซอร์ ---
+    this.canvasImageData = null;
+    this.canvasPixelData = null;
+
+    // --- Legacy / Others ---
+    this.motorPos = 0;
+  }
+}
+
+// Create the global state instance
+window.state = new SimulationState();
+
 // --- 1. การอ้างอิง Element ใน DOM ---
 // ตัวแทนหุ่นยนต์ (SVG/Div) ในหน้าเว็บ
 const robot = document.getElementById("robot");
 // พื้นที่แคนวาสหรือสนามจำลอง
 const canvasArea = document.getElementById("canvas-area");
 
-// --- 2. สถานะตำแหน่งและทิศทางของหุ่นยนต์ ---
-// พิกัด X, Y ในแนวแกนพิกเซล
-let robotX = 100,
-  robotY = 100;
-// มุมการหันของหุ่นยนต์ (หน่วยเป็นองศา: 0-359)
-let angle = 0;
-// ระยะเยื้องของแกนมอเตอร์จากจุดกึ่งกลางตัวหุ่นยนต์ (Offset)
-// (ตอนนี้ใช้จาก sensors[...] แทน)
-
-
-// --- 3. สถานะการทำงานของมอเตอร์ ---
-// ความเร็วล้อซ้ายและขวา (ค่าระหว่าง -100 ถึง 100 หรือตามที่กำหนด)
-let motorL = 0;
-let motorR = 0;
-
-// ความเร็วมอเตอร์แยก 4 ล้อ (0-100)
-let motorFL = 0;
-let motorFR = 0;
-let motorBL = 0;
-let motorBR = 0;
-
-// --- 4. สถานะการรันโปรแกรมและอินเตอร์เฟซ ---
-// ตรวจสอบว่าโปรแกรมจำลองกำลังทำงานอยู่หรือไม่
-let isRunning = false;
-// ตรวจสอบว่าผู้ใช้กำลังลากวางตัวหุ่นยนต์อยู่หรือไม่
-let isDragging = false;
-// ตัวแปรสำหรับเก็บ Instance ของ JS-Interpreter เพื่อรันโค้ดของผู้ใช้
-let myInterpreter = null;
-
-// --- 5. ระบบเซนเซอร์ ---
-// อาเรย์สำหรับจัดเก็บออบเจกต์เซนเซอร์ที่ถูกติดตั้ง
-let sensors = [];
-// จำนวนเซนเซอร์สูงสุดที่อนุญาตให้ติดตั้งได้
+// --- Constants ---
 const MAX_SENSORS = 25;
-
-// --- 7. ระบบวัตถุบนแคนวาส (Movable Canvas Objects) ---
-// อาเรย์สำหรับจัดเก็บออบเจกต์ที่วางบนสนาม
-let canvasObjects = [];
-// ออบเจกต์ที่หุ่นยนต์กำลังจับอยู่ (รองรับหลาย Grip)
-let grabbedObjects = [];
-
-// --- 8. ระบบ Grip ---
-// อาเรย์สำหรับจัดเก็บออบเจกต์ Grip ที่ถูกติดตั้ง
-let grips = [];
-// จำนวน Grip สูงสุดที่อนุญาต
 const MAX_GRIPS = 4;
 
-// --- 6. ข้อมูลภาพสำหรับประมวลผลเซนเซอร์ ---
-// ข้อมูล ImageData ทั้งหมดจากแคนวาส
-let canvasImageData = null;
-// ข้อมูลพิกเซลดิบ (Uint8ClampedArray) เพื่อใช้ตรวจจับสีบนเส้นทาง
-let canvasPixelData = null;
+// Forward-compatibility getters/setters to avoid breaking everything immediately
+// (Optional but recommended for large refactors. I'll stick to direct refactor if I can update all files).
+// Given I can update all files, I'll remove the top-level let declarations.
+

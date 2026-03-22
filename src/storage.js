@@ -25,9 +25,9 @@ function createProjectData() {
         .replace(/['"]?\)$/, ""),
       fileName: currentOpt ? currentOpt.dataset.filename : "",
     },
-    sensors: sensors.map((s) => ({ ...s })),
-    grips: (grips || []).map((g) => ({ ...g })),
-    canvasObjects: (canvasObjects || []).map((obj) => ({
+    sensors: state.sensors.map((s) => ({ ...s })),
+    grips: (state.grips || []).map((g) => ({ ...g })),
+    canvasObjects: (state.canvasObjects || []).map((obj) => ({
       id: obj.id,
       x: obj.x,
       y: obj.y,
@@ -38,10 +38,10 @@ function createProjectData() {
     })),
     sourceCode: editor.getValue(),
     robotState: {
-      x: robotX,
-      y: robotY,
-      angle: angle,
-      motorPos: motorPos, // Keep for backward compat if needed, though we use sensors now
+      x: state.robotX,
+      y: state.robotY,
+      angle: state.angle,
+      motorPos: state.motorPos, // Keep for backward compat if needed, though we use sensors now
     },
   };
 }
@@ -205,7 +205,7 @@ function applyProjectData(projectData) {
   }
 
   // 2. คืนค่าเซนเซอร์
-  sensors = (projectData.sensors || []).map((s, idx) => ({
+  state.sensors = (projectData.sensors || []).map((s, idx) => ({
     type: "light", // fallback for old files that missed type
     index: s.index !== undefined ? s.index : idx,
     ...s,
@@ -213,7 +213,7 @@ function applyProjectData(projectData) {
   }));
 
   // 2b. คืนค่า Grip
-  grips = (projectData.grips || []).map((g, idx) => ({
+  state.grips = (projectData.grips || []).map((g, idx) => ({
     type: "grip",
     index: g.index !== undefined ? g.index : idx,
     ...g,
@@ -227,7 +227,7 @@ function applyProjectData(projectData) {
 
   // Recalculate index trackers
   window.SensorNextIndices = {};
-  [...sensors, ...grips].forEach(s => {
+  [...state.sensors, ...state.grips].forEach(s => {
     const type = s.type;
     if (s.index !== undefined) {
       window.SensorNextIndices[type] = Math.max(window.SensorNextIndices[type] || 0, s.index + 1);
@@ -235,11 +235,11 @@ function applyProjectData(projectData) {
   });
 
   // 2c. คืนค่าวัตถุบนแคนวาส
-  if (typeof canvasObjects !== "undefined") {
-    canvasObjects.length = 0;
+  if (typeof state.canvasObjects !== "undefined") {
+    state.canvasObjects.length = 0;
     if (projectData.canvasObjects) {
       projectData.canvasObjects.forEach((obj) => {
-        canvasObjects.push(obj);
+        state.canvasObjects.push(obj);
       });
     }
     if (typeof updateObjectsDOM === "function") updateObjectsDOM();
@@ -249,14 +249,14 @@ function applyProjectData(projectData) {
   if (editor) editor.setValue(projectData.sourceCode);
 
   // 4. คืนค่าสถานะของหุ่นยนต์
-  robotX = projectData.robotState.x || 100;
-  robotY = projectData.robotState.y || 100;
-  angle = projectData.robotState.angle || 0;
-  motorPos = projectData.robotState.motorPos || 0;
+  state.robotX = projectData.robotState.x || 100;
+  state.robotY = projectData.robotState.y || 100;
+  state.angle = projectData.robotState.angle || 0;
+  state.motorPos = projectData.robotState.motorPos || 0;
   updateRobotDOM();
   // Ensure at least one wheel exists if none in project
-  if (sensors.filter(s => s.type === "wheel").length === 0) {
-    sensors.push({ id: Date.now(), type: "wheel", name: "Wheel", motorPos: 0 });
+  if (state.sensors.filter(s => s.type === "wheel").length === 0) {
+    state.sensors.push({ id: Date.now(), type: "wheel", name: "Wheel", motorPos: 0 });
   }
   if (typeof syncWheelDOM === "function") syncWheelDOM();
 
@@ -311,10 +311,10 @@ function newProject() {
     currentProjectPath = null;
 
     // รีเซ็ตตำแหน่งหุ่นยนต์
-    robotX = 100;
-    robotY = 100;
-    angle = 0;
-    motorPos = 0;
+    state.robotX = 100;
+    state.robotY = 100;
+    state.angle = 0;
+    state.motorPos = 0;
     updateRobotDOM();
 
     // รีเซ็ตแผนที่กลับเป็นค่าเริ่มต้น
@@ -330,9 +330,9 @@ function newProject() {
     updateCanvasImageData();
 
     // ล้างข้อมูลเซนเซอร์และ Grip
-    sensors = [];
-    grips = [];
-    canvasObjects = [];
+    state.sensors = [];
+    state.grips = [];
+    state.canvasObjects = [];
     if (typeof updateObjectsDOM === "function") updateObjectsDOM();
     updateSensorPreview();
     renderSensorsList();

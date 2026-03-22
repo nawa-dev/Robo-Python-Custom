@@ -3,8 +3,8 @@
  * @param {string} [targetColor="#ff0000"] - สีที่ต้องการตรวจจับ (Hex code)
  * @returns {number} ค่าความเข้มข้นของสี (0 = เหมือนมาก, 1024 = ต่างกันมาก)
  */
-window.getPixelBrightness = function(x, y, targetColor = "#ff0000") {
-  if (!canvasPixelData) return 512;
+window.getPixelBrightness = function (x, y, targetColor = "#ff0000") {
+  if (!state.canvasPixelData) return 512;
 
   const pixelX = Math.round(x);
   const pixelY = Math.round(y);
@@ -22,15 +22,17 @@ window.getPixelBrightness = function(x, y, targetColor = "#ff0000") {
   const imageWidth = canvasArea.offsetWidth;
   const pixelIndex = (pixelY * imageWidth + pixelX) * 4;
 
-  if (pixelIndex + 2 >= canvasPixelData.length) return 512;
+  if (pixelIndex + 2 >= state.canvasPixelData.length) return 512;
 
   // อ่านค่าสี Red, Green, Blue จากพิกเซล
-  const r = canvasPixelData[pixelIndex];
-  const g = canvasPixelData[pixelIndex + 1];
-  const b = canvasPixelData[pixelIndex + 2];
+  const r = state.canvasPixelData[pixelIndex];
+  const g = state.canvasPixelData[pixelIndex + 1];
+  const b = state.canvasPixelData[pixelIndex + 2];
 
   // แปลงสีเป้าหมายจาก Hex เป็น RGB Weights (0-1)
-  let wr = 1, wg = 0, wb = 0;
+  let wr = 1,
+    wg = 0,
+    wb = 0;
   if (targetColor && targetColor.startsWith("#")) {
     const hex = targetColor.substring(1);
     wr = (parseInt(hex.substring(0, 2), 16) || 0) / 255;

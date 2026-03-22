@@ -12,7 +12,7 @@ if (window.SensorRegistry["light"]) {
             }
 
             setTimeout(() => {
-                const lightSensors = sensors.filter(s => s.type === "light");
+                const lightSensors = state.sensors.filter(s => s.type === "light");
                 if (i < 0 || i >= lightSensors.length) {
                     resolve(new Sk.builtin.int_(0));
                     return;
@@ -22,7 +22,7 @@ if (window.SensorRegistry["light"]) {
                 const registry = window.SensorRegistry["light"];
                 let result = 0;
                 if (registry && typeof registry.read === "function") {
-                    result = registry.read(s, { robotX, robotY, angle, motorPos });
+                    result = registry.read(s, { robotX: state.robotX, robotY: state.robotY, angle: state.angle, motorPos: state.motorPos });
                 }
                 resolve(new Sk.builtin.int_(result));
             }, 0);

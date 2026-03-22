@@ -196,7 +196,7 @@ window.addDynamicSensor = function (type) {
   if (!config || !window.SensorRegistry[type]) return;
 
   // Decide which array it belongs to (backward compat for storage.js)
-  const targetArray = config.targetArray === "grips" ? grips : sensors;
+  const targetArray = config.targetArray === "grips" ? state.grips : state.sensors;
 
   if (
     targetArray.filter(
@@ -242,16 +242,16 @@ window.deleteSensor = function (id, typeVal) {
   const config = window.SensorConfigs[typeVal] || { targetArray: null };
   let isGrip =
     config.targetArray === "grips" ||
-    grips.some((g) => String(g.id) === String(id));
+    state.grips.some((g) => String(g.id) === String(id));
   if (isGrip) {
-    grips = grips.filter((g) => String(g.id) !== String(id));
+    state.grips = state.grips.filter((g) => String(g.id) !== String(id));
     // Check if we should reset index tracker
-    if (grips.length === 0) {
+    if (state.grips.length === 0) {
       window.SensorNextIndices[typeVal || "grip"] = 0;
     }
     renderDynamicSensorsList(typeVal || "grip");
   } else {
-    const s = sensors.find((s) => String(s.id) === String(id));
+    const s = state.sensors.find((s) => String(s.id) === String(id));
     if (s) {
       const type = s.type;
       
@@ -264,14 +264,14 @@ window.deleteSensor = function (id, typeVal) {
       const typedConfig = window.SensorConfigs[type] || {};
       const minLimit = typedConfig.minLimit || 0;
       
-      if (sensors.filter((s) => s.type === type).length <= minLimit) {
+      if (state.sensors.filter((s) => s.type === type).length <= minLimit) {
         logToConsole(`Cannot delete! Minimum ${typedConfig.name || type} (${minLimit}) required.`, "error");
         return;
       }
-      sensors = sensors.filter((s) => String(s.id) !== String(id));
+      state.sensors = state.sensors.filter((s) => String(s.id) !== String(id));
       
       // Sync SensorNextIndices: if we deleted the last added one, decrement
-      const currentTyped = sensors.filter(s => s.type === type);
+      const currentTyped = state.sensors.filter(s => s.type === type);
       if (currentTyped.length === 0) {
         window.SensorNextIndices[type] = 0;
       } else {
@@ -290,7 +290,7 @@ window.deleteSensor = function (id, typeVal) {
 // --- Update sensor value ---
 window.updateSensorValueDOM = function (id, type, axis, value) {
   const config = window.SensorConfigs[type] || {};
-  const targetArray = config.targetArray === "grips" ? grips : sensors;
+  const targetArray = config.targetArray === "grips" ? state.grips : state.sensors;
   // Use String coercion: sensor.id may be a Number but the template passes it as a string
   const sensor = targetArray.find((s) => String(s.id) === String(id));
   if (!sensor) return;
@@ -334,7 +334,7 @@ window.updateSensorValueDOM = function (id, type, axis, value) {
   logToConsole(`${config.name} updated: ${axis} = ${value}`, "info");
 };
 window.updateSensorValue = function (id, axis, value) {
-  const s = sensors.find((x) => x.id === id);
+  const s = state.sensors.find((x) => x.id === id);
   if (s) updateSensorValueDOM(id, s.type, axis, value);
 };
 
@@ -356,7 +356,7 @@ window.updateSensorPreview = function () {
     maxX = 50,
     maxY = 50;
 
-  const visibleSensors = [...sensors, ...grips].filter(s => {
+  const visibleSensors = [...state.sensors, ...state.grips].filter(s => {
     return !(window.SensorSettings && window.SensorSettings.visibility && window.SensorSettings.visibility[s.type] === false);
   });
 
@@ -398,7 +398,7 @@ window.updateSensorPreview = function () {
   );
 
   // Draw sensors dynamically
-  sensors.forEach((sensor) => {
+  state.sensors.forEach((sensor) => {
     const isVisible = !(window.SensorSettings && window.SensorSettings.visibility && window.SensorSettings.visibility[sensor.type] === false);
     if (!isVisible) return;
 
@@ -409,7 +409,7 @@ window.updateSensorPreview = function () {
   });
 
   // Draw grips dynamically
-  grips.forEach((grip) => {
+  state.grips.forEach((grip) => {
     const isVisible = !(window.SensorSettings && window.SensorSettings.visibility && window.SensorSettings.visibility["grip"] === false);
     if (!isVisible) return;
 
@@ -434,8 +434,8 @@ window.renderDynamicSensorsList = function (type) {
 
   const targetArray =
     config.targetArray === "grips"
-      ? grips
-      : sensors.filter((s) => s.type === type);
+      ? state.grips
+      : state.sensors.filter((s) => s.type === type);
   const countLabel = document.getElementById(`count-label-${type}`);
   const addBtn = document.getElementById(`btn-add-${type}`);
 

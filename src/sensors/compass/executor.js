@@ -2,10 +2,10 @@ if (window.SensorRegistry["compass"]) {
   window.SensorRegistry["compass"].registerPythonAPI = function (Sk, robotObj, globals) {
     const getValue = new Sk.builtin.func(function () {
       // Check if any compass sensor is currently equipped
-      const hasCompass = typeof sensors !== "undefined" && sensors.some(s => s.type === "compass");
+      const hasCompass = typeof state.sensors !== "undefined" && state.sensors.some(s => s.type === "compass");
       
-      if (hasCompass && typeof angle !== "undefined") {
-        return new Sk.builtin.int_(Math.round(angle));
+      if (hasCompass && typeof state.angle !== "undefined") {
+        return new Sk.builtin.int_(Math.round(state.angle));
       }
       return new Sk.builtin.int_(0);
     });
