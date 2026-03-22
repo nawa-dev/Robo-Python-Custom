@@ -273,46 +273,6 @@ Sk.builtins.robot = {
     return Sk.builtin.none.none$;
   }),
 
-  // analogRead(index)
-  // analogRead(index)
-  analogRead: new Sk.builtin.func(function(index) {
-    Sk.builtin.pyCheckArgs("analogRead", arguments, 1, 1);
-    let i = Sk.builtin.asnum$(index);
-    
-    // Create a promise to yield to the browser's event loop
-    let promise = new Promise(function(resolve, reject) {
-        if (stopRequest) {
-            reject("StopExecution");
-            return;
-        }
-
-        // Use setTimeout(0) to allow UI updates/events to process
-        setTimeout(() => {
-            if (stopRequest) {
-                reject("StopExecution");
-                return;
-            }
-
-            if (i < 0 || i >= sensors.length) {
-                resolve(new Sk.builtin.int_(0));
-                return;
-            }
-            
-            const s = sensors[i];
-            let result = 0;
-            const registry = window.SensorRegistry[s.type];
-            if (registry && typeof registry.read === "function") {
-                const globals = { robotX, robotY, angle, motorPos };
-                result = registry.read(s, globals);
-            }
-            
-            resolve(new Sk.builtin.int_(result));
-        }, 0);
-    });
-
-    return new Sk.misceval.promiseToSuspension(promise);
-  }),
-
   // SW(n) -> bool
   SW: new Sk.builtin.func(function(n) {
     Sk.builtin.pyCheckArgs("SW", arguments, 1, 1);
@@ -378,27 +338,8 @@ Sk.builtins.robot = {
      return new Sk.builtin.int_(sensors.length);
   }),
 
-  // grab(index)
-  grab: new Sk.builtin.func(function(index) {
-    Sk.builtin.pyCheckArgs("grab", arguments, 1, 1);
-    if(stopRequest) throw "StopExecution";
-    let idx = Sk.builtin.asnum$(index);
-    if (typeof window.grabObject === "function") {
-      window.grabObject(idx);
-    }
-    return Sk.builtin.none.none$;
-  }),
-
-  // release(index)
-  release: new Sk.builtin.func(function(index) {
-    Sk.builtin.pyCheckArgs("release", arguments, 1, 1);
-    if(stopRequest) throw "StopExecution";
-    let idx = Sk.builtin.asnum$(index);
-    if (typeof window.releaseObject === "function") {
-      window.releaseObject(idx);
-    }
-    return Sk.builtin.none.none$;
-  }),
+  // grab: MOVED to grip/logic.js
+  // release: MOVED to grip/logic.js
 
 
 

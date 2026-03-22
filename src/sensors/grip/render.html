@@ -1,12 +1,11 @@
-<div class="sensor-panel-item grip-panel-item" id="sensor-item-{id}">
-  <div class="sensor-panel-item-info">
-    <span class="sensor-panel-item-name grip-name">{NAME} {INDEX}</span>
-    <label>X:</label>
-    <input type="number" id="grip-{id}-x" min="0" max="75" value="{x}" onchange="window.SensorRegistry['{TYPE}'].updateValue({id}, 'x', this.value)" onclick="event.stopPropagation()" />
-    <label>Y:</label>
-    <input type="number" id="grip-{id}-y" min="0" max="50" value="{y}" onchange="window.SensorRegistry['{TYPE}'].updateValue({id}, 'y', this.value)" onclick="event.stopPropagation()" />
-    <label>&#x2220;:</label>
-    <input type="number" id="grip-{id}-angle" min="-180" max="180" value="{angle}" onchange="window.SensorRegistry['{TYPE}'].updateValue({id}, 'angle', this.value)" onclick="event.stopPropagation()" title="Facing angle (degrees)" />
-  </div>
-  <button class="btn-panel-delete" onclick="window.SensorRegistry['{TYPE}'].deleteItem({id})">DELETE</button>
-</div>
+<!-- Base pivot point -->
+<circle class="grip-base-el" r="2.5" fill="#e67e22" />
+
+<!-- Arm -->
+<line class="grip-arm-el" x1="0" y1="0" x2="20" y2="0" stroke="#f39c12" stroke-width="2" />
+
+<!-- Left Jaw -->
+<line class="grip-jaw-l" x1="20" y1="0" x2="30" y2="-5" stroke="#f39c12" stroke-width="1.5" />
+
+<!-- Right Jaw -->
+<line class="grip-jaw-r" x1="20" y1="0" x2="30" y2="5" stroke="#f39c12" stroke-width="1.5" />

@@ -1,8 +1,10 @@
 {
   "name": "Wheel",
-  "icon": "fas fa-circle-notch",
+  "icon": "fas fa-car-side",
   "maxLimit": 1,
+  "singleton": true,
+  "canInteractWithObject": true,
   "inputs": [
-    { "id": "motorPos", "label": "Wheel Position", "type": "number", "min": -20, "max": 20, "default": 0 }
+    { "key": "motorPos", "label": "Motor Position (-20 to 20)", "type": "number", "min": -20, "max": 20, "default": 0 }
   ]
 }

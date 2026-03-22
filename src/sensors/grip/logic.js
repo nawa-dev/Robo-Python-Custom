@@ -1,157 +1,166 @@
 window.showGripPreview = true;
-window.toggleGripPreview = function(checked) {
+window.toggleGripPreview = function (checked) {
   window.showGripPreview = checked;
-  if (typeof updateSensorPreview === 'function') updateSensorPreview();
+  if (typeof updateSensorPreview === "function") updateSensorPreview();
 };
 
 window.SensorRegistry["grip"] = {
-  create: function(id, count) {
+  create: function (id, count) {
     return {
       id,
       type: "grip",
       x: 45,
       y: 25,
       angle: 0,
-      name: `Grip ${count}`
+      armLength: 20,
+      name: `Grip ${count}`,
     };
   },
-  drawPreview: function(svg, grip) {
-    if (typeof showGripPreview !== 'undefined' && !showGripPreview) return;
-    
-    const rad = (grip.angle * Math.PI) / 180;
-    const armLen = 10;
-    const tipX = grip.x + Math.cos(rad) * armLen;
-    const tipY = grip.y + Math.sin(rad) * armLen;
+  drawPreview: function (svg, grip) {
+    if (typeof showGripPreview !== "undefined" && !showGripPreview) return;
 
-    // Arm
-    const arm = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    arm.setAttribute("x1", grip.x);
-    arm.setAttribute("y1", grip.y);
-    arm.setAttribute("x2", tipX);
-    arm.setAttribute("y2", tipY);
-    arm.setAttribute("stroke", "#f39c12");
-    arm.setAttribute("stroke-width", "2");
-    arm.setAttribute("class", "grip-preview-el");
-    svg.appendChild(arm);
+    const template = window.SensorTemplates && window.SensorTemplates["grip"];
+    if (template) {
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.innerHTML = template;
+      g.setAttribute(
+        "transform",
+        `translate(${grip.x}, ${grip.y}) rotate(${grip.angle || 0})`,
+      );
+      g.classList.add("grip-preview-el");
 
-    // Left jaw
-    const jawLen = 5;
-    const jL = rad + 0.5;
-    const jawL = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    jawL.setAttribute("x1", tipX);
-    jawL.setAttribute("y1", tipY);
-    jawL.setAttribute("x2", tipX + Math.cos(jL) * jawLen);
-    jawL.setAttribute("y2", tipY + Math.sin(jL) * jawLen);
-    jawL.setAttribute("stroke", "#f39c12");
-    jawL.setAttribute("stroke-width", "1.5");
-    jawL.setAttribute("class", "grip-preview-el");
-    svg.appendChild(jawL);
+      // Scale arm and jaws
+      const armLen = grip.armLength || 20;
+      const jawLen = 10;
+      const arm = g.querySelector(".grip-arm-el");
+      const jawL = g.querySelector(".grip-jaw-l");
+      const jawR = g.querySelector(".grip-jaw-r");
+      if (arm) arm.setAttribute("x2", armLen);
+      if (jawL) {
+        jawL.setAttribute("x1", armLen);
+        jawL.setAttribute("x2", armLen + jawLen);
+      }
+      if (jawR) {
+        jawR.setAttribute("x1", armLen);
+        jawR.setAttribute("x2", armLen + jawLen);
+      }
 
-    // Right jaw
-    const jR = rad - 0.5;
-    const jawR = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    jawR.setAttribute("x1", tipX);
-    jawR.setAttribute("y1", tipY);
-    jawR.setAttribute("x2", tipX + Math.cos(jR) * jawLen);
-    jawR.setAttribute("y2", tipY + Math.sin(jR) * jawLen);
-    jawR.setAttribute("stroke", "#f39c12");
-    jawR.setAttribute("stroke-width", "1.5");
-    jawR.setAttribute("class", "grip-preview-el");
-    svg.appendChild(jawR);
-
-    // Base dot
-    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    dot.setAttribute("cx", grip.x);
-    dot.setAttribute("cy", grip.y);
-    dot.setAttribute("r", "2.5");
-    dot.setAttribute("fill", "#e67e22");
-    dot.setAttribute("class", "grip-preview-el");
-    svg.appendChild(dot);
+      svg.appendChild(g);
+    }
   },
-  read: function(sensor, globals) {
+  read: function (sensor, globals) {
     // Grips don't usually return an analog value this way
     return 0;
   },
-  updateValue: function(id, axis, value) {
+  updateValue: function (id, axis, value) {
     window.updateSensorValueDOM(id, "grip", axis, value);
   },
-  deleteItem: function(id) {
+  deleteItem: function (id) {
     window.deleteSensor(id, "grip");
   },
-  physicsStep: function(grip, index, globals) {
-    if (typeof grabbedObjects !== "undefined" && grabbedObjects.length > 0) {
+  physicsStep: function (grip, index, globals) {
+    if (typeof grabbedObjects !== "undefined") {
       const obj = grabbedObjects[index];
-      if (!obj) return;
-
-      const rad_val = (globals.angle * Math.PI) / 180;
-      const cos_v = Math.cos(rad_val);
-      const sin_v = Math.sin(rad_val);
+      const armLen = grip.armLength || 20;
+      const rad = (globals.angle * Math.PI) / 180;
+      const gripRad = (globals.angle + (grip.angle || 0)) * (Math.PI / 180);
 
       const localX = grip.x - 25;
       const localY = grip.y - 25;
-      const rotatedX = localX * cos_v - localY * sin_v;
-      const rotatedY = localX * sin_v + localY * cos_v;
+      const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
+      const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
       const gripCanvasX = globals.robotX + 25 + rotatedX;
       const gripCanvasY = globals.robotY + 25 + rotatedY;
 
-      const gripGlobalAngle = (globals.angle + (grip.angle || 0)) * (Math.PI / 180);
-      const grabDist = 15;
+      if (obj) {
+        const totalLen = armLen + 10; // Arm + Jaws
+        obj.x = gripCanvasX + totalLen * Math.cos(gripRad);
+        obj.y = gripCanvasY + totalLen * Math.sin(gripRad);
+        obj.vx = 0;
+        obj.vy = 0;
+      } else {
+        const config = window.SensorConfigs && window.SensorConfigs["grip"];
+        const canInteract = config ? config.canInteractWithObject !== false : true;
 
-      obj.x = gripCanvasX + grabDist * Math.cos(gripGlobalAngle);
-      obj.y = gripCanvasY + grabDist * Math.sin(gripGlobalAngle);
-      obj.vx = 0;
-      obj.vy = 0;
+        if (canInteract) {
+          // Pushing logic for non-grabbed objects
+          const totalLen = armLen + 10;
+          const tipX = gripCanvasX + totalLen * Math.cos(gripRad);
+          const tipY = gripCanvasY + totalLen * Math.sin(gripRad);
+
+          if (typeof canvasObjects !== "undefined") {
+            canvasObjects.forEach((targetObj) => {
+              if (grabbedObjects.includes(targetObj)) return;
+
+              const dx = targetObj.x - tipX;
+              const dy = targetObj.y - tipY;
+              const dist = Math.hypot(dx, dy);
+              const minDist = (targetObj.radius || 15) + 2;
+
+              if (dist < minDist) {
+                const angleToObj = Math.atan2(dy, dx);
+                const overlap = minDist - dist;
+                targetObj.x += Math.cos(angleToObj) * overlap;
+                targetObj.y += Math.sin(angleToObj) * overlap;
+
+                // Transmit momentum
+                if (typeof robotDrive !== "undefined") {
+                  const v = 0.5 * (robotDrive.left.current + robotDrive.right.current);
+                  targetObj.vx += v * Math.cos(rad) * 0.8;
+                  targetObj.vy += v * Math.sin(rad) * 0.8;
+                }
+              }
+            });
+          }
+        }
+      }
     }
   },
-  drawCanvas: function(canvasArea, grip, globals, index) {
-    if (!globals.showGripPreview) return;
+  drawCanvas: function (svg, grip, globals, index) {
+    if (typeof showGripPreview !== "undefined" && !showGripPreview) return;
 
     const rad = (globals.angle * Math.PI) / 180;
-    const cos_a = Math.cos(rad);
-    const sin_a = Math.sin(rad);
-
     const localX = grip.x - 25;
     const localY = grip.y - 25;
-    const rotatedX = localX * cos_a - localY * sin_a;
-    const rotatedY = localX * sin_a + localY * cos_a;
+    const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
+    const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
     const canvasX = globals.robotX + 25 + rotatedX;
     const canvasY = globals.robotY + 25 + rotatedY;
     const globalAngle = globals.angle + (grip.angle || 0);
 
-    const gripContainer = document.createElement("div");
-    gripContainer.className = "grip-canvas-el";
-    gripContainer.style.left = canvasX + "px";
-    gripContainer.style.top = canvasY + "px";
-    gripContainer.style.transform = `rotate(${globalAngle}deg)`;
+    const template = window.SensorTemplates && window.SensorTemplates["grip"];
+    if (template) {
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.innerHTML = template;
+      g.setAttribute(
+        "transform",
+        `translate(${canvasX}, ${canvasY}) rotate(${globalAngle})`,
+      );
 
-    const arm = document.createElement("div");
-    arm.className = "grip-arm-canvas-el";
-    arm.style.width = "10px";
-    gripContainer.appendChild(arm);
+      // Scale arm and jaws
+      const armLen = grip.armLength || 20;
+      const jawLen = 10;
+      const arm = g.querySelector(".grip-arm-el");
+      const jawL = g.querySelector(".grip-jaw-l");
+      const jawR = g.querySelector(".grip-jaw-r");
+      if (arm) arm.setAttribute("x2", armLen);
+      if (jawL) {
+        jawL.setAttribute("x1", armLen);
+        jawL.setAttribute("x2", armLen + jawLen);
+      }
+      if (jawR) {
+        jawR.setAttribute("x1", armLen);
+        jawR.setAttribute("x2", armLen + jawLen);
+      }
 
-    const tipX = 10;
-    const tipY = 0;
+      const title = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "title",
+      );
+      title.textContent = `Grip ${index + 1}`;
+      g.appendChild(title);
 
-    const jawL = document.createElement("div");
-    jawL.className = "grip-jaw-canvas-el";
-    jawL.style.width = "5px";
-    jawL.style.left = tipX + "px";
-    jawL.style.top = tipY + "px";
-    jawL.style.transform = "rotate(30deg)";
-    gripContainer.appendChild(jawL);
-
-    const jawR = document.createElement("div");
-    jawR.className = "grip-jaw-canvas-el";
-    jawR.style.width = "5px";
-    jawR.style.left = tipX + "px";
-    jawR.style.top = tipY + "px";
-    jawR.style.transform = "rotate(-30deg)";
-    gripContainer.appendChild(jawR);
-
-    const base = document.createElement("div");
-    base.className = "grip-base-canvas-el";
-    gripContainer.appendChild(base);
-
-    canvasArea.appendChild(gripContainer);
-  }
+      svg.appendChild(g);
+    }
+  },
 };

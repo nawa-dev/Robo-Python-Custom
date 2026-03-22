@@ -1,7 +1,7 @@
 {
     "app": {
         "name": "ROBO-PYTHON",
-        "version": "v1.3.0",
+        "version": "v2.1.0",
         "title": "ROBO-PYTHON Simulator"
     },
     "ui": {
@@ -12,6 +12,7 @@
         "wheel",
         "light",
         "ultrasonic",
-        "grip"
+        "grip",
+        "compass"
     ]
 }

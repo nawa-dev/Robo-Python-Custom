@@ -5,6 +5,7 @@
 
 window.SensorRegistry = {};
 window.SensorTemplates = {};
+window.SensorPreviewTemplates = {}; // SVG-fragment templates for preview
 window.SensorConfigs = {};
 
 async function initSensors() {
@@ -33,6 +34,11 @@ async function initSensors() {
     if (typeof updateSensorDots === "function") {
       updateSensorDots();
     }
+
+    // Refresh Editor Highlighting for Dynamic Keywords (New!)
+    if (typeof refreshEditorHighlighting === "function") {
+      refreshEditorHighlighting();
+    }
   } catch (error) {
     console.error("Error initializing sensors:", error);
   }
@@ -48,11 +54,11 @@ async function loadSensorComponent(sensorName) {
     const config = await configRes.json();
     window.SensorConfigs[sensorName] = config;
 
-    // 2. Load render template
+    // 2. Load render template (New: single SVG-based template for both canvas and preview)
     const templateRes = await fetch(`${basePath}/render.html`);
     if (!templateRes.ok) throw new Error(`Missing ${sensorName}/render.html`);
     const templateHtml = await templateRes.text();
-    window.SensorTemplates[sensorName] = templateHtml;
+    window.SensorTemplates[sensorName] = templateHtml.trim();
 
     // 3. Load logic script
     const script = document.createElement("script");
@@ -62,16 +68,25 @@ async function loadSensorComponent(sensorName) {
 
     // 4. Load physics script (optional)
     try {
-        const physRes = await fetch(`${basePath}/physics.js`);
-        if (physRes.ok) {
-            const physText = await physRes.text();
-            const physScript = document.createElement("script");
-            physScript.innerHTML = physText;
-            document.head.appendChild(physScript);
-        }
-    } catch (e) {
-        // Optional file, ignore error
-    }
+      const physRes = await fetch(`${basePath}/physics.js`);
+      if (physRes.ok) {
+        const physScript = document.createElement("script");
+        physScript.src = `${basePath}/physics.js`;
+        physScript.defer = true;
+        document.head.appendChild(physScript);
+      }
+    } catch (e) {}
+
+    // 5. Load executor script (optional - New!)
+    try {
+      const execRes = await fetch(`${basePath}/executor.js`);
+      if (execRes.ok) {
+        const execScript = document.createElement("script");
+        execScript.src = `${basePath}/executor.js`;
+        execScript.defer = true;
+        document.head.appendChild(execScript);
+      }
+    } catch (e) {}
 
   } catch (err) {
     console.warn(`Failed to load component for sensor '${sensorName}':`, err);

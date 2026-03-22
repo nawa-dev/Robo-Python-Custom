@@ -76,9 +76,9 @@ window.renderSensorTabs = function () {
     panel.className = "device-panel";
     panel.style.display = "none";
 
-    // Add button logic
+    // Add button logic — show for all non-singleton sensors
     let addBtnHtml = "";
-    if (config.maxLimit > 1) {
+    if (!config.singleton) {
       addBtnHtml = `<button class="btn-panel-add" id="btn-add-${type}" onclick="addDynamicSensor('${type}')">ADD</button>`;
     }
 
@@ -92,11 +92,34 @@ window.renderSensorTabs = function () {
 
     panelsContainer.appendChild(panel);
 
-    // Special components like Wheel that don't use 'add' logic might have custom logic here.
-    // For wheel, we inject the template directly if maxLimit is 1 and it has no array items
-    if (config.maxLimit === 1) {
-      document.getElementById(`list-${type}`).innerHTML =
-        window.SensorTemplates[type] || "";
+    // If singleton: true, inject auto-generated UI without add/delete flow.
+    if (config.singleton === true) {
+      let inputsHtml = "";
+      if (config.inputs && Array.isArray(config.inputs)) {
+        config.inputs.forEach((input) => {
+          const key = input.key || input.id;
+          const defaultVal = input.default !== undefined ? input.default : "";
+          // Singleton values might be stored globally, rely on registry to handle it or use default
+          inputsHtml += `
+            <div class="sensor-row" style="margin-bottom: 5px;">
+              <span style="display:inline-block; width: 100px;">${input.label}</span>
+              <input type="${input.type || "number"}" class="sensor-input" 
+                     id="singleton-${type}-${key}"
+                     min="${input.min !== undefined ? input.min : ""}" 
+                     max="${input.max !== undefined ? input.max : ""}" 
+                     value="${defaultVal}" 
+                     onchange="window.SensorRegistry['${type}'].updateValue('${key}', this.value)" />
+            </div>
+          `;
+        });
+      }
+      document.getElementById(`list-${type}`).innerHTML = `
+        <div class="sensor-panel-item">
+          <div class="sensor-panel-item-info">
+             ${inputsHtml.length > 0 ? inputsHtml : `<span>${config.name} is active.</span>`}
+          </div>
+        </div>
+      `;
     }
   });
 
@@ -117,7 +140,9 @@ window.addDynamicSensor = function (type) {
     targetArray.filter(
       (s) =>
         s.type === type ||
-        (config.targetArray === "grips" && s.type !== "light" && s.type !== "ultrasonic"),
+        (config.targetArray === "grips" &&
+          s.type !== "light" &&
+          s.type !== "ultrasonic"),
     ).length >= config.maxLimit
   ) {
     logToConsole(
@@ -132,7 +157,9 @@ window.addDynamicSensor = function (type) {
     targetArray.filter(
       (s) =>
         s.type === type ||
-        (config.targetArray === "grips" && s.type !== "light" && s.type !== "ultrasonic"),
+        (config.targetArray === "grips" &&
+          s.type !== "light" &&
+          s.type !== "ultrasonic"),
     ).length + 1;
 
   const newSensor = window.SensorRegistry[type].create(id, count);
@@ -147,15 +174,17 @@ window.addDynamicSensor = function (type) {
 // --- Delete sensor ---
 window.deleteSensor = function (id, typeVal) {
   const config = window.SensorConfigs[typeVal] || { targetArray: null };
-  let isGrip = (config.targetArray === "grips" || grips.some((g) => g.id === id));
+  let isGrip =
+    config.targetArray === "grips" ||
+    grips.some((g) => String(g.id) === String(id));
   if (isGrip) {
-    grips = grips.filter((g) => g.id !== id);
+    grips = grips.filter((g) => String(g.id) !== String(id));
     renderDynamicSensorsList(typeVal || "grip");
   } else {
-    const s = sensors.find((s) => s.id === id);
+    const s = sensors.find((s) => String(s.id) === String(id));
     if (s) {
       const type = s.type;
-      sensors = sensors.filter((s) => s.id !== id);
+      sensors = sensors.filter((s) => String(s.id) !== String(id));
       renderDynamicSensorsList(type);
     }
   }
@@ -169,12 +198,14 @@ window.deleteSensor = function (id, typeVal) {
 window.updateSensorValueDOM = function (id, type, axis, value) {
   const config = window.SensorConfigs[type] || {};
   const targetArray = config.targetArray === "grips" ? grips : sensors;
-  const sensor = targetArray.find((s) => s.id === id);
+  // Use String coercion: sensor.id may be a Number but the template passes it as a string
+  const sensor = targetArray.find((s) => String(s.id) === String(id));
   if (!sensor) return;
 
   const numValue = parseFloat(value);
+  // Support both 'key' (new standard) and legacy 'id' field in config.inputs
   const inputConfig = config.inputs
-    ? config.inputs.find((i) => i.id === axis)
+    ? config.inputs.find((i) => (i.key || i.id) === axis)
     : null;
 
   if (inputConfig && inputConfig.type === "number") {
@@ -195,6 +226,10 @@ window.updateSensorValueDOM = function (id, type, axis, value) {
       return;
     }
     sensor[axis] = numValue;
+  } else if (inputConfig && inputConfig.type === "checkbox") {
+    // Boolean value from checkbox
+    sensor[axis] =
+      value === true || value === "true" || value === 1 || value === "1";
   } else {
     sensor[axis] = value;
   }
@@ -222,6 +257,53 @@ window.updateSensorPreview = function () {
   svg.querySelectorAll(".sensor-circle").forEach((el) => el.remove());
   svg.querySelectorAll(".grip-preview-el").forEach((el) => el.remove());
 
+  // Dynamic ViewBox Zoom: Calculate bounding box to fit all sensors + robot
+  let minX = 0,
+    minY = 0,
+    maxX = 50,
+    maxY = 50;
+
+  [...sensors, ...grips].forEach((s) => {
+    // Basic position
+    minX = Math.min(minX, s.x);
+    minY = Math.min(minY, s.y);
+    maxX = Math.max(maxX, s.x);
+    maxY = Math.max(maxY, s.y);
+
+    // Tip position (for grips)
+    if (s.armLength) {
+      const rad = (s.angle || 0) * (Math.PI / 180);
+      const tx = s.x + Math.cos(rad) * s.armLength;
+      const ty = s.y + Math.sin(rad) * s.armLength;
+      minX = Math.min(minX, tx);
+      minY = Math.min(minY, ty);
+      maxX = Math.max(maxX, tx);
+      maxY = Math.max(maxY, ty);
+    }
+    // Tip position (for ultrasonic)
+    if (s.type === "ultrasonic") {
+      const rad = (s.angle || 0) * (Math.PI / 180);
+      const tx = s.x + Math.cos(rad) * 15; // static preview ray length
+      const ty = s.y + Math.sin(rad) * 15;
+      minX = Math.min(minX, tx);
+      minY = Math.min(minY, ty);
+      maxX = Math.max(maxX, tx);
+      maxY = Math.max(maxY, ty);
+    }
+  });
+
+  const padding = 15;
+  const viewBoxX = minX - padding;
+  const viewBoxY = minY - padding;
+  const viewBoxW = maxX - minX + padding * 2;
+  const viewBoxH = maxY - minY + padding * 2;
+
+  // Keep it square if possible to maintain aspect ratio, or just let it fit
+  svg.setAttribute(
+    "viewBox",
+    `${viewBoxX} ${viewBoxY} ${viewBoxW} ${viewBoxH}`,
+  );
+
   // Draw sensors dynamically
   sensors.forEach((sensor) => {
     const registry = window.SensorRegistry[sensor.type];
@@ -247,10 +329,12 @@ window.renderDynamicSensorsList = function (type) {
   const config = window.SensorConfigs[type];
   if (!config) return;
 
-  if (config.maxLimit === 1) return; // Singles are statically rendered in the container
+  if (config.singleton === true) return; // Singleton devices are rendered inline at tab creation
 
   const targetArray =
-    config.targetArray === "grips" ? grips : sensors.filter((s) => s.type === type);
+    config.targetArray === "grips"
+      ? grips
+      : sensors.filter((s) => s.type === type);
   const countLabel = document.getElementById(`count-label-${type}`);
   const addBtn = document.getElementById(`btn-add-${type}`);
 
@@ -263,26 +347,49 @@ window.renderDynamicSensorsList = function (type) {
     return;
   }
 
-  const templateStr = window.SensorTemplates[type] || "";
-
+  // Auto-generate UI dynamically from config.inputs
   container.innerHTML = targetArray
     .map((sensor, index) => {
-      // Replace variables in template
-      let html = templateStr;
-      html = html.replace(/{id}/g, sensor.id);
-      html = html.replace(/{INDEX}/g, index + 1);
-      html = html.replace(/{NAME}/g, config.name.toUpperCase());
-      html = html.replace(/{TYPE}/g, type);
-
-      // Replace values dynamically
-      if (config.inputs) {
+      let inputsHtml = "";
+      if (config.inputs && Array.isArray(config.inputs)) {
         config.inputs.forEach((input) => {
-          const val =
-            sensor[input.id] !== undefined ? sensor[input.id] : input.default;
-          html = html.replace(new RegExp(`{${input.id}}`, "g"), val);
+          const key = input.key || input.id;
+          const val = sensor[key] !== undefined ? sensor[key] : input.default;
+          if (input.type === "checkbox") {
+            inputsHtml += `
+              <label>${input.label}:</label>
+              <input type="checkbox" class="sensor-checkbox" 
+                     id="${config.targetArray === "grips" ? "grip" : "sensor"}-${sensor.id}-${key}"
+                     ${val ? "checked" : ""} 
+                     onchange="window.updateSensorValueDOM('${sensor.id}', '${type}', '${key}', this.checked)" 
+                     onclick="event.stopPropagation()" />
+            `;
+          } else {
+            inputsHtml += `
+              <label>${input.label}:</label>
+              <input type="${input.type || "number"}" class="sensor-input" 
+                     id="${config.targetArray === "grips" ? "grip" : "sensor"}-${sensor.id}-${key}"
+                     min="${input.min !== undefined ? input.min : ""}" 
+                     max="${input.max !== undefined ? input.max : ""}" 
+                     value="${val}" 
+                     onchange="window.updateSensorValueDOM('${sensor.id}', '${type}', '${key}', this.value)" 
+                     onclick="event.stopPropagation()" />
+            `;
+          }
         });
       }
-      return html;
+
+      return `
+        <div class="sensor-panel-item" id="sensor-item-${type}-${sensor.id}">
+          <div class="sensor-panel-item-info">
+            <span class="sensor-panel-item-name">${config.name.toUpperCase()} ${index}</span>
+            <div style="margin-top: 4px;">
+              ${inputsHtml}
+            </div>
+          </div>
+          <button class="btn-panel-delete" onclick="window.deleteSensor('${sensor.id}', '${type}')"><i class="fas fa-trash"></i></button>
+        </div>
+      `;
     })
     .join("");
 };

@@ -337,7 +337,7 @@
               <div id="sensor-preview" class="sensor-preview">
                 <svg
                   id="preview-svg"
-                  viewBox="-25 -25 100 100"
+                  viewBox="-50 -50 150 150"
                   width="160"
                   height="160"
                 >
@@ -491,148 +491,22 @@
             >
             <div class="wheel w-r"></div>
           </div>
+          <!-- Global SVG layer for sensors and rays -->
+          <svg
+            id="sensors-svg"
+            style="
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              pointer-events: none;
+              z-index: 10;
+            "
+          ></svg>
         </div>
       </section>
     </main>
-
-    <!-- Robot Settings Modal -->
-    <div id="robot-settings-modal" class="modal" style="display: none">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Sensor</h2>
-          <button class="modal-close" onclick="closeRobotSettings()">✕</button>
-        </div>
-
-        <div class="modal-body">
-          <div class="sensors-section">
-            <div class="sensor-preview-container">
-              <div
-                style="
-                  display: flex;
-                  justify-content: space-between;
-                  align-items: center;
-                  margin-bottom: 10px;
-                "
-              >
-                <h4 style="margin: 0">Sensor Preview</h4>
-                <label
-                  style="
-                    font-size: 12px;
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                    color: #ccc;
-                    cursor: pointer;
-                  "
-                >
-                  <input
-                    type="checkbox"
-                    id="show-rays-checkbox"
-                    checked
-                    onchange="toggleSensorRays(this.checked)"
-                  />
-                  Ultrasonic Line
-                </label>
-              </div>
-              <div id="sensor-preview" class="sensor-preview">
-                <svg
-                  id="preview-svg"
-                  viewBox="-25 -25 100 100"
-                  width="200"
-                  height="200"
-                >
-                  <rect
-                    x="0"
-                    y="0"
-                    width="50"
-                    height="50"
-                    fill="#ff4757"
-                    stroke="#333"
-                    stroke-width="1"
-                  />
-
-                  <rect
-                    id="motor-left"
-                    x="20"
-                    y="-10"
-                    width="10"
-                    height="15"
-                    fill="#ff"
-                    stroke="#333"
-                    stroke-width="1"
-                  />
-
-                  <rect
-                    id="motor-right"
-                    x="20"
-                    y="45"
-                    width="10"
-                    height="15"
-                    fill="#ff"
-                    stroke="#333"
-                    stroke-width="1"
-                  />
-
-                  <text
-                    x="25"
-                    y="28"
-                    text-anchor="middle"
-                    fill="white"
-                    font-size="8"
-                    font-weight="bold"
-                    transform="rotate(90 25 25)"
-                  >
-                    ROBOT
-                  </text>
-                </svg>
-              </div>
-            </div>
-            <div class="sensors-right-panel">
-              <div class="motorPosition-container">
-                <h4>Wheel Position</h4>
-                <div class="motorPosition-input">
-                  <input
-                    type="number"
-                    id="motorPos-input"
-                    min="-20"
-                    max="20"
-                    value="0"
-                    onchange="handleMotorPosition(this.value)"
-                    placeholder="0°"
-                  />
-                </div>
-              </div>
-
-              <div class="sensors-list">
-                <div class="add-sensor-controls">
-                  <button
-                    class="btn-add-sensor"
-                    onclick="addSensorToList('light')"
-                  >
-                    + Light Sensor
-                  </button>
-                  <button
-                    class="btn-add-sensor"
-                    style="background-color: #0984e3"
-                    onclick="addSensorToList('ultrasonic')"
-                  >
-                    + Ultrasonic
-                  </button>
-                </div>
-
-                <div id="sensors-container" class="sensors-container"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button class="btn-primary" onclick="closeRobotSettings()">
-            Done
-          </button>
-        </div>
-      </div>
-    </div>
 
     <input
       type="file"

@@ -194,6 +194,7 @@ function updatePhysics(timestamp) {
 
     updateRobotDOM();
     if (typeof updateObjectsDOM === "function") updateObjectsDOM();
+    if (typeof updateSensorDots === "function") updateSensorDots();
   } else {
     // รีเซ็ตค่าเวลาเมื่อหยุดการทำงาน เพื่อป้องกันการกระโดดของตำแหน่ง (Time Warping)
     lastPhysicTime = 0;
@@ -214,8 +215,8 @@ function toggleSensorRays(enabled) {
  * อัปเดตตำแหน่งและการแสดงผลของจุดเซนเซอร์บนตัวหุ่นยนต์
  */
 function updateSensorDots() {
-  const oldDots = document.querySelectorAll(".sensor-dot, .grip-canvas-el");
-  oldDots.forEach((dot) => dot.remove());
+  const sensorsSvg = document.getElementById("sensors-svg");
+  if (sensorsSvg) sensorsSvg.innerHTML = "";
 
   const globals = {
       robotX: robotX,
@@ -228,7 +229,7 @@ function updateSensorDots() {
   [...sensors, ...grips].forEach((sensor, index) => {
       const registry = window.SensorRegistry[sensor.type];
       if (registry && typeof registry.drawCanvas === "function") {
-          registry.drawCanvas(canvasArea, sensor, globals, index);
+          registry.drawCanvas(sensorsSvg, sensor, globals, index);
       }
   });
 }
@@ -266,3 +267,41 @@ window.releaseAllObjects = function () {
     if (typeof updateObjectsDOM === "function") updateObjectsDOM();
   }
 };
+function handleGenericSensorCollision(sensor, globals) {
+  if (typeof canvasObjects === "undefined" || !canvasObjects) return;
+
+  const rad = (globals.angle * Math.PI) / 180;
+  const localX = (sensor.x || 0) - 25;
+  const localY = (sensor.y || 0) - 25;
+  
+  // คำนวณตำแหน่งโลกของเซนเซอร์
+  const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
+  const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
+  const worldX = globals.robotX + 25 + rotatedX;
+  const worldY = globals.robotY + 25 + rotatedY;
+
+  canvasObjects.forEach((obj) => {
+    if (typeof grabbedObjects !== "undefined" && grabbedObjects.includes(obj)) return;
+
+    const dx = obj.x - worldX;
+    const dy = obj.y - worldY;
+    const dist = Math.hypot(dx, dy);
+    const minDist = (obj.radius || 15) + 5; // รัศมีวัตถุ + จุดเล็งเซนเซอร์ (5)
+
+    if (dist < minDist) {
+      const angleToObj = Math.atan2(dy, dx);
+      const overlap = minDist - dist;
+
+      // ผลักวัตถุ
+      obj.x += Math.cos(angleToObj) * overlap;
+      obj.y += Math.sin(angleToObj) * overlap;
+
+      // ถ่ายเทความเร็ว
+      if (typeof robotDrive !== "undefined") {
+        const v = 0.5 * (robotDrive.left.current + robotDrive.right.current);
+        obj.vx += v * Math.cos(rad) * 0.8;
+        obj.vy += v * Math.sin(rad) * 0.8;
+      }
+    }
+  });
+}

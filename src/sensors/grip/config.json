@@ -2,10 +2,32 @@
   "name": "Grip",
   "icon": "fas fa-hand-rock",
   "maxLimit": 4,
+  "canInteractWithObject": true,
   "inputs": [
-    { "id": "x", "label": "X", "type": "number", "min": 0, "max": 75, "default": 45 },
-    { "id": "y", "label": "Y", "type": "number", "min": 0, "max": 50, "default": 25 },
-    { "id": "angle", "label": "∠", "type": "number", "min": -180, "max": 180, "default": 0 }
+    { "key": "x", "label": "X", "type": "number", "min": 0, "max": 50, "default": 45 },
+    { "key": "y", "label": "Y", "type": "number", "min": 0, "max": 50, "default": 25 },
+    { "key": "angle", "label": "Angle", "type": "number", "default": 0 },
+    { "key": "armLength", "label": "Arm Length", "type": "number", "min": 5, "max": 50, "default": 20 }
+  ],
+  "api": [
+    {
+      "keyword": "grab",
+      "snippet": {
+        "label": "grab",
+        "insertText": "grab()",
+        "documentation": "Grab an object in front of the robot",
+        "detail": "grab() -> void"
+      }
+    },
+    {
+      "keyword": "release",
+      "snippet": {
+        "label": "release",
+        "insertText": "release()",
+        "documentation": "Release the currently grabbed object",
+        "detail": "release() -> void"
+      }
+    }
   ],
   "targetArray": "grips"
 }

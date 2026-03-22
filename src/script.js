@@ -131,14 +131,32 @@ require(["vs/editor/editor.main"], function () {
 });
 
 // ตั้งค่าการไฮไลต์สำหรับ Robot API
+function getDynamicAPIKeywords() {
+  const baseKeywords = ["motor", "delay", "sleep", "analogRead", "getSensorCount", "print", "spawn_object"];
+  if (window.SensorConfigs) {
+    Object.values(window.SensorConfigs).forEach(config => {
+      if (config.api && Array.isArray(config.api)) {
+        config.api.forEach(apiDef => {
+          if (apiDef.keyword && !baseKeywords.includes(apiDef.keyword)) {
+            baseKeywords.push(apiDef.keyword);
+          }
+        });
+      }
+    });
+  }
+  return baseKeywords;
+}
+
 function setupRobotHighlighting(editor) {
-  const robotRegex =
-    /\b(motor|delay|sleep|analogRead|getSensorCount|print|grab|release|spawn_object)|SW|waitSW\b/g;
   let decorationIds = [];
 
   function updateDecorations() {
     const model = editor.getModel();
     if (!model) return;
+
+    const keywords = getDynamicAPIKeywords();
+    const robotRegex = new RegExp(`\\b(${keywords.join("|")})|SW|waitSW\\b`, "g");
+
 
     const text = model.getValue();
     const decorations = [];
@@ -174,6 +192,9 @@ function setupRobotHighlighting(editor) {
 
     decorationIds = editor.deltaDecorations(decorationIds, decorations);
   }
+
+  // --- NEW: Expose globally so sensorLoader can refresh once ready ---
+  window.refreshEditorHighlighting = updateDecorations;
 
   updateDecorations();
   editor.onDidChangeModelContent(updateDecorations);
@@ -267,20 +288,6 @@ function setupAutocomplete() {
       detail: "delay(ms) -> void",
     },
     {
-      label: "grab",
-      kind: monaco.languages.CompletionItemKind.Function,
-      insertText: "grab()",
-      documentation: "Grab an object in front of the robot",
-      detail: "grab() -> void",
-    },
-    {
-      label: "release",
-      kind: monaco.languages.CompletionItemKind.Function,
-      insertText: "release()",
-      documentation: "Release the currently grabbed object",
-      detail: "release() -> void",
-    },
-    {
       label: "spawn_object",
       kind: monaco.languages.CompletionItemKind.Function,
       insertText: "spawn_object('${1:red}')",
@@ -288,13 +295,37 @@ function setupAutocomplete() {
         monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
       documentation: "Spawn a new object on the canvas. Colors: red, blue, green, yellow",
       detail: "spawn_object(color: string) -> void",
-    },
+    }
   ];
 
   monaco.languages.registerCompletionItemProvider("python", {
     provideCompletionItems: (model, position) => {
+      // Create a fresh copy of the base auto-completes
+      let dynamicAPI = [...robotAPI];
+      
+      // Inject dynamically from loaded components
+      if (window.SensorConfigs) {
+        Object.values(window.SensorConfigs).forEach(config => {
+          if (config.api && Array.isArray(config.api)) {
+            config.api.forEach(apiDef => {
+              if (apiDef.snippet) {
+                dynamicAPI.push({
+                  label: apiDef.snippet.label,
+                  kind: monaco.languages.CompletionItemKind.Function,
+                  insertText: apiDef.snippet.insertText,
+                  insertTextRules: apiDef.snippet.insertTextRules === "snippet" ? 
+                      monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet : undefined,
+                  documentation: apiDef.snippet.documentation,
+                  detail: apiDef.snippet.detail
+                });
+              }
+            });
+          }
+        });
+      }
+
       return {
-        suggestions: robotAPI,
+        suggestions: dynamicAPI,
       };
     },
   });
@@ -558,7 +589,7 @@ function updateObjectsDOM() {
       el.style.backgroundColor = obj.color;
 
       el.addEventListener("mousedown", (e) => {
-        if (isRunning) return;
+        if (obj.isGrabbed) return; // ห้ามลากถ้ากำลังถูกคีบอยู่
         draggingObjectOnCanvas = obj;
         const rect = el.getBoundingClientRect();
         // คำนวณ offset จากกึ่งกลางวัตถุ
