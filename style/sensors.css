@@ -65,9 +65,9 @@
   height: auto;
 }
 
-.sensor-circle {
+/* .sensor-circle {
   fill: #4caf50;
-}
+} */
 
 .motorPosition-container {
   display: flex;

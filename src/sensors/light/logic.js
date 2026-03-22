@@ -1,36 +1,48 @@
 window.SensorRegistry["light"] = {
-  create: function(id, count) {
+  create: function (id, count) {
     return {
       id,
       type: "light",
       x: 45,
       y: 25,
+      color: "#ff0000",
       name: `Light ${count}`,
-      isNew: true
+      isNew: true,
     };
   },
-  drawPreview: function(svg, sensor) {
+  drawPreview: function (svg, sensor) {
     const template = window.SensorTemplates && window.SensorTemplates["light"];
     if (template) {
       const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
       g.innerHTML = template;
       g.setAttribute("transform", `translate(${sensor.x}, ${sensor.y})`);
       g.classList.add("sensor-circle");
+
+      // Update circle color
+      const circle = g.querySelector("circle");
+      if (circle) {
+        circle.setAttribute("fill", sensor.color || "#ff0000ff");
+        circle.setAttribute("stroke", sensor.color || "#ff0000ff");
+      }
+
       svg.appendChild(g);
     }
   },
-  read: function(sensor, globals) {
+  read: function (sensor, globals) {
     const localX = sensor.x - 25;
     const localY = sensor.y - 25;
     const rad = (globals.angle * Math.PI) / 180;
-    
+
     const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
     const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
-    
+
     const canvasX = globals.robotX + 25 + rotatedX;
     const canvasY = globals.robotY + 25 + rotatedY;
-    
-    const brightness = typeof getPixelBrightness === "function" ? getPixelBrightness(canvasX, canvasY) : 0;
+
+    const brightness =
+      typeof getPixelBrightness === "function"
+        ? getPixelBrightness(canvasX, canvasY, sensor.color)
+        : 0;
     console.log(`[Light Sensor Read] ${sensor.name}:
       - Robot Pos: (${Math.round(globals.robotX)}, ${Math.round(globals.robotY)})
       - Robot Angle: ${Math.round(globals.angle)}°
@@ -40,13 +52,13 @@ window.SensorRegistry["light"] = {
       - Value: ${brightness}`);
     return brightness;
   },
-  updateValue: function(id, axis, value) {
+  updateValue: function (id, axis, value) {
     window.updateSensorValueDOM(id, "light", axis, value);
   },
-  deleteItem: function(id) {
+  deleteItem: function (id) {
     window.deleteSensor(id, "light");
   },
-  drawCanvas: function(svg, sensor, globals, index) {
+  drawCanvas: function (svg, sensor, globals, index) {
     const rad = (globals.angle * Math.PI) / 180;
     const cos_a = Math.cos(rad);
     const sin_a = Math.sin(rad);
@@ -64,19 +76,32 @@ window.SensorRegistry["light"] = {
       const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
       g.innerHTML = template;
       g.setAttribute("transform", `translate(${canvasX}, ${canvasY})`);
-      
+
+      // Update circle color
+      const circle = g.querySelector("circle");
+      if (circle) {
+        circle.setAttribute("fill", sensor.color || "#ff0000ff");
+        circle.setAttribute("stroke", sensor.color || "#ff0000ff");
+      }
+
       // Add title for tooltip (SVG <title> tag works well)
       let brightness = 512;
       if (typeof canvasPixelData !== "undefined" && canvasPixelData) {
-        brightness = (typeof getPixelBrightness === "function") ? getPixelBrightness(canvasX, canvasY) : 0;
+        brightness =
+          typeof getPixelBrightness === "function"
+            ? getPixelBrightness(canvasX, canvasY, sensor.color)
+            : 0;
       }
       sensor.value = brightness;
-      
-      const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+
+      const title = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "title",
+      );
       title.textContent = `${sensor.name} [${index}]\nBrightness: ${brightness}`;
       g.appendChild(title);
-      
+
       svg.appendChild(g);
     }
-  }
+  },
 };
