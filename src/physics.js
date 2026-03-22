@@ -3,6 +3,9 @@
  * รองรับการคำนวณจลนศาสตร์แบบ Differential Drive
  */
 
+// ตัวคูณความเร็วล้อ (ปรับค่านี้เพื่อความเร็วที่สมจริง - เดิมคือ 2.5)
+const MOTOR_SPEED_FACTOR = 1.0;
+
 // --- 1. ระบบขับเคลื่อน Differential Drive ---
 /**
  * ฟังก์ชันสำหรับจัดการคำนวณจลนศาสตร์และความเร่งของล้อ
@@ -133,9 +136,14 @@ function updatePhysics(timestamp) {
 
     // ตั้งค่าความเร็วมอเตอร์พร้อมตัวคูณเพื่อความเร็วที่สมจริงในโปรแกรมจำลอง
     if (typeof robotDrive.setTargets4 === "function") {
-      robotDrive.setTargets4(motorFL * 2.5, motorFR * 2.5, motorBL * 2.5, motorBR * 2.5);
+      robotDrive.setTargets4(
+        motorFL * MOTOR_SPEED_FACTOR,
+        motorFR * MOTOR_SPEED_FACTOR,
+        motorBL * MOTOR_SPEED_FACTOR,
+        motorBR * MOTOR_SPEED_FACTOR
+      );
     } else {
-      robotDrive.setTargets(motorL * 2.5, motorR * 2.5);
+      robotDrive.setTargets(motorL * MOTOR_SPEED_FACTOR, motorR * MOTOR_SPEED_FACTOR);
     }
 
     // ดึงค่า motorPos จากเซนเซอร์ล้อ
