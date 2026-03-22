@@ -107,6 +107,17 @@ const robotDrive = new DifferentialDrive({
   axisOffset: 0, // ค่านี้จะถูกอัปเดตตาม motorPos จริง
 });
 
+/**
+ * Reset all current wheel speeds to 0 immediately.
+ */
+DifferentialDrive.prototype.resetCurrentSpeeds = function() {
+  this.fl.current = 0;
+  this.fr.current = 0;
+  this.bl.current = 0;
+  this.br.current = 0;
+};
+
+
 let lastPhysicTime = 0;
 
 // --- 2. ลูปการทำงานหลักของระบบฟิสิกส์ (Main Physics Loop) ---
@@ -261,6 +272,9 @@ function updatePhysics(timestamp) {
   }
   requestAnimationFrame(updatePhysics);
 }
+
+// Expose to window for executor.js
+window.physics = robotDrive;
 
 // --- 3. ระบบการจัดการเซนเซอร์ (Sensor Management) ---
 

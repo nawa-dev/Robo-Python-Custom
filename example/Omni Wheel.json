@@ -1,0 +1,41 @@
+{
+  "version": "1.1",
+  "timestamp": "2026-03-22T13:48:43.925Z",
+  "projectName": "Omni Wheel",
+  "canvas": {
+    "width": "800",
+    "height": "600"
+  },
+  "map": {
+    "type": "default",
+    "imageData": "none",
+    "fileName": ""
+  },
+  "sensors": [
+    {
+      "type": "wheel",
+      "id": 1774186237544,
+      "name": "Wheel",
+      "motorPos": 20,
+      "isNew": false,
+      "wheelType": "omni"
+    },
+    {
+      "id": 1774187228443,
+      "type": "wheel",
+      "name": "Wheel",
+      "motorPos": -20,
+      "wheelType": "omni",
+      "isNew": false
+    }
+  ],
+  "grips": [],
+  "canvasObjects": [],
+  "sourceCode": "\n\nspeed = 60\nduration = 2000 # วิ่งแต่ละด้าน 2 วินาที\n\nprint(\"เริ่มการทดสอบสี่เหลี่ยมแบบ Slide (Omni Mode)\")\n\n# 1. เดินหน้า (Forward)\nprint(\"1. เดินหน้า\")\nmotor4(speed, speed, speed, speed)\ndelay(duration)\n\n# 2. สไลด์ขวา (Strafe Right)\n# สูตร: FL-, FR+, BL+, BR-\nprint(\"2. สไลด์ขวา\")\nmotor4(-speed, speed, speed, -speed)\ndelay(duration)\n\n# 3. ถอยหลัง (Backward)\nprint(\"3. ถอยหลัง\")\nmotor4(-speed, -speed, -speed, -speed)\ndelay(duration)\n\n# 4. สไลด์ซ้าย (Strafe Left)\n# สูตร: FL+, FR-, BL-, BR+\nprint(\"4. สไลด์ซ้าย\")\nmotor4(speed, -speed, -speed, speed)\ndelay(duration)\n\n# หยุดหุ่นยนต์\nmotor4(0, 0, 0, 0)\nprint(\"จบการทดสอบ\")\n",
+  "robotState": {
+    "x": 269.2225717929662,
+    "y": 347.7045919999971,
+    "angle": 270,
+    "motorPos": 0
+  }
+}
