@@ -72,7 +72,8 @@ window.SensorRegistry["ultrasonic"] = {
       );
 
       // Update ray line if it exists
-      if (globals.showSensorRays) {
+      const isVisible = globals.sensorVisibility && globals.sensorVisibility["ultrasonic"] !== false;
+      if (isVisible) {
         const ray = g.querySelector(".ultrasonic-ray");
         if (ray) {
           ray.setAttribute("x2", dist);
@@ -92,5 +93,15 @@ window.SensorRegistry["ultrasonic"] = {
 
       svg.appendChild(g);
     }
+  },
+  getBounds: function (sensor) {
+    const rad = ((sensor.angle || 0) * Math.PI) / 180;
+    return [
+      { x: sensor.x, y: sensor.y },
+      {
+        x: sensor.x + Math.cos(rad) * 15,
+        y: sensor.y + Math.sin(rad) * 15,
+      },
+    ];
   },
 };

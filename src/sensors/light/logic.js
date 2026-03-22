@@ -59,6 +59,9 @@ window.SensorRegistry["light"] = {
     window.deleteSensor(id, "light");
   },
   drawCanvas: function (svg, sensor, globals, index) {
+    const isVisible = globals.sensorVisibility && globals.sensorVisibility["light"] !== false;
+    if (!isVisible) return;
+    
     const rad = (globals.angle * Math.PI) / 180;
     const cos_a = Math.cos(rad);
     const sin_a = Math.sin(rad);

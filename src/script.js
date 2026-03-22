@@ -471,13 +471,20 @@ function handleMotorPosition(value) {
 }
 
 function syncWheelDOM() {
-  const wheelSensors = sensors.filter(s => s.type === "wheel");
+  const isVisible = !(window.SensorSettings && window.SensorSettings.visibility && window.SensorSettings.visibility.wheel === false);
+  const wheelSensors = isVisible ? sensors.filter(s => s.type === "wheel") : [];
   
   // Relative position helper for SVG: Center of wheel (25) means 'x' = 25 - 4 = 21.
   const getSvgX = (offset) => 21 + (parseFloat(offset) || 0);
 
   // Front Wheels (Always index 0 if exists)
-  if (wheelSensors.length > 0) {
+  const displayFront = (isVisible && wheelSensors.length > 0) ? "block" : "none";
+  const ml = document.getElementById("motor-left");
+  const mr = document.getElementById("motor-right");
+  if (ml) ml.style.display = displayFront;
+  if (mr) mr.style.display = displayFront;
+
+  if (isVisible && wheelSensors.length > 0) {
     const sensor = wheelSensors[0];
     const rawPos = parseFloat(sensor.motorPos) || 0;
     const isOmni = sensor.wheelType === "omni";
@@ -488,21 +495,31 @@ function syncWheelDOM() {
     // Canvas update
     const wl = robot.querySelector(".w-l");
     const wr = robot.querySelector(".w-r");
-    if (wl) wl.style.backgroundColor = color;
-    if (wr) wr.style.backgroundColor = color;
+    if (wl) {
+      wl.style.backgroundColor = color;
+      wl.style.display = displayFront;
+    }
+    if (wr) {
+      wr.style.backgroundColor = color;
+      wr.style.display = displayFront;
+    }
 
     // SVG update
     const dPosSvg = getSvgX(rawPos);
-    const ml = document.getElementById("motor-left");
     if (ml) {
       ml.setAttribute("x", dPosSvg);
       ml.setAttribute("fill", color);
     }
-    const mr = document.getElementById("motor-right");
     if (mr) {
       mr.setAttribute("x", dPosSvg);
       mr.setAttribute("fill", color);
     }
+  } else {
+    // Hide canvas wheels too
+    const wl = robot.querySelector(".w-l");
+    const wr = robot.querySelector(".w-r");
+    if (wl) wl.style.display = "none";
+    if (wr) wr.style.display = "none";
   }
 
   // Back Wheels (Index 1)

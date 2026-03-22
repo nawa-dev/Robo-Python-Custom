@@ -21,6 +21,9 @@ window.SensorRegistry["compass"] = {
   },
 
   drawCanvas: function (svg, sensor, globals, index) {
+    const isVisible = globals.sensorVisibility && globals.sensorVisibility["compass"] !== false;
+    if (!isVisible) return;
+
     const rad = (globals.angle * Math.PI) / 180;
     const cos_a = Math.cos(rad);
     const sin_a = Math.sin(rad);

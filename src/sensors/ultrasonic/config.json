@@ -2,6 +2,7 @@
   "name": "Ultrasonic",
   "icon": "fas fa-wifi",
   "maxLimit": 25,
+  "hideable": true,
   "inputs": [
     { "key": "x", "label": "X", "type": "number", "min": 0, "max": 50, "default": 45 },
     { "key": "y", "label": "Y", "type": "number", "min": 0, "max": 50, "default": 25 },

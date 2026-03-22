@@ -295,43 +295,8 @@
             <div class="settings-preview-box">
               <div class="settings-preview-header">
                 <span>Preview</span>
-                <div style="display: flex; gap: 8px; align-items: center">
-                  <label
-                    style="
-                      font-size: 11px;
-                      display: flex;
-                      align-items: center;
-                      gap: 4px;
-                      color: #aaa;
-                      cursor: pointer;
-                    "
-                  >
-                    <input
-                      type="checkbox"
-                      id="show-rays-checkbox"
-                      checked
-                      onchange="toggleSensorRays(this.checked)"
-                    />
-                    Ray
-                  </label>
-                  <label
-                    style="
-                      font-size: 11px;
-                      display: flex;
-                      align-items: center;
-                      gap: 4px;
-                      color: #aaa;
-                      cursor: pointer;
-                    "
-                  >
-                    <input
-                      type="checkbox"
-                      id="show-grips-checkbox"
-                      checked
-                      onchange="toggleGripPreview(this.checked)"
-                    />
-                    Grip
-                  </label>
+                <div id="preview-toggles" style="display: flex; gap: 8px; align-items: center">
+                  <!-- Dynamic toggles injected here -->
                 </div>
               </div>
               <div id="sensor-preview" class="sensor-preview">

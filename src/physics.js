@@ -198,10 +198,15 @@ function updatePhysics(timestamp) {
     }
 
     const physicsGlobals = { robotX, robotY, angle, dt };
-    [...sensors, ...grips].forEach((sensor, index) => {
-        const registry = window.SensorRegistry[sensor.type];
+    const typeCounters = {};
+    [...sensors, ...grips].forEach((sensor) => {
+        const type = sensor.type;
+        if (!typeCounters[type]) typeCounters[type] = 0;
+        const typeIdx = typeCounters[type]++;
+
+        const registry = window.SensorRegistry[type];
         if (registry && typeof registry.physicsStep === "function") {
-            registry.physicsStep(sensor, index, physicsGlobals);
+            registry.physicsStep(sensor, typeIdx, physicsGlobals);
         }
     });
 
@@ -304,14 +309,18 @@ function updateSensorDots() {
       robotX: robotX,
       robotY: robotY,
       angle: angle,
-      showSensorRays: showSensorRays,
-      showGripPreview: typeof showGripPreview !== "undefined" ? showGripPreview : true
+      sensorVisibility: window.SensorSettings ? window.SensorSettings.visibility : {}
   };
 
-  [...sensors, ...grips].forEach((sensor, index) => {
-      const registry = window.SensorRegistry[sensor.type];
+  const typeCountersDraw = {};
+  [...sensors, ...grips].forEach((sensor) => {
+      const type = sensor.type;
+      if (typeCountersDraw[type] === undefined) typeCountersDraw[type] = 0;
+      const typeIdx = typeCountersDraw[type]++;
+
+      const registry = window.SensorRegistry[type];
       if (registry && typeof registry.drawCanvas === "function") {
-          registry.drawCanvas(sensorsSvg, sensor, globals, index);
+          registry.drawCanvas(sensorsSvg, sensor, globals, typeIdx);
       }
   });
 }

@@ -117,7 +117,8 @@ window.SensorRegistry["grip"] = {
     }
   },
   drawCanvas: function (svg, grip, globals, index) {
-    if (typeof showGripPreview !== "undefined" && !showGripPreview) return;
+    const isVisible = globals.sensorVisibility && globals.sensorVisibility["grip"] !== false;
+    if (!isVisible) return;
 
     const rad = (globals.angle * Math.PI) / 180;
     const localX = grip.x - 25;
@@ -162,5 +163,20 @@ window.SensorRegistry["grip"] = {
 
       svg.appendChild(g);
     }
+  },
+  getBounds: function (grip) {
+    const rad = ((grip.angle || 0) * Math.PI) / 180;
+    const armLen = grip.armLength || 20;
+    return [
+      { x: grip.x, y: grip.y },
+      {
+        x: grip.x + Math.cos(rad) * armLen,
+        y: grip.y + Math.sin(rad) * armLen,
+      },
+      {
+        x: grip.x + Math.cos(rad) * (armLen + 10),
+        y: grip.y + Math.sin(rad) * (armLen + 10),
+      },
+    ];
   },
 };

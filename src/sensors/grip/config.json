@@ -29,5 +29,6 @@
       }
     }
   ],
-  "targetArray": "grips"
+  "targetArray": "grips",
+  "hideable": true
 }

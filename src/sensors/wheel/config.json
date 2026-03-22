@@ -2,10 +2,12 @@
   "name": "Wheel",
   "icon": "fas fa-car-side",
   "maxLimit": 2,
+  "minLimit": 1,
   "singleton": false,
   "canInteractWithObject": true,
+  "hideable": true,
   "inputs": [
-    { "key": "motorPos", "label": "Motor Position (-20 to 20)", "type": "number", "min": -20, "max": 20, "default": 0 },
+    { "key": "motorPos", "label": "Motor Position", "type": "number", "min": -20, "max": 20, "default": 0 },
     { "key": "wheelType", "label": "Wheel Type", "type": "select", "options": [
         { "label": "Normal", "value": "normal" },
         { "label": "Omni Wheel", "value": "omni" }
