@@ -25,6 +25,7 @@ window.switchTab = function (tabId) {
 };
 
 let currentDevice = "light";
+window.SensorNextIndices = {};
 
 window.selectDevice = function (type) {
   currentDevice = type;
@@ -172,16 +173,20 @@ window.addDynamicSensor = function (type) {
   }
 
   const id = Date.now();
-  const count =
-    targetArray.filter(
-      (s) =>
-        s.type === type ||
-        (config.targetArray === "grips" &&
-          s.type !== "light" &&
-          s.type !== "ultrasonic"),
-    ).length + 1;
+  
+  if (!window.SensorNextIndices[type]) {
+    // If not initialized, try to find max index in current targetArray
+    const existingTyped = targetArray.filter(s => s.type === type || (config.targetArray === "grips" && s.type !== "light" && s.type !== "ultrasonic"));
+    if (existingTyped.length === 0) {
+      window.SensorNextIndices[type] = 0;
+    } else {
+      window.SensorNextIndices[type] = Math.max(...existingTyped.map(s => s.index !== undefined ? s.index : -1)) + 1;
+    }
+  }
 
-  const newSensor = window.SensorRegistry[type].create(id, count);
+  const index = window.SensorNextIndices[type]++;
+  const newSensor = window.SensorRegistry[type].create(id, index);
+  newSensor.index = index;
   targetArray.push(newSensor);
 
   updateSensorPreview();
@@ -198,6 +203,9 @@ window.deleteSensor = function (id, typeVal) {
     grips.some((g) => String(g.id) === String(id));
   if (isGrip) {
     grips = grips.filter((g) => String(g.id) !== String(id));
+    if (grips.length === 0) {
+      window.SensorNextIndices["grip"] = 0;
+    }
     renderDynamicSensorsList(typeVal || "grip");
   } else {
     const s = sensors.find((s) => String(s.id) === String(id));
@@ -208,6 +216,11 @@ window.deleteSensor = function (id, typeVal) {
         return;
       }
       sensors = sensors.filter((s) => String(s.id) !== String(id));
+      
+      // Reset index tracker if all sensors of this type are gone
+      if (sensors.filter(s => s.type === type).length === 0) {
+        window.SensorNextIndices[type] = 0;
+      }
       renderDynamicSensorsList(type);
     }
   }
@@ -425,8 +438,8 @@ window.renderDynamicSensorsList = function (type) {
       }
 
       const displayName = (type === "wheel") 
-        ? (index === 0 ? "FRONT WHEELS" : "BACK WHEELS") 
-        : `${config.name.toUpperCase()} ${index + 1}`;
+        ? (sensor.index === 0 ? "FRONT WHEELS" : (sensor.index === 1 ? "BACK WHEELS" : `EXTRA WHEELS ${sensor.index}`))
+        : `${config.name.toUpperCase()} ${sensor.index !== undefined ? sensor.index : index}`;
 
       return `
         <div class="sensor-panel-item" id="sensor-item-${type}-${sensor.id}">

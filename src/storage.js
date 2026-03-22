@@ -205,16 +205,18 @@ function applyProjectData(projectData) {
   }
 
   // 2. คืนค่าเซนเซอร์
-  sensors = (projectData.sensors || []).map((s) => ({
+  sensors = (projectData.sensors || []).map((s, idx) => ({
     type: "light", // fallback for old files that missed type
+    index: s.index !== undefined ? s.index : idx,
     ...s,
     isNew: false,
   }));
 
   // 2b. คืนค่า Grip
-  grips = (projectData.grips || []).map((g) => ({
-    ...g,
+  grips = (projectData.grips || []).map((g, idx) => ({
     type: "grip",
+    index: g.index !== undefined ? g.index : idx,
+    ...g,
     x: g.x !== undefined ? g.x : 45,
     y: g.y !== undefined ? g.y : 25,
   }));
@@ -222,6 +224,15 @@ function applyProjectData(projectData) {
   updateSensorPreview();
   renderSensorsList();
   updateSensorDots();
+
+  // Recalculate index trackers
+  window.SensorNextIndices = {};
+  [...sensors, ...grips].forEach(s => {
+    const type = s.type;
+    if (s.index !== undefined) {
+      window.SensorNextIndices[type] = Math.max(window.SensorNextIndices[type] || 0, s.index + 1);
+    }
+  });
 
   // 2c. คืนค่าวัตถุบนแคนวาส
   if (typeof canvasObjects !== "undefined") {
