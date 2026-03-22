@@ -1,4 +1,4 @@
-# 🛠️ Sensor Creation Manual (Robo-Python v2.1.0)
+# 🛠️ Sensor Creation Manual (Robo-Python v2.2.0)
 
 This guide explains how to create and install a new sensor or actuator in the Robo-Python simulator.
 
@@ -37,9 +37,18 @@ This file tells the UI what controls to show for your sensor.
   ],
   "api": [
     { "keyword": "readMySensor" }
-  ]
+  ],
+  "targetArray": "sensors",
+  "protectedIndex": 0,
+  "maxLimit": 4,
+  "minLimit": 1
 }
 ```
+
+### 3. Choose Storage Bucket (`targetArray`)
+- **`sensors`**: Standard data collection (Light, Ultrasonic).
+- **`grips`**: Interactive actuators (Grip).
+- **`singleton`**: For unique devices like a Compass.
 
 ### 3. Create `render.html`
 Provide an SVG group (`<g>`) that represents your sensor's visual design.
@@ -71,6 +80,11 @@ window.SensorRegistry["my_sensor"] = {
   read: function (sensor, globals) {
     // Logic to calculate the sensor value (e.g., distance or brightness)
     return sensor.value;
+  },
+  getDisplayName: function (sensor, index) {
+    // 'index' is the position in the UI list
+    if (index === 0) return "PRIMARY SENSOR";
+    return `SECONDARY SENSOR ${index}`;
   }
 };
 ```

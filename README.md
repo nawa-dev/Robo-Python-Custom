@@ -3,7 +3,7 @@
 A web-based **2D robot programming simulator** that allows users to control a robot using **Python**, designed for learning, experimentation, and education.
 
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
-![Version](https://img.shields.io/badge/Version-v2.1.0-blue)
+![Version](https://img.shields.io/badge/Version-v2.2.0-blue)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![Python](https://img.shields.io/badge/Language-Python-yellow)
 
@@ -62,3 +62,5 @@ A web-based **2D robot programming simulator** that allows users to control a ro
 - **Index Separation**: Light Sensors and Ultrasonic Sensors have their own independent counts. `analogRead(0)` is always the first Light sensor, and `getUltrasonic(0)` is always the first Ultrasonic sensor.
 - **Infinite Loops**: You can safely use `while True:`. The system handles delays automatically.
 - **Runtime Interaction**: You can manually drag objects on the canvas even while your code is running to test your robot's reaction!
+- **Wheel Management**: The robot always starts with a permanent **FRONT WHEEL**. You can add a **BACK WHEEL** for stability, but the front wheel is protected from deletion to maintain basic mobility.
+- **Dynamic Storage**: Sensors and Actuators are now stored in specialized arrays (`sensors` vs `grips`) based on their configuration, managed automatically by the core system.
