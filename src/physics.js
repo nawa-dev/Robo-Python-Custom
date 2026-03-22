@@ -122,6 +122,8 @@ DifferentialDrive.prototype.resetCurrentSpeeds = function() {
 
 
 let lastPhysicTime = 0;
+let physicsAccumulator = 0;
+const FIXED_DT = 1 / 60; // 60Hz
 
 // --- 2. ลูปการทำงานหลักของระบบฟิสิกส์ (Main Physics Loop) ---
 /**
@@ -131,159 +133,176 @@ let lastPhysicTime = 0;
 function updatePhysics(timestamp) {
   if (isRunning && !isDragging) {
     if (!lastPhysicTime) lastPhysicTime = timestamp;
-    const dt = (timestamp - lastPhysicTime) / 1000;
+    let frameTime = (timestamp - lastPhysicTime) / 1000;
+    if (frameTime > 0.25) frameTime = 0.25; // ป้องกันการคำนวณมหาศาลหากเบราว์เซอร์ค้าง (Spiral of Death) 
     lastPhysicTime = timestamp;
 
-    // ตั้งค่าความเร็วมอเตอร์พร้อมตัวคูณเพื่อความเร็วที่สมจริงในโปรแกรมจำลอง
-    if (typeof robotDrive.setTargets4 === "function") {
-      robotDrive.setTargets4(
-        motorFL * MOTOR_SPEED_FACTOR,
-        motorFR * MOTOR_SPEED_FACTOR,
-        motorBL * MOTOR_SPEED_FACTOR,
-        motorBR * MOTOR_SPEED_FACTOR
-      );
-    } else {
-      robotDrive.setTargets(motorL * MOTOR_SPEED_FACTOR, motorR * MOTOR_SPEED_FACTOR);
+    physicsAccumulator += frameTime;
+
+    // รันฟิสิกส์ตามจำนวน Step ที่คงที่
+    while (physicsAccumulator >= FIXED_DT) {
+      applyPhysicsStep(FIXED_DT);
+      physicsAccumulator -= FIXED_DT;
     }
 
-    // ดึงค่า motorPos จากเซนเซอร์ล้อ
-    const wheelSensors = sensors.filter(s => s.type === "wheel");
-    const normalWheels = wheelSensors.filter(s => s.wheelType !== "omni");
-    const omniWheels = wheelSensors.filter(s => s.wheelType === "omni");
-    
-    let activeMotorPos = (typeof motorPos !== "undefined") ? motorPos : 0;
-    
-    // ถ้ามีล้อธรรมดา ให้ใช้ตำแหน่งล้อธรรมดาเป็นจุดหมุนหลัก (เพราะล้อออมนิสไลด์ข้างได้)
-    if (normalWheels.length > 0) {
-      const sumPos = normalWheels.reduce((sum, s) => sum + (s.motorPos || 0), 0);
-      activeMotorPos = sumPos / normalWheels.length;
-    } else if (omniWheels.length > 0) {
-      // ถ้าไม่มีล้อธรรมดาเลย (เป็นออมนิทั้งหมด) ให้เฉลี่ยจากออมนิ
-      const sumPos = omniWheels.reduce((sum, s) => sum + (s.motorPos || 0), 0);
-      activeMotorPos = sumPos / omniWheels.length;
-    }
-
-    // คำนวณตำแหน่งปัจจุบันโดยอ้างอิงจากแกนล้อ
-    let pose = {
-      x: robotX + 25 + activeMotorPos * Math.cos((angle * Math.PI) / 180),
-      y: robotY + 25 + activeMotorPos * Math.sin((angle * Math.PI) / 180),
-      theta: angle * (Math.PI / 180),
-    };
-
-    // ตรวจสอบว่าเป็น Holonomic Mode หรือไม่ (ต้องมี 2 รายการล้อ และทุกตัวเป็น Omni)
-    const isHolonomic = wheelSensors.length === 2 && wheelSensors.every(s => s.wheelType === "omni");
-    robotDrive.step(pose, dt, isHolonomic);
-
-    // แปลงพิกัดกลับจากจุดกึ่งกลางแกนล้อ มาเป็นพิกัดมุมซ้ายบนของหุ่นยนต์ (Global Coordinates)
-    const newCenterX = pose.x - activeMotorPos * Math.cos(pose.theta);
-    const newCenterY = pose.y - activeMotorPos * Math.sin(pose.theta);
-
-    const nextX = newCenterX - 25;
-    const nextY = newCenterY - 25;
-
-    // ตรวจสอบการชนขอบเขตสนาม (Collision Detection)
-    if (
-      nextX < 0 ||
-      nextX > canvasArea.offsetWidth - 50 ||
-      nextY < 0 ||
-      nextY > canvasArea.offsetHeight - 50
-    ) {
-      stopProgram();
-      logToConsole("ข้อผิดพลาดการชน: หุ่นยนต์ชนขอบสนาม!", "error");
-    } else {
-      // อัปเดตค่าตัวแปรหลักของระบบ
-      robotX = nextX;
-      robotY = nextY;
-      angle = pose.theta * (180 / Math.PI);
-    }
-
-    const physicsGlobals = { robotX, robotY, angle, dt };
-    const typeCounters = {};
-    [...sensors, ...grips].forEach((sensor) => {
-        const type = sensor.type;
-        if (!typeCounters[type]) typeCounters[type] = 0;
-        const typeIdx = typeCounters[type]++;
-
-        const registry = window.SensorRegistry[type];
-        if (registry && typeof registry.physicsStep === "function") {
-            registry.physicsStep(sensor, typeIdx, physicsGlobals);
-        }
-    });
-
-    // --- อัปเดตฟิสิกส์ของวัตถุบนแคนวาส ---
-    if (typeof canvasObjects !== "undefined" && canvasObjects) {
-      canvasObjects.forEach((obj) => {
-        // ข้ามวัตถุที่ถูกจับอยู่ (ในกริปใดๆ)
-        if (typeof grabbedObjects !== "undefined" && grabbedObjects.includes(obj))
-          return;
-
-        // อัปเดตตำแหน่งตามความเร็ว
-        obj.x += obj.vx * dt;
-        obj.y += obj.vy * dt;
-
-        // แรงเสียดทาน (ลดความเร็วลงเรื่อยๆ)
-        obj.vx *= 0.92;
-        obj.vy *= 0.92;
-
-        if (Math.abs(obj.vx) < 1) obj.vx = 0;
-        if (Math.abs(obj.vy) < 1) obj.vy = 0;
-
-        // ชนขอบหน้าจอ
-        const hw = obj.radius || 15;
-        if (obj.x - hw < 0) {
-          obj.x = hw;
-          obj.vx *= -0.8;
-        }
-        if (obj.x + hw > canvasArea.offsetWidth) {
-          obj.x = canvasArea.offsetWidth - hw;
-          obj.vx *= -0.8;
-        }
-        if (obj.y - hw < 0) {
-          obj.y = hw;
-          obj.vy *= -0.8;
-        }
-        if (obj.y + hw > canvasArea.offsetHeight) {
-          obj.y = canvasArea.offsetHeight - hw;
-          obj.vy *= -0.8;
-        }
-      });
-
-      // เช็คการชนระหว่างหุ่นยนต์กับวัตถุที่ไม่ได้ถูกจับ
-      const robotCenter = { x: robotX + 25, y: robotY + 25 };
-      canvasObjects.forEach((obj) => {
-        if (typeof grabbedObjects !== "undefined" && grabbedObjects.includes(obj))
-          return;
-
-        const dx = obj.x - robotCenter.x;
-        const dy = obj.y - robotCenter.y;
-        const dist = Math.hypot(dx, dy);
-        const minDist = 25 + (obj.radius || 15);
-
-        if (dist < minDist) {
-          // หากระยะห่างน้อยกว่ารัศมีรวม (เกิดการชน)
-          const angleToObj = Math.atan2(dy, dx);
-          const overlap = minDist - dist;
-
-          // ดันวัตถุออกไปไม่ให้ซ้อนทับหุ่นยนต์
-          obj.x += Math.cos(angleToObj) * overlap;
-          obj.y += Math.sin(angleToObj) * overlap;
-
-          // ถ่ายเทความเร็วจากหุ่นยนต์ไปยังวัตถุ
-          const v = 0.5 * (robotDrive.left.current + robotDrive.right.current);
-          obj.vx += v * Math.cos((angle * Math.PI) / 180) * 0.8;
-          obj.vy += v * Math.sin((angle * Math.PI) / 180) * 0.8;
-        }
-      });
-    }
-
+    // อัปเดตการแสดงผล (Rendering) ทำเพียงครั้งเดียวต่อเฟรม
     updateRobotDOM();
     if (typeof updateObjectsDOM === "function") updateObjectsDOM();
     if (typeof updateSensorDots === "function") updateSensorDots();
   } else {
     // รีเซ็ตค่าเวลาเมื่อหยุดการทำงาน เพื่อป้องกันการกระโดดของตำแหน่ง (Time Warping)
     lastPhysicTime = 0;
+    physicsAccumulator = 0;
   }
   requestAnimationFrame(updatePhysics);
+}
+
+/**
+ * ฟังก์ชันคำนวณฟิสิกส์ในหนึ่งขั้นตอน (Single Physics Step)
+ * @param {number} dt - ระยะเวลาคงที่ (Fixed Delta Time)
+ */
+function applyPhysicsStep(dt) {
+  // ตั้งค่าความเร็วมอเตอร์พร้อมตัวคูณเพื่อความเร็วที่สมจริงในโปรแกรมจำลอง
+  if (typeof robotDrive.setTargets4 === "function") {
+    robotDrive.setTargets4(
+      motorFL * MOTOR_SPEED_FACTOR,
+      motorFR * MOTOR_SPEED_FACTOR,
+      motorBL * MOTOR_SPEED_FACTOR,
+      motorBR * MOTOR_SPEED_FACTOR
+    );
+  } else {
+    robotDrive.setTargets(motorL * MOTOR_SPEED_FACTOR, motorR * MOTOR_SPEED_FACTOR);
+  }
+
+  // ดึงค่า motorPos จากเซนเซอร์ล้อ
+  const wheelSensors = sensors.filter(s => s.type === "wheel");
+  const normalWheels = wheelSensors.filter(s => s.wheelType !== "omni");
+  const omniWheels = wheelSensors.filter(s => s.wheelType === "omni");
+  
+  let activeMotorPos = (typeof motorPos !== "undefined") ? motorPos : 0;
+  
+  // ถ้ามีล้อธรรมดา ให้ใช้ตำแหน่งล้อธรรมดาเป็นจุดหมุนหลัก (เพราะล้อออมนิสไลด์ข้างได้)
+  if (normalWheels.length > 0) {
+    const sumPos = normalWheels.reduce((sum, s) => sum + (s.motorPos || 0), 0);
+    activeMotorPos = sumPos / normalWheels.length;
+  } else if (omniWheels.length > 0) {
+    // ถ้าไม่มีล้อธรรมดาเลย (เป็นออมนิทั้งหมด) ให้เฉลี่ยจากออมนิ
+    const sumPos = omniWheels.reduce((sum, s) => sum + (s.motorPos || 0), 0);
+    activeMotorPos = sumPos / omniWheels.length;
+  }
+
+  // คำนวณตำแหน่งปัจจุบันโดยอ้างอิงจากแกนล้อ
+  let pose = {
+    x: robotX + 25 + activeMotorPos * Math.cos((angle * Math.PI) / 180),
+    y: robotY + 25 + activeMotorPos * Math.sin((angle * Math.PI) / 180),
+    theta: angle * (Math.PI / 180),
+  };
+
+  // ตรวจสอบว่าเป็น Holonomic Mode หรือไม่ (ต้องมี 2 รายการล้อ และทุกตัวเป็น Omni)
+  const isHolonomic = wheelSensors.length === 2 && wheelSensors.every(s => s.wheelType === "omni");
+  robotDrive.step(pose, dt, isHolonomic);
+
+  // แปลงพิกัดกลับจากจุดกึ่งกลางแกนล้อ มาเป็นพิกัดมุมซ้ายบนของหุ่นยนต์ (Global Coordinates)
+  const newCenterX = pose.x - activeMotorPos * Math.cos(pose.theta);
+  const newCenterY = pose.y - activeMotorPos * Math.sin(pose.theta);
+
+  const nextX = newCenterX - 25;
+  const nextY = newCenterY - 25;
+
+  // ตรวจสอบการชนขอบเขตสนาม (Collision Detection)
+  if (
+    nextX < 0 ||
+    nextX > canvasArea.offsetWidth - 50 ||
+    nextY < 0 ||
+    nextY > canvasArea.offsetHeight - 50
+  ) {
+    stopProgram();
+    logToConsole("ข้อผิดพลาดการชน: หุ่นยนต์ชนขอบสนาม!", "error");
+  } else {
+    // อัปเดตค่าตัวแปรหลักของระบบ
+    robotX = nextX;
+    robotY = nextY;
+    angle = pose.theta * (180 / Math.PI);
+  }
+
+  const physicsGlobals = { robotX, robotY, angle, dt };
+  const typeCounters = {};
+  [...sensors, ...grips].forEach((sensor) => {
+      const type = sensor.type;
+      if (!typeCounters[type]) typeCounters[type] = 0;
+      const typeIdx = typeCounters[type]++;
+
+      const registry = window.SensorRegistry[type];
+      if (registry && typeof registry.physicsStep === "function") {
+          registry.physicsStep(sensor, typeIdx, physicsGlobals);
+      }
+  });
+
+  // --- อัปเดตฟิสิกส์ของวัตถุบนแคนวาส ---
+  if (typeof canvasObjects !== "undefined" && canvasObjects) {
+    canvasObjects.forEach((obj) => {
+      // ข้ามวัตถุที่ถูกจับอยู่ (ในกริปใดๆ)
+      if (typeof grabbedObjects !== "undefined" && grabbedObjects.includes(obj))
+        return;
+
+      // อัปเดตตำแหน่งตามความเร็ว
+      obj.x += obj.vx * dt;
+      obj.y += obj.vy * dt;
+
+      // แรงเสียดทาน (ลดความเร็วลงเรื่อยๆ)
+      obj.vx *= 0.92;
+      obj.vy *= 0.92;
+
+      if (Math.abs(obj.vx) < 1) obj.vx = 0;
+      if (Math.abs(obj.vy) < 1) obj.vy = 0;
+
+      // ชนขอบหน้าจอ
+      const hw = obj.radius || 15;
+      if (obj.x - hw < 0) {
+        obj.x = hw;
+        obj.vx *= -0.8;
+      }
+      if (obj.x + hw > canvasArea.offsetWidth) {
+        obj.x = canvasArea.offsetWidth - hw;
+        obj.vx *= -0.8;
+      }
+      if (obj.y - hw < 0) {
+        obj.y = hw;
+        obj.vy *= -0.8;
+      }
+      if (obj.y + hw > canvasArea.offsetHeight) {
+        obj.y = canvasArea.offsetHeight - hw;
+        obj.vy *= -0.8;
+      }
+    });
+
+    // เช็คการชนระหว่างหุ่นยนต์กับวัตถุที่ไม่ได้ถูกจับ
+    const robotCenter = { x: robotX + 25, y: robotY + 25 };
+    canvasObjects.forEach((obj) => {
+      if (typeof grabbedObjects !== "undefined" && grabbedObjects.includes(obj))
+        return;
+
+      const dx = obj.x - robotCenter.x;
+      const dy = obj.y - robotCenter.y;
+      const dist = Math.hypot(dx, dy);
+      const minDist = 25 + (obj.radius || 15);
+
+      if (dist < minDist) {
+        // หากระยะห่างน้อยกว่ารัศมีรวม (เกิดการชน)
+        const angleToObj = Math.atan2(dy, dx);
+        const overlap = minDist - dist;
+
+        // ดันวัตถุออกไปไม่ให้ซ้อนทับหุ่นยนต์
+        obj.x += Math.cos(angleToObj) * overlap;
+        obj.y += Math.sin(angleToObj) * overlap;
+
+        // ถ่ายเทความเร็วจากหุ่นยนต์ไปยังวัตถุ
+        const v = 0.5 * (robotDrive.left.current + robotDrive.right.current);
+        obj.vx += v * Math.cos((angle * Math.PI) / 180) * 0.8;
+        obj.vy += v * Math.sin((angle * Math.PI) / 180) * 0.8;
+      }
+    });
+  }
 }
 
 // Expose to window for executor.js
