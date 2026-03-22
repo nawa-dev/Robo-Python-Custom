@@ -12,5 +12,6 @@
         { "label": "Normal", "value": "normal" },
         { "label": "Omni Wheel", "value": "omni" }
     ], "default": "normal" }
-  ]
+  ],
+  "protectedIndex": 0
 }

@@ -168,7 +168,7 @@ function loadExampleProject(filename = "sampleSetup.json") {
 }
 
 function applyProjectData(projectData) {
-  if (!projectData || !projectData.sourceCode) return;
+  if (!projectData) return;
 
   // หยุดการทำงานของโปรแกรมเดิมก่อนโหลดข้อมูลใหม่
   stopProgram();
@@ -177,8 +177,9 @@ function applyProjectData(projectData) {
   const mapSelect = document.getElementById("map-select");
   const currentOpt = document.getElementById("current-map-option");
 
-  document.getElementById("canvas-w").value = projectData.canvas.width || 800;
-  document.getElementById("canvas-h").value = projectData.canvas.height || 600;
+  const cv = projectData.canvas || {};
+  document.getElementById("canvas-w").value = cv.width || 800;
+  document.getElementById("canvas-h").value = cv.height || 600;
   updateCanvasSize();
 
   if (
@@ -205,12 +206,21 @@ function applyProjectData(projectData) {
   }
 
   // 2. คืนค่าเซนเซอร์
-  state.sensors = (projectData.sensors || []).map((s, idx) => ({
-    type: "light", // fallback for old files that missed type
-    index: s.index !== undefined ? s.index : idx,
-    ...s,
-    isNew: false,
-  }));
+  const typeIndices = {};
+  state.sensors = (projectData.sensors || []).map((s) => {
+    const type = s.type || "light";
+    if (typeIndices[type] === undefined) typeIndices[type] = 0;
+    
+    const assignedIndex = s.index !== undefined ? s.index : typeIndices[type];
+    typeIndices[type] = Math.max(typeIndices[type], assignedIndex + 1);
+
+    return {
+      type: type,
+      index: assignedIndex,
+      ...s,
+      isNew: false,
+    };
+  });
 
   // 2b. คืนค่า Grip
   state.grips = (projectData.grips || []).map((g, idx) => ({
@@ -246,17 +256,20 @@ function applyProjectData(projectData) {
   }
 
   // 3. คืนค่ารหัสต้นฉบับใน Editor
-  if (editor) editor.setValue(projectData.sourceCode);
+  if (editor && projectData.sourceCode !== undefined) {
+      editor.setValue(projectData.sourceCode);
+  }
 
   // 4. คืนค่าสถานะของหุ่นยนต์
-  state.robotX = projectData.robotState.x || 100;
-  state.robotY = projectData.robotState.y || 100;
-  state.angle = projectData.robotState.angle || 0;
-  state.motorPos = projectData.robotState.motorPos || 0;
+  const rs = projectData.robotState || {};
+  state.robotX = rs.x || 100;
+  state.robotY = rs.y || 100;
+  state.angle = rs.angle || 0;
+  state.motorPos = rs.motorPos || 0;
   updateRobotDOM();
   // Ensure at least one wheel exists if none in project
   if (state.sensors.filter(s => s.type === "wheel").length === 0) {
-    state.sensors.push({ id: Date.now(), type: "wheel", name: "Wheel", motorPos: 0 });
+    state.sensors.push({ id: Date.now(), type: "wheel", name: "Wheel", motorPos: 0, index: 0 });
   }
   if (typeof syncWheelDOM === "function") syncWheelDOM();
 
@@ -288,7 +301,11 @@ function loadFromWebStorage() {
       logToConsole("กู้คืนสถานะเดิมจากการบันทึกอัตโนมัติ", "info");
     } catch (e) {
       console.error("การโหลดจาก WebStorage ล้มเหลว:", e);
+      applyProjectData({ sensors: [] }); // Fallback to default
     }
+  } else {
+    // Initial startup with no saved data
+    applyProjectData({ sensors: [] });
   }
 }
 

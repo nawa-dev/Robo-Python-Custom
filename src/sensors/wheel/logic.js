@@ -20,9 +20,8 @@ window.SensorRegistry["wheel"] = {
         window.updateSensorValueDOM(id, "wheel", axis, value);
     }
   },
-  getDisplayName: function(sensor) {
-    if (sensor.index === 0) return "FRONT WHEELS";
-    if (sensor.index === 1) return "BACK WHEELS";
-    return `EXTRA WHEELS ${sensor.index}`;
+  getDisplayName: function(sensor, index) {
+    if (index === 0) return "FRONT WHEEL";
+    return "BACK WHEEL";
   }
 };
