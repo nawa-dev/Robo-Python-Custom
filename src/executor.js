@@ -153,7 +153,17 @@ function stopProgram() {
   }
   motorL = 0;
   motorR = 0;
-  if (window.physics) window.physics.setTargets(0, 0);
+  motorFL = 0;
+  motorFR = 0;
+  motorBL = 0;
+  motorBR = 0;
+  if (window.physics) {
+    if (typeof window.physics.setTargets4 === "function") {
+        window.physics.setTargets4(0, 0, 0, 0);
+    } else {
+        window.physics.setTargets(0, 0);
+    }
+  }
   if (typeof window.releaseAllObjects === "function") {
     window.releaseAllObjects();
   }
@@ -262,12 +272,44 @@ Sk.builtins.robot = {
     let l = Sk.builtin.asnum$(left);
     let r = Sk.builtin.asnum$(right);
     
-    // Update global motors
-    motorL = (l / 220) * 100; // calibrate ตามเดิม
-    motorR = (r / 220) * 100;
+    // Update global motors (Set front and back same for 2-channel call)
+    motorL = l;
+    motorR = r;
+    motorFL = l;
+    motorBL = l;
+    motorFR = r;
+    motorBR = r;
     
     if (window.physics) {
-      window.physics.setTargets(l, r);
+      // In physics.js we will handle 4-wheel targets
+      window.physics.setTargets4(l, r, l, r);
+    }
+    
+    return Sk.builtin.none.none$;
+  }),
+
+  // motor4(fl, fr, bl, br)
+  motor4: new Sk.builtin.func(function(fl, fr, bl, br) {
+    Sk.builtin.pyCheckArgs("motor4", arguments, 4, 4);
+    if(stopRequest) throw "StopExecution";
+    
+    let vFL = Sk.builtin.asnum$(fl);
+    let vFR = Sk.builtin.asnum$(fr);
+    let vBL = Sk.builtin.asnum$(bl);
+    let vBR = Sk.builtin.asnum$(br);
+    
+    // Update global motors
+    motorFL = vFL;
+    motorFR = vFR;
+    motorBL = vBL;
+    motorBR = vBR;
+    
+    // Sync legacy motorL/motorR for general use
+    motorL = (vFL + vBL) / 2;
+    motorR = (vFR + vBR) / 2;
+    
+    if (window.physics) {
+      window.physics.setTargets4(vFL, vFR, vBL, vBR);
     }
     
     return Sk.builtin.none.none$;

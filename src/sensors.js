@@ -100,17 +100,36 @@ window.renderSensorTabs = function () {
           const key = input.key || input.id;
           const defaultVal = input.default !== undefined ? input.default : "";
           // Singleton values might be stored globally, rely on registry to handle it or use default
-          inputsHtml += `
-            <div class="sensor-row" style="margin-bottom: 5px;">
-              <span style="display:inline-block; width: 100px;">${input.label}</span>
-              <input type="${input.type || "number"}" class="sensor-input" 
-                     id="singleton-${type}-${key}"
-                     min="${input.min !== undefined ? input.min : ""}" 
-                     max="${input.max !== undefined ? input.max : ""}" 
-                     value="${defaultVal}" 
-                     onchange="window.SensorRegistry['${type}'].updateValue('${key}', this.value)" />
-            </div>
-          `;
+            if (input.type === "select") {
+              let optionsHtml = (input.options || [])
+                .map(
+                  (opt) =>
+                    `<option value="${opt.value}" ${opt.value == defaultVal ? "selected" : ""}>${opt.label}</option>`,
+                )
+                .join("");
+              inputsHtml += `
+                <div class="sensor-row" style="margin-bottom: 5px;">
+                  <span style="display:inline-block; width: 100px;">${input.label}</span>
+                  <select class="sensor-input" 
+                         id="singleton-${type}-${key}"
+                         onchange="window.SensorRegistry['${type}'].updateValue('${key}', this.value)">
+                    ${optionsHtml}
+                  </select>
+                </div>
+              `;
+            } else {
+              inputsHtml += `
+                <div class="sensor-row" style="margin-bottom: 5px;">
+                  <span style="display:inline-block; width: 100px;">${input.label}</span>
+                  <input type="${input.type || "number"}" class="sensor-input" 
+                         id="singleton-${type}-${key}"
+                         min="${input.min !== undefined ? input.min : ""}" 
+                         max="${input.max !== undefined ? input.max : ""}" 
+                         value="${defaultVal}" 
+                         onchange="window.SensorRegistry['${type}'].updateValue('${key}', this.value)" />
+                </div>
+              `;
+            }
         });
       }
       document.getElementById(`list-${type}`).innerHTML = `
@@ -184,6 +203,10 @@ window.deleteSensor = function (id, typeVal) {
     const s = sensors.find((s) => String(s.id) === String(id));
     if (s) {
       const type = s.type;
+      if (type === "wheel" && sensors.filter((s) => s.type === "wheel").length <= 1) {
+        logToConsole("Cannot delete the last wheel! Robot needs at least one pair.", "error");
+        return;
+      }
       sensors = sensors.filter((s) => String(s.id) !== String(id));
       renderDynamicSensorsList(type);
     }
@@ -265,10 +288,12 @@ window.updateSensorPreview = function () {
 
   [...sensors, ...grips].forEach((s) => {
     // Basic position
-    minX = Math.min(minX, s.x);
-    minY = Math.min(minY, s.y);
-    maxX = Math.max(maxX, s.x);
-    maxY = Math.max(maxY, s.y);
+    if (s.x !== undefined && s.y !== undefined) {
+      minX = Math.min(minX, s.x);
+      minY = Math.min(minY, s.y);
+      maxX = Math.max(maxX, s.x);
+      maxY = Math.max(maxY, s.y);
+    }
 
     // Tip position (for grips)
     if (s.armLength) {
@@ -319,6 +344,8 @@ window.updateSensorPreview = function () {
       registry.drawPreview(svg, grip);
     }
   });
+
+  if (typeof syncWheelDOM === "function") syncWheelDOM();
 };
 
 // --- Render dynamic list ---
@@ -364,6 +391,24 @@ window.renderDynamicSensorsList = function (type) {
                      onchange="window.updateSensorValueDOM('${sensor.id}', '${type}', '${key}', this.checked)" 
                      onclick="event.stopPropagation()" />
             `;
+          } else if (input.type === "select") {
+            let optionsHtml = (input.options || [])
+              .map(
+                (opt) =>
+                  `<option value="${opt.value}" ${
+                    val === opt.value ? "selected" : ""
+                  }>${opt.label}</option>`,
+              )
+              .join("");
+            inputsHtml += `
+              <label>${input.label}:</label>
+              <select class="sensor-input" 
+                      id="${config.targetArray === "grips" ? "grip" : "sensor"}-${sensor.id}-${key}"
+                      onchange="window.updateSensorValueDOM('${sensor.id}', '${type}', '${key}', this.value)" 
+                      onclick="event.stopPropagation()">
+                ${optionsHtml}
+              </select>
+            `;
           } else {
             inputsHtml += `
               <label>${input.label}:</label>
@@ -379,10 +424,14 @@ window.renderDynamicSensorsList = function (type) {
         });
       }
 
+      const displayName = (type === "wheel") 
+        ? (index === 0 ? "FRONT WHEELS" : "BACK WHEELS") 
+        : `${config.name.toUpperCase()} ${index + 1}`;
+
       return `
         <div class="sensor-panel-item" id="sensor-item-${type}-${sensor.id}">
           <div class="sensor-panel-item-info">
-            <span class="sensor-panel-item-name">${config.name.toUpperCase()} ${index}</span>
+            <span class="sensor-panel-item-name">${displayName}</span>
             <div style="margin-top: 4px;">
               ${inputsHtml}
             </div>

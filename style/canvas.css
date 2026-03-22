@@ -45,12 +45,22 @@
 
 .w-l {
   top: -8px;
-  left: var(--motorPos);
+  left: calc(50% + (var(--motorPos) * 1px) - 4px);
 }
 
 .w-r {
   bottom: -8px;
-  left: var(--motorPos);
+  left: calc(50% + (var(--motorPos) * 1px) - 4px);
+}
+
+.w-l-back {
+  top: -8px;
+  left: calc(50% + (var(--motorPosBack) * 1px) - 4px);
+}
+
+.w-r-back {
+  bottom: -8px;
+  left: calc(50% + (var(--motorPosBack) * 1px) - 4px);
 }
 
 .sensor-dot {

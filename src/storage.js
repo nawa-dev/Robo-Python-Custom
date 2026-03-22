@@ -41,7 +41,7 @@ function createProjectData() {
       x: robotX,
       y: robotY,
       angle: angle,
-      motorPos: motorPos,
+      motorPos: motorPos, // Keep for backward compat if needed, though we use sensors now
     },
   };
 }
@@ -243,7 +243,11 @@ function applyProjectData(projectData) {
   angle = projectData.robotState.angle || 0;
   motorPos = projectData.robotState.motorPos || 0;
   updateRobotDOM();
-  updateMotorPostion();
+  // Ensure at least one wheel exists if none in project
+  if (sensors.filter(s => s.type === "wheel").length === 0) {
+    sensors.push({ id: Date.now(), type: "wheel", name: "Wheel", motorPos: 0 });
+  }
+  if (typeof syncWheelDOM === "function") syncWheelDOM();
 
   currentProjectName = projectData.projectName || "Untitled Project";
   // updateStatusBar();
@@ -255,20 +259,8 @@ function applyProjectData(projectData) {
 const STORAGE_KEY = "robot_sim_autosave";
 
 function updateMotorPostion() {
-  // Elements may not exist if the wheel panel hasn't been rendered yet
-  const motorInput = document.getElementById("motorPos-input");
-  if (motorInput) motorInput.value = Math.round(motorPos);
-
-  const motorL = document.getElementById("motor-left");
-  if (motorL) motorL.setAttribute("x", motorPos + 20);
-
-  const motorR = document.getElementById("motor-right");
-  if (motorR) motorR.setAttribute("x", motorPos + 20);
-
-  document.documentElement.style.setProperty(
-    "--motorPos",
-    motorPos + 20 + "px",
-  );
+  // Legacy function - we now use syncWheelDOM
+  if (typeof syncWheelDOM === "function") syncWheelDOM();
 }
 
 function autoSaveToWebStorage() {

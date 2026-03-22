@@ -352,24 +352,51 @@
                   />
                   <rect
                     id="motor-left"
-                    x="20"
-                    y="-10"
-                    width="10"
-                    height="15"
-                    fill="#ff"
+                    x="21"
+                    y="-8"
+                    width="8"
+                    height="14"
+                    fill="#000"
                     stroke="#333"
                     stroke-width="1"
-                  />
+                    rx="2"
+                  ></rect>
                   <rect
                     id="motor-right"
-                    x="20"
-                    y="45"
-                    width="10"
-                    height="15"
-                    fill="#ff"
+                    x="21"
+                    y="44"
+                    width="8"
+                    height="14"
+                    fill="#000"
                     stroke="#333"
                     stroke-width="1"
-                  />
+                    rx="2"
+                  ></rect>
+                  <!-- Back Wheels -->
+                  <rect
+                    id="motor-left-back"
+                    x="21"
+                    y="-8"
+                    width="8"
+                    height="14"
+                    fill="#000"
+                    stroke="#333"
+                    stroke-width="1"
+                    rx="2"
+                    style="display: none"
+                  ></rect>
+                  <rect
+                    id="motor-right-back"
+                    x="21"
+                    y="44"
+                    width="8"
+                    height="14"
+                    fill="#000"
+                    stroke="#333"
+                    stroke-width="1"
+                    rx="2"
+                    style="display: none"
+                  ></rect>
                   <text
                     x="25"
                     y="-23"
@@ -481,6 +508,7 @@
             style="left: 100px; top: 100px; transform: rotate(0deg)"
           >
             <div class="wheel w-l"></div>
+            <div class="wheel w-l-back" style="display: none;"></div>
             <span
               style="
                 font-size: 8px;
@@ -490,6 +518,7 @@
               >ROBOT</span
             >
             <div class="wheel w-r"></div>
+            <div class="wheel w-r-back" style="display: none;"></div>
           </div>
           <!-- Global SVG layer for sensors and rays -->
           <svg

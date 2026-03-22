@@ -3,18 +3,21 @@ window.SensorRegistry["wheel"] = {
     return {
       id,
       type: "wheel",
-      name: "Wheel"
+      name: "Wheel",
+      motorPos: 0,
+      wheelType: "normal"
     };
   },
   drawPreview: function(svg, sensor) {
-    // Wheel is statically drawn in HTML generally, but can be added here if needed
+    if (typeof window.syncWheelDOM === "function") window.syncWheelDOM();
   },
   read: function(sensor, globals) {
     return 0;
   },
   updateValue: function(id, axis, value) {
-    if (typeof handleMotorPosition === "function") {
-        handleMotorPosition(value);
+    // Use the standard window.updateSensorValueDOM for non-singleton
+    if (typeof window.updateSensorValueDOM === "function") {
+        window.updateSensorValueDOM(id, "wheel", axis, value);
     }
   }
 };
