@@ -1,11 +1,18 @@
 {
     "app": {
         "name": "ROBO-PYTHON",
-        "version": "v1.3.1",
+        "version": "v2.1.0",
         "title": "ROBO-PYTHON Simulator"
     },
     "ui": {
         "logoPosition": "left",
         "showVersionOverlay": true
-    }
+    },
+    "installed_sensors": [
+        "wheel",
+        "light",
+        "ultrasonic",
+        "grip",
+        "compass"
+    ]
 }

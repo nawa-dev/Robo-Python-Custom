@@ -10,5 +10,9 @@
     {
         "name": "Gripper",
         "file": "example/Gripper.json"
+    },
+    {
+        "name": "Compass",
+        "file": "example/Compass.json"
     }
 ]

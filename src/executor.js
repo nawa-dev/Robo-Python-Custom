@@ -167,6 +167,16 @@ function resetPosition() {
   angle = 0;
   updateRobotDOM();
   logToConsole("Robot position reset.", "info");
+
+  // --- DYNAMIC HOOK: onReset ---
+  if (window.SensorConfigs) {
+      Object.keys(window.SensorConfigs).forEach(type => {
+          const registry = window.SensorRegistry[type];
+          if (registry && typeof registry.onReset === "function") {
+              registry.onReset({ sensors: typeof sensors !== 'undefined' ? sensors : [], grips: typeof grips !== 'undefined' ? grips : [] });
+          }
+      });
+  }
 }
 
 /* =========================
@@ -211,6 +221,16 @@ function builtinRead(x) {
   // logToConsole("Loading: " + x); // Debug logging
 
   if (x === "src/lib/robot.js" || x.endsWith("/robot.js")) {
+    // --- DYNAMIC HOOK: Allow sensors to register custom Python functions ---
+    if (window.SensorConfigs) {
+      Object.keys(window.SensorConfigs).forEach(type => {
+          const registry = window.SensorRegistry[type];
+          if (registry && typeof registry.registerPythonAPI === "function") {
+              registry.registerPythonAPI(Sk, Sk.builtins.robot, { sensors: typeof sensors !== 'undefined' ? sensors : [], grips: typeof grips !== 'undefined' ? grips : [] });
+          }
+      });
+    }
+
     // Skulpt expects a $builtinmodule function when loading a JS module.
     // We bridge it to our manually defined Sk.builtins.robot.
     return "var $builtinmodule = function(name) { return Sk.builtins.robot; };";
@@ -251,58 +271,6 @@ Sk.builtins.robot = {
     }
     
     return Sk.builtin.none.none$;
-  }),
-
-  // analogRead(index)
-  // analogRead(index)
-  analogRead: new Sk.builtin.func(function(index) {
-    Sk.builtin.pyCheckArgs("analogRead", arguments, 1, 1);
-    let i = Sk.builtin.asnum$(index);
-    
-    // Create a promise to yield to the browser's event loop
-    let promise = new Promise(function(resolve, reject) {
-        if (stopRequest) {
-            reject("StopExecution");
-            return;
-        }
-
-        // Use setTimeout(0) to allow UI updates/events to process
-        setTimeout(() => {
-            if (stopRequest) {
-                reject("StopExecution");
-                return;
-            }
-
-            if (i < 0 || i >= sensors.length) {
-                resolve(new Sk.builtin.int_(0));
-                return;
-            }
-            
-            const s = sensors[i];
-            let result;
-
-            if (s.type === "ultrasonic") {
-                result = Math.round(s.value || 0);
-            } else {
-                // Light Sensor Calculation
-                const localX = s.x - 25;
-                const localY = s.y - 25;
-                const rad = (angle * Math.PI) / 180;
-                
-                const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
-                const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
-                
-                const canvasX = robotX + 25 + rotatedX;
-                const canvasY = robotY + 25 + rotatedY;
-                
-                result = getPixelBrightness(canvasX, canvasY);
-            }
-            
-            resolve(new Sk.builtin.int_(result));
-        }, 0);
-    });
-
-    return new Sk.misceval.promiseToSuspension(promise);
   }),
 
   // SW(n) -> bool
@@ -370,27 +338,8 @@ Sk.builtins.robot = {
      return new Sk.builtin.int_(sensors.length);
   }),
 
-  // grab(index)
-  grab: new Sk.builtin.func(function(index) {
-    Sk.builtin.pyCheckArgs("grab", arguments, 1, 1);
-    if(stopRequest) throw "StopExecution";
-    let idx = Sk.builtin.asnum$(index);
-    if (typeof window.grabObject === "function") {
-      window.grabObject(idx);
-    }
-    return Sk.builtin.none.none$;
-  }),
-
-  // release(index)
-  release: new Sk.builtin.func(function(index) {
-    Sk.builtin.pyCheckArgs("release", arguments, 1, 1);
-    if(stopRequest) throw "StopExecution";
-    let idx = Sk.builtin.asnum$(index);
-    if (typeof window.releaseObject === "function") {
-      window.releaseObject(idx);
-    }
-    return Sk.builtin.none.none$;
-  }),
+  // grab: MOVED to grip/logic.js
+  // release: MOVED to grip/logic.js
 
 
 
@@ -402,9 +351,11 @@ Sk.builtins.robot = {
     if (typeof window.addCanvasObject === "function") {
       window.addCanvasObject(c);
     }
-    return Sk.builtin.none.none$;
   })
 };
+
+// --- DYNAMIC HOOK MOVED TO builtinRead ---
+
 
 /* ==================
  * Override time.sleep to use Browser Logic

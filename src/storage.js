@@ -25,22 +25,8 @@ function createProjectData() {
         .replace(/['"]?\)$/, ""),
       fileName: currentOpt ? currentOpt.dataset.filename : "",
     },
-    sensors: sensors.map((s) => ({
-      id: s.id,
-      x: s.x,
-      y: s.y,
-      name: s.name,
-      type: s.type || "light",
-      angle: s.angle || 0,
-      color: s.color || "#000000",
-    })),
-    grips: (grips || []).map((g) => ({
-      id: g.id,
-      name: g.name,
-      x: g.x,
-      y: g.y,
-      angle: g.angle || 0,
-    })),
+    sensors: sensors.map((s) => ({ ...s })),
+    grips: (grips || []).map((g) => ({ ...g })),
     canvasObjects: (canvasObjects || []).map((obj) => ({
       id: obj.id,
       x: obj.x,
@@ -219,24 +205,18 @@ function applyProjectData(projectData) {
   }
 
   // 2. คืนค่าเซนเซอร์
-  sensors = projectData.sensors.map((s) => ({
-    id: s.id,
-    x: s.x,
-    y: s.y,
-    name: s.name,
-    type: s.type || "light",
-    angle: s.angle || 0,
-    color: s.color || "#000000",
+  sensors = (projectData.sensors || []).map((s) => ({
+    type: "light", // fallback for old files that missed type
+    ...s,
     isNew: false,
   }));
 
   // 2b. คืนค่า Grip
   grips = (projectData.grips || []).map((g) => ({
-    id: g.id,
-    name: g.name || `Grip`,
+    ...g,
+    type: "grip",
     x: g.x !== undefined ? g.x : 45,
     y: g.y !== undefined ? g.y : 25,
-    angle: g.angle !== undefined ? g.angle : 0,
   }));
 
   updateSensorPreview();
@@ -275,9 +255,16 @@ function applyProjectData(projectData) {
 const STORAGE_KEY = "robot_sim_autosave";
 
 function updateMotorPostion() {
-  document.getElementById("motorPos-input").value = Math.round(motorPos);
-  document.getElementById("motor-left").setAttribute("x", motorPos + 20);
-  document.getElementById("motor-right").setAttribute("x", motorPos + 20);
+  // Elements may not exist if the wheel panel hasn't been rendered yet
+  const motorInput = document.getElementById("motorPos-input");
+  if (motorInput) motorInput.value = Math.round(motorPos);
+
+  const motorL = document.getElementById("motor-left");
+  if (motorL) motorL.setAttribute("x", motorPos + 20);
+
+  const motorR = document.getElementById("motor-right");
+  if (motorR) motorR.setAttribute("x", motorPos + 20);
+
   document.documentElement.style.setProperty(
     "--motorPos",
     motorPos + 20 + "px",

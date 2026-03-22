@@ -1,0 +1,32 @@
+{
+  "version": "1.1",
+  "timestamp": "2026-03-22T07:09:18.331Z",
+  "projectName": "Compass",
+  "canvas": {
+    "width": "800",
+    "height": "600"
+  },
+  "map": {
+    "type": "default",
+    "imageData": "none",
+    "fileName": ""
+  },
+  "sensors": [
+    {
+      "id": "compass_1774162976334",
+      "type": "compass",
+      "name": "Compass 1",
+      "x": 25,
+      "y": 25
+    }
+  ],
+  "grips": [],
+  "canvasObjects": [],
+  "sourceCode": "print(\"เริ่มการทดสอบ Compass\")\n\nwhile True:\n    # อ่านค่าเข็มทิศ\n    angle = getCompass()\n    print(\"มุมปัจจุบัน: \" + str(angle) + \" องศา\")\n    \n    # สั่งให้หุ่นยนต์หมุนตัวช้าๆ เพื่อดูการเปลี่ยนแปลงของมุม\n    motor(20, -20)\n    delay(100)\n",
+  "robotState": {
+    "x": 374.79998779296875,
+    "y": 273,
+    "angle": 17.934807229770044,
+    "motorPos": 0
+  }
+}

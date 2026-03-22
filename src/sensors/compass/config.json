@@ -1,0 +1,21 @@
+{
+  "name": "Compass",
+  "icon": "fas fa-compass",
+  "targetArray": "sensors",
+  "maxLimit": 1,
+  "inputs": [
+    { "key": "x", "label": "X", "type": "number", "default": 25 },
+    { "key": "y", "label": "Y", "type": "number", "default": 25 }
+  ],
+  "api": [
+    {
+      "keyword": "getCompass",
+      "snippet": {
+        "label": "getCompass",
+        "insertText": "getCompass()",
+        "documentation": "Get the current compass reading (0-359 degrees). Returns robot angle.",
+        "detail": "getCompass() -> number"
+      }
+    }
+  ]
+}
