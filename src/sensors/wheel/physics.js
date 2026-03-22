@@ -1,8 +1,8 @@
 /**
- * Compass Physics
+ * Wheel Physics
  *
- * The compass sensor does not require any physics calculations.
- * It reads the robot's global angle (window.angle) directly via logic.js.
+ * Current robot movement and wheel kinematics are handled in src/physics.js.
+ * This file serves as a placeholder for wheel-specific physics if needed in the future.
  *
  * No physics.js implementation needed.
  */
