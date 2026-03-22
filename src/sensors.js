@@ -2,27 +2,6 @@
  * Dynamic Sensor Management System
  */
 
-// --- Tab Switching ---
-window.switchTab = function (tabId) {
-  document.querySelectorAll(".tab-content").forEach((el) => {
-    el.classList.remove("active");
-  });
-  document.querySelectorAll(".tab-btn").forEach((btn) => {
-    btn.classList.remove("active");
-  });
-  document.getElementById(`tab-${tabId}`).classList.add("active");
-  document.getElementById(`tab-btn-${tabId}`).classList.add("active");
-
-  if (tabId === "settings") {
-    updateSensorPreview();
-    // Render all connected panels to make sure values are sync
-    Object.keys(window.SensorConfigs || {}).forEach(renderDynamicSensorsList);
-  } else if (tabId === "code") {
-    if (typeof editor !== "undefined" && editor !== null) {
-      setTimeout(() => editor.layout(), 0);
-    }
-  }
-};
 
 let currentDevice = "light";
 window.SensorNextIndices = {};
@@ -540,38 +519,3 @@ window.renderSensorsList = function () {
   }
 };
 
-// --- Settings top-row vertical resizer ---
-document.addEventListener("DOMContentLoaded", () => {
-  const resizer = document.getElementById("settings-v-resizer");
-  if (!resizer) return;
-
-  const topRow = resizer.parentElement;
-
-  resizer.addEventListener("mousedown", (e) => {
-    e.preventDefault();
-    resizer.classList.add("dragging");
-
-    const startX = e.clientX;
-    const previewBox = topRow.querySelector(".settings-preview-box");
-    const startWidth = previewBox.getBoundingClientRect().width;
-
-    function onMove(e) {
-      const delta = e.clientX - startX;
-      const newWidth = Math.max(
-        80,
-        Math.min(startWidth + delta, topRow.offsetWidth - 80),
-      );
-      previewBox.style.width = newWidth + "px";
-      previewBox.style.flex = "none";
-    }
-
-    function onUp() {
-      resizer.classList.remove("dragging");
-      document.removeEventListener("mousemove", onMove);
-      document.removeEventListener("mouseup", onUp);
-    }
-
-    document.addEventListener("mousemove", onMove);
-    document.addEventListener("mouseup", onUp);
-  });
-});
