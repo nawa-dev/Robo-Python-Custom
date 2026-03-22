@@ -45,15 +45,16 @@ function runCode() {
   // This allows calling motor(), delay() directly without imports
   // delay(ms) is added to match the previous JS API (milliseconds)
   const headerCode = "from robot import *\n";
-  
+
   // Inject automatic delay(1) into while loops to prevent freezing
   const processedCode = preprocessCode(code);
   const finalCode = headerCode + processedCode;
 
   // รันโค้ด
-  executionPromise = Sk.misceval.asyncToPromise(() => {
-    return Sk.importMainWithBody("<stdin>", false, finalCode, true);
-  })
+  executionPromise = Sk.misceval
+    .asyncToPromise(() => {
+      return Sk.importMainWithBody("<stdin>", false, finalCode, true);
+    })
     .then((mod) => {
       if (isRunning) {
         logToConsole("Program finished.", "info");
@@ -80,69 +81,68 @@ function runCode() {
  * - Inline while: while True: print(1) -> while True: delay(5); print(1)
  */
 function preprocessCode(code) {
-    const lines = code.split("\n");
-    let result = [];
-    
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        
-        // Check for 'while' statement (basic regex, ignores strings/comments for simplicity)
-        // Matches: whitespace + while + condition + :
-        if (/^\s*while\s+.*:/.test(line)) {
-            
-            // Case 1: Inline while (e.g. while 1: print(1))
-            // Check if there is content after the colon
-            const parts = line.split(":");
-            const afterColon = parts.slice(1).join(":").trim();
-            
-            if (afterColon.length > 0 && !afterColon.startsWith("#")) {
-                // Determine indentation of the while statement
-                const loopIndentMatch = line.match(/^(\s*)/);
-                const loopIndent = loopIndentMatch ? loopIndentMatch[1] : "";
-                
-                // Reconstruct: "while ... : delay(1); ..."
-                // parts[0] is "while ..."
-                const preColon = parts[0]; 
-                
-                // Need to be careful with nested colons? regex is safer.
-                // Improve regex to capture pre-colon and post-colon
-                const matchIndex = line.indexOf(":");
-                const declaration = line.substring(0, matchIndex + 1);
-                const content = line.substring(matchIndex + 1);
-                
-                result.push(`${declaration} delay(1); ${content}`);
-                continue;
-            }
+  const lines = code.split("\n");
+  let result = [];
 
-            // Case 2: Block while (e.g. while 1:\n    ...)
-            result.push(line);
-            
-            // Look ahead for the next non-empty line to find indentation
-            let nextLineIndex = i + 1;
-            let nextIndent = "";
-            
-            while (nextLineIndex < lines.length) {
-                const nextLine = lines[nextLineIndex];
-                if (nextLine.trim().length > 0 && !nextLine.trim().startsWith("#")) {
-                    const indentMatch = nextLine.match(/^(\s+)/);
-                    if (indentMatch) {
-                        nextIndent = indentMatch[1];
-                    }
-                    break;
-                }
-                nextLineIndex++;
-            }
-            
-            // If found valid indentation, inject delay
-            if (nextIndent) {
-                result.push(`${nextIndent}delay(1)`);
-            }
-        } else {
-            result.push(line);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Check for 'while' statement (basic regex, ignores strings/comments for simplicity)
+    // Matches: whitespace + while + condition + :
+    if (/^\s*while\s+.*:/.test(line)) {
+      // Case 1: Inline while (e.g. while 1: print(1))
+      // Check if there is content after the colon
+      const parts = line.split(":");
+      const afterColon = parts.slice(1).join(":").trim();
+
+      if (afterColon.length > 0 && !afterColon.startsWith("#")) {
+        // Determine indentation of the while statement
+        const loopIndentMatch = line.match(/^(\s*)/);
+        const loopIndent = loopIndentMatch ? loopIndentMatch[1] : "";
+
+        // Reconstruct: "while ... : delay(1); ..."
+        // parts[0] is "while ..."
+        const preColon = parts[0];
+
+        // Need to be careful with nested colons? regex is safer.
+        // Improve regex to capture pre-colon and post-colon
+        const matchIndex = line.indexOf(":");
+        const declaration = line.substring(0, matchIndex + 1);
+        const content = line.substring(matchIndex + 1);
+
+        result.push(`${declaration} delay(1); ${content}`);
+        continue;
+      }
+
+      // Case 2: Block while (e.g. while 1:\n    ...)
+      result.push(line);
+
+      // Look ahead for the next non-empty line to find indentation
+      let nextLineIndex = i + 1;
+      let nextIndent = "";
+
+      while (nextLineIndex < lines.length) {
+        const nextLine = lines[nextLineIndex];
+        if (nextLine.trim().length > 0 && !nextLine.trim().startsWith("#")) {
+          const indentMatch = nextLine.match(/^(\s+)/);
+          if (indentMatch) {
+            nextIndent = indentMatch[1];
+          }
+          break;
         }
+        nextLineIndex++;
+      }
+
+      // If found valid indentation, inject delay
+      if (nextIndent) {
+        result.push(`${nextIndent}delay(1)`);
+      }
+    } else {
+      result.push(line);
     }
-    
-    return result.join("\n");
+  }
+
+  return result.join("\n");
 }
 
 function stopProgram() {
@@ -153,7 +153,20 @@ function stopProgram() {
   }
   motorL = 0;
   motorR = 0;
-  if (window.physics) window.physics.setTargets(0, 0);
+  motorFL = 0;
+  motorFR = 0;
+  motorBL = 0;
+  motorBR = 0;
+  if (window.physics) {
+    if (typeof window.physics.resetCurrentSpeeds === "function") {
+      window.physics.resetCurrentSpeeds();
+    }
+    if (typeof window.physics.setTargets4 === "function") {
+      window.physics.setTargets4(0, 0, 0, 0);
+    } else {
+      window.physics.setTargets(0, 0);
+    }
+  }
   if (typeof window.releaseAllObjects === "function") {
     window.releaseAllObjects();
   }
@@ -170,12 +183,15 @@ function resetPosition() {
 
   // --- DYNAMIC HOOK: onReset ---
   if (window.SensorConfigs) {
-      Object.keys(window.SensorConfigs).forEach(type => {
-          const registry = window.SensorRegistry[type];
-          if (registry && typeof registry.onReset === "function") {
-              registry.onReset({ sensors: typeof sensors !== 'undefined' ? sensors : [], grips: typeof grips !== 'undefined' ? grips : [] });
-          }
-      });
+    Object.keys(window.SensorConfigs).forEach((type) => {
+      const registry = window.SensorRegistry[type];
+      if (registry && typeof registry.onReset === "function") {
+        registry.onReset({
+          sensors: typeof sensors !== "undefined" ? sensors : [],
+          grips: typeof grips !== "undefined" ? grips : [],
+        });
+      }
+    });
   }
 }
 
@@ -223,11 +239,14 @@ function builtinRead(x) {
   if (x === "src/lib/robot.js" || x.endsWith("/robot.js")) {
     // --- DYNAMIC HOOK: Allow sensors to register custom Python functions ---
     if (window.SensorConfigs) {
-      Object.keys(window.SensorConfigs).forEach(type => {
-          const registry = window.SensorRegistry[type];
-          if (registry && typeof registry.registerPythonAPI === "function") {
-              registry.registerPythonAPI(Sk, Sk.builtins.robot, { sensors: typeof sensors !== 'undefined' ? sensors : [], grips: typeof grips !== 'undefined' ? grips : [] });
-          }
+      Object.keys(window.SensorConfigs).forEach((type) => {
+        const registry = window.SensorRegistry[type];
+        if (registry && typeof registry.registerPythonAPI === "function") {
+          registry.registerPythonAPI(Sk, Sk.builtins.robot, {
+            sensors: typeof sensors !== "undefined" ? sensors : [],
+            grips: typeof grips !== "undefined" ? grips : [],
+          });
+        }
       });
     }
 
@@ -235,14 +254,17 @@ function builtinRead(x) {
     // We bridge it to our manually defined Sk.builtins.robot.
     return "var $builtinmodule = function(name) { return Sk.builtins.robot; };";
   }
-  
+
   if (x === "src/lib/robot.py" || x.endsWith("/robot.py")) {
     return "pass";
   }
 
-  if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
+  if (
+    Sk.builtinFiles === undefined ||
+    Sk.builtinFiles["files"][x] === undefined
+  ) {
     if (Sk.externalLibraries && Sk.externalLibraries[x]) {
-       return Sk.externalLibraries[x].code();
+      return Sk.externalLibraries[x].code();
     }
     throw "File not found: '" + x + "'";
   }
@@ -253,28 +275,60 @@ function builtinRead(x) {
 // นี่คือวิธีที่ Skulpt ใช้สำหรับ built-in modules ที่เขียนด้วย JS
 Sk.builtins.robot = {
   __name__: new Sk.builtin.str("robot"),
-  
+
   // motor(left, right)
-  motor: new Sk.builtin.func(function(left, right) {
+  motor: new Sk.builtin.func(function (left, right) {
     Sk.builtin.pyCheckArgs("motor", arguments, 2, 2);
-    if(stopRequest) throw "StopExecution";
-    
+    if (stopRequest) throw "StopExecution";
+
     let l = Sk.builtin.asnum$(left);
     let r = Sk.builtin.asnum$(right);
-    
-    // Update global motors
-    motorL = (l / 220) * 100; // calibrate ตามเดิม
-    motorR = (r / 220) * 100;
-    
+
+    // Update global motors (Set front and back same for 2-channel call)
+    motorL = l;
+    motorR = r;
+    motorFL = l;
+    motorBL = l;
+    motorFR = r;
+    motorBR = r;
+
     if (window.physics) {
-      window.physics.setTargets(l, r);
+      // In physics.js we will handle 4-wheel targets
+      window.physics.setTargets4(l, r, l, r);
     }
-    
+
+    return Sk.builtin.none.none$;
+  }),
+
+  // motor4(fl, fr, bl, br)
+  motor4: new Sk.builtin.func(function (fl, fr, bl, br) {
+    Sk.builtin.pyCheckArgs("motor4", arguments, 4, 4);
+    if (stopRequest) throw "StopExecution";
+
+    let vFL = Sk.builtin.asnum$(fl);
+    let vFR = Sk.builtin.asnum$(fr);
+    let vBL = Sk.builtin.asnum$(bl);
+    let vBR = Sk.builtin.asnum$(br);
+
+    // Update global motors
+    motorFL = vFL;
+    motorFR = vFR;
+    motorBL = vBL;
+    motorBR = vBR;
+
+    // Sync legacy motorL/motorR for general use
+    motorL = (vFL + vBL) / 2;
+    motorR = (vFR + vBR) / 2;
+
+    if (window.physics) {
+      window.physics.setTargets4(vFL, vFR, vBL, vBR);
+    }
+
     return Sk.builtin.none.none$;
   }),
 
   // SW(n) -> bool
-  SW: new Sk.builtin.func(function(n) {
+  SW: new Sk.builtin.func(function (n) {
     Sk.builtin.pyCheckArgs("SW", arguments, 1, 1);
     let i = Sk.builtin.asnum$(n) - 1;
     if (i >= 0 && i < swStates.length) {
@@ -284,11 +338,11 @@ Sk.builtins.robot = {
   }),
 
   // waitSW(n) -> blocking
-  waitSW: new Sk.builtin.func(function(n) {
+  waitSW: new Sk.builtin.func(function (n) {
     Sk.builtin.pyCheckArgs("waitSW", arguments, 1, 1);
     let btnIndex = Sk.builtin.asnum$(n) - 1;
 
-    let promise = new Promise(function(resolve, reject) {
+    let promise = new Promise(function (resolve, reject) {
       function checkBtn() {
         if (stopRequest) {
           // Rejecting leads to an error in Python, usually we just want to stop.
@@ -297,65 +351,62 @@ Sk.builtins.robot = {
           return;
         }
         if (btnIndex >= 0 && btnIndex < swStates.length && swStates[btnIndex]) {
-          resolve(Sk.builtin.none.none$); 
+          resolve(Sk.builtin.none.none$);
         } else {
           setTimeout(checkBtn, 50);
         }
       }
       checkBtn();
     });
-    
+
     return new Sk.misceval.promiseToSuspension(promise);
   }),
-  
+
   // delay(ms)
-  delay: new Sk.builtin.func(function(ms) {
+  delay: new Sk.builtin.func(function (ms) {
     Sk.builtin.pyCheckArgs("delay", arguments, 1, 1);
     let duration = Sk.builtin.asnum$(ms);
 
-    let promise = new Promise(function(resolve, reject) {
-       // Initial check
-       if (stopRequest) {
-           reject("StopExecution");
-           return;
-       }
-       
-       setTimeout(() => {
-           // Check again when waking up
-           if (stopRequest) {
-               reject("StopExecution");
-           } else {
-               resolve(Sk.builtin.none.none$);
-           }
-       }, duration);
+    let promise = new Promise(function (resolve, reject) {
+      // Initial check
+      if (stopRequest) {
+        reject("StopExecution");
+        return;
+      }
+
+      setTimeout(() => {
+        // Check again when waking up
+        if (stopRequest) {
+          reject("StopExecution");
+        } else {
+          resolve(Sk.builtin.none.none$);
+        }
+      }, duration);
     });
 
     return new Sk.misceval.promiseToSuspension(promise);
   }),
-  
+
   // getSensorCount()
-  getSensorCount: new Sk.builtin.func(function() {
-     return new Sk.builtin.int_(sensors.length);
+  getSensorCount: new Sk.builtin.func(function () {
+    return new Sk.builtin.int_(sensors.length);
   }),
 
   // grab: MOVED to grip/logic.js
   // release: MOVED to grip/logic.js
 
-
-
   // spawn_object(color)
-  spawn_object: new Sk.builtin.func(function(color) {
+  spawn_object: new Sk.builtin.func(function (color) {
     Sk.builtin.pyCheckArgs("spawn_object", arguments, 1, 1);
-    if(stopRequest) throw "StopExecution";
+    if (stopRequest) throw "StopExecution";
     let c = Sk.builtin.asnum$(color);
     if (typeof window.addCanvasObject === "function") {
       window.addCanvasObject(c);
     }
-  })
+  }),
 };
 
 // --- DYNAMIC HOOK MOVED TO builtinRead ---
-
 
 /* ==================
  * Override time.sleep to use Browser Logic
@@ -377,15 +428,21 @@ Sk.externalLibraries = Sk.externalLibraries || {};
 // วิธีที่ง่ายที่สุดคือปล่อยให้มันหาไฟล์ไม่เจอ แล้วเรา return dummy code
 // แล้ว Skulpt จะไปโหลด property จาก Sk.builtins.robot เอง
 
-
 // ส่วน Button States logic
 let swStates = [false, false, false];
 const swIds = ["button1", "button2", "button3"];
 swIds.forEach((id, index) => {
   const btn = document.getElementById(id);
   if (btn) {
-    btn.addEventListener("mousedown", () => { swStates[index] = true; logToConsole(`SW${index + 1} Pressed`); });
-    btn.addEventListener("mouseup", () => { swStates[index] = false; });
-    btn.addEventListener("mouseleave", () => { swStates[index] = false; });
+    btn.addEventListener("mousedown", () => {
+      swStates[index] = true;
+      logToConsole(`SW${index + 1} Pressed`);
+    });
+    btn.addEventListener("mouseup", () => {
+      swStates[index] = false;
+    });
+    btn.addEventListener("mouseleave", () => {
+      swStates[index] = false;
+    });
   }
 });

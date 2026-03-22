@@ -132,7 +132,7 @@ require(["vs/editor/editor.main"], function () {
 
 // ตั้งค่าการไฮไลต์สำหรับ Robot API
 function getDynamicAPIKeywords() {
-  const baseKeywords = ["motor", "delay", "sleep", "analogRead", "getSensorCount", "print", "spawn_object"];
+  const baseKeywords = ["motor", "motor4", "delay", "sleep", "analogRead", "getSensorCount", "print", "spawn_object"];
   if (window.SensorConfigs) {
     Object.values(window.SensorConfigs).forEach(config => {
       if (config.api && Array.isArray(config.api)) {
@@ -155,7 +155,9 @@ function setupRobotHighlighting(editor) {
     if (!model) return;
 
     const keywords = getDynamicAPIKeywords();
-    const robotRegex = new RegExp(`\\b(${keywords.join("|")})|SW|waitSW\\b`, "g");
+    // Sort by length descending to ensure longer words (like motor4) match before shorter ones (like motor)
+    const sortedKeywords = [...keywords, "SW", "waitSW"].sort((a, b) => b.length - a.length);
+    const robotRegex = new RegExp(`\\b(${sortedKeywords.join("|")})\\b`, "g");
 
 
     const text = model.getValue();
@@ -212,6 +214,16 @@ function setupAutocomplete() {
       documentation:
         "Control robot motors. motor(left, right) - left/right: 0-100",
       detail: "motor(left: number, right: number) -> void",
+    },
+    {
+      label: "motor4",
+      kind: monaco.languages.CompletionItemKind.Function,
+      insertText: "motor4(${1:fl}, ${2:fr}, ${3:bl}, ${4:br})",
+      insertTextRules:
+        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      documentation:
+        "Control 4 robot motors independently. motor4(fl, fr, bl, br) - fl/fr/bl/br: 0-100",
+      detail: "motor4(fl, fr, bl, br) -> void",
     },
     {
       label: "delay",
@@ -395,6 +407,7 @@ function updateRobotDOM() {
   robot.style.top = robotY + "px";
   robot.style.transform = `rotate(${angle}deg)`;
   updateSensorDots();
+  if (typeof syncWheelDOM === "function") syncWheelDOM();
 }
 
 // ส่วนที่ 5: ระบบ Console สำหรับแสดงข้อความ
@@ -453,21 +466,83 @@ function rotateRobot(delta) {
 }
 
 function handleMotorPosition(value) {
-  let newPos = parseFloat(value);
-  if (isNaN(newPos)) {
-    document.getElementById("motorPos-input").value = Math.round(motorPos);
-    return;
+  // Now handled by updateSensorValueDOM -> updateRobotDOM -> syncWheelDOM
+  updateRobotDOM();
+}
+
+function syncWheelDOM() {
+  const wheelSensors = sensors.filter(s => s.type === "wheel");
+  
+  // Relative position helper for SVG: Center of wheel (25) means 'x' = 25 - 4 = 21.
+  const getSvgX = (offset) => 21 + (parseFloat(offset) || 0);
+
+  // Front Wheels (Always index 0 if exists)
+  if (wheelSensors.length > 0) {
+    const sensor = wheelSensors[0];
+    const rawPos = parseFloat(sensor.motorPos) || 0;
+    const isOmni = sensor.wheelType === "omni";
+    const color = isOmni ? "#888" : "#000";
+
+    robot.style.setProperty("--motorPos", rawPos);
+    
+    // Canvas update
+    const wl = robot.querySelector(".w-l");
+    const wr = robot.querySelector(".w-r");
+    if (wl) wl.style.backgroundColor = color;
+    if (wr) wr.style.backgroundColor = color;
+
+    // SVG update
+    const dPosSvg = getSvgX(rawPos);
+    const ml = document.getElementById("motor-left");
+    if (ml) {
+      ml.setAttribute("x", dPosSvg);
+      ml.setAttribute("fill", color);
+    }
+    const mr = document.getElementById("motor-right");
+    if (mr) {
+      mr.setAttribute("x", dPosSvg);
+      mr.setAttribute("fill", color);
+    }
   }
 
-  motorPos = newPos;
-  let dPosition = newPos + 20;
-  document.getElementById("motorPos-input").value = Math.round(newPos);
-  document.getElementById("motor-left").setAttribute("x", dPosition);
-  document.getElementById("motor-right").setAttribute("x", dPosition);
-  document.documentElement.style.setProperty("--motorPos", dPosition + "px");
-  updateRobotDOM();
-  testUpdatePos();
+  // Back Wheels (Index 1)
+  const display = wheelSensors.length > 1 ? "block" : "none";
+  const lb = robot.querySelector(".w-l-back");
+  const rb = robot.querySelector(".w-r-back");
+  if (lb) lb.style.display = display;
+  if (rb) rb.style.display = display;
+
+  const mlb = document.getElementById("motor-left-back");
+  const mrb = document.getElementById("motor-right-back");
+  if (mlb) mlb.style.display = display;
+  if (mrb) mrb.style.display = display;
+
+  if (wheelSensors.length > 1) {
+    const sensorBack = wheelSensors[1];
+    const rawPosBack = parseFloat(sensorBack.motorPos) || 0;
+    const isOmniBack = sensorBack.wheelType === "omni";
+    const colorBack = isOmniBack ? "#888" : "#000";
+
+    robot.style.setProperty("--motorPosBack", rawPosBack);
+
+    // Canvas update
+    if (lb) lb.style.backgroundColor = colorBack;
+    if (rb) rb.style.backgroundColor = colorBack;
+    
+    // SVG update
+    const dPosSvgBack = getSvgX(rawPosBack);
+    if (mlb) {
+      mlb.setAttribute("x", dPosSvgBack);
+      mlb.setAttribute("fill", colorBack);
+    }
+    if (mrb) {
+      mrb.setAttribute("x", dPosSvgBack);
+      mrb.setAttribute("fill", colorBack);
+    }
+  }
 }
+
+window.syncWheelDOM = syncWheelDOM;
 
 function updateRobotAngle(value) {
   if (isRunning) {
@@ -767,3 +842,4 @@ window.stopProgram = function () {
 if (typeof updateObjectsDOM === "function") {
   updateObjectsDOM();
 }
+if (typeof syncWheelDOM === "function") syncWheelDOM();

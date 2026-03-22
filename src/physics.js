@@ -17,26 +17,38 @@ function DifferentialDrive(opts) {
   // ระยะจากจุดศูนย์กลางหุ่นยนต์ไปถึงแกนล้อ (ใช้สำหรับการปรับแต่งสมดุลเครื่อง)
   this.axisOffset = opts.axisOffset || 0;
 
-  this.left = { target: 0, current: 0 };
-  this.right = { target: 0, current: 0 };
+  this.fl = { target: 0, current: 0 };
+  this.fr = { target: 0, current: 0 };
+  this.bl = { target: 0, current: 0 };
+  this.br = { target: 0, current: 0 };
+
+  // Legacy compatibility for 2-wheel access
+  this.left = this.fl;
+  this.right = this.fr;
 }
 
 /**
- * กำหนดความเร็วเป้าหมายของล้อซ้ายและขวา
- * @param {number} vL - ความเร็วล้อซ้าย
- * @param {number} vR - ความเร็วล้อขวา
+ * กำหนดความเร็วเป้าหมายของล้อ 4 ล้อ
+ */
+DifferentialDrive.prototype.setTargets4 = function (fl, fr, bl, br) {
+  const cap = (v) => Math.max(-this.maxSpeed, Math.min(this.maxSpeed, v));
+  this.fl.target = cap(fl);
+  this.fr.target = cap(fr);
+  this.bl.target = cap(bl);
+  this.br.target = cap(br);
+};
+
+/**
+ * กำหนดความเร็วเป้าหมายของล้อซ้ายและขวา (Legacy 2-wheel)
  */
 DifferentialDrive.prototype.setTargets = function (vL, vR) {
-  this.left.target = Math.max(-this.maxSpeed, Math.min(this.maxSpeed, vL));
-  this.right.target = Math.max(-this.maxSpeed, Math.min(this.maxSpeed, vR));
+  this.setTargets4(vL, vR, vL, vR);
 };
 
 /**
  * คำนวณความเร็วและตำแหน่งใหม่ตามระยะเวลาที่ผ่านไป (Delta Time)
- * @param {Object} pose - ออบเจกต์ตำแหน่งปัจจุบัน (x, y, theta)
- * @param {number} dt - ระยะเวลาที่เปลี่ยนไปในหน่วยวินาที
  */
-DifferentialDrive.prototype.step = function (pose, dt) {
+DifferentialDrive.prototype.step = function (pose, dt, isHolonomic) {
   if (!dt || dt <= 0) return;
 
   const limit = this.maxAccel * dt;
@@ -47,17 +59,42 @@ DifferentialDrive.prototype.step = function (pose, dt) {
     return m.current;
   };
 
-  const vL = updateWheel(this.left);
-  const vR = updateWheel(this.right);
+  const vFL = updateWheel(this.fl);
+  const vFR = updateWheel(this.fr);
+  const vBL = updateWheel(this.bl);
+  const vBR = updateWheel(this.br);
 
-  // คำนวณความเร็วเชิงเส้น (v) และความเร็วเชิงมุม (omega)
-  const v = 0.5 * (vR + vL);
-  const omega = (vR - vL) / this.wheelBase;
+  if (isHolonomic) {
+    // Mecanum Kinematics (Local Frame)
+    // vx = Forward, vy = Strafe Right, omega = Rotation
+    const vx = (vFL + vFR + vBL + vBR) / 4;
+    const vy = (-vFL + vFR + vBL - vBR) / 4;
+    const omega = (-vFL + vFR - vBL + vBR) / (this.wheelBase * 2);
 
-  // ปรับปรุงตำแหน่งพิกัด x, y และมุม theta (หน่วยเรเดียน)
-  pose.x += v * Math.cos(pose.theta) * dt;
-  pose.y += v * Math.sin(pose.theta) * dt;
-  pose.theta += omega * dt;
+    // Global Transformation
+    const dx = (vx * Math.cos(pose.theta) - vy * Math.sin(pose.theta)) * dt;
+    const dy = (vx * Math.sin(pose.theta) + vy * Math.cos(pose.theta)) * dt;
+
+    pose.x += dx;
+    pose.y += dy;
+    pose.theta += omega * dt;
+  } else {
+    // Standard Differential Drive (Skid-steer)
+    const leftv = (vFL + vBL) / 2;
+    const rightv = (vFR + vBR) / 2;
+
+    const v = (rightv + leftv) / 2;
+    const omega = (rightv - leftv) / this.wheelBase;
+
+    pose.x += v * Math.cos(pose.theta) * dt;
+    pose.y += v * Math.sin(pose.theta) * dt;
+    pose.theta += omega * dt;
+  }
+
+  // ปรับแก้ค่าพิกัดให้เป็นตัวเลขที่ถูกต้อง
+  if (isNaN(pose.x)) pose.x = 0;
+  if (isNaN(pose.y)) pose.y = 0;
+  if (isNaN(pose.theta)) pose.theta = 0;
 
   // ควบคุมค่ามุมให้อยู่ในช่วง 0 ถึง 2π (360 องศา)
   pose.theta = ((pose.theta % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
@@ -69,6 +106,17 @@ const robotDrive = new DifferentialDrive({
   maxAccel: 400,
   axisOffset: 0, // ค่านี้จะถูกอัปเดตตาม motorPos จริง
 });
+
+/**
+ * Reset all current wheel speeds to 0 immediately.
+ */
+DifferentialDrive.prototype.resetCurrentSpeeds = function() {
+  this.fl.current = 0;
+  this.fr.current = 0;
+  this.bl.current = 0;
+  this.br.current = 0;
+};
+
 
 let lastPhysicTime = 0;
 
@@ -84,20 +132,43 @@ function updatePhysics(timestamp) {
     lastPhysicTime = timestamp;
 
     // ตั้งค่าความเร็วมอเตอร์พร้อมตัวคูณเพื่อความเร็วที่สมจริงในโปรแกรมจำลอง
-    robotDrive.setTargets(motorL * 2.5, motorR * 2.5);
+    if (typeof robotDrive.setTargets4 === "function") {
+      robotDrive.setTargets4(motorFL * 2.5, motorFR * 2.5, motorBL * 2.5, motorBR * 2.5);
+    } else {
+      robotDrive.setTargets(motorL * 2.5, motorR * 2.5);
+    }
+
+    // ดึงค่า motorPos จากเซนเซอร์ล้อ
+    const wheelSensors = sensors.filter(s => s.type === "wheel");
+    const normalWheels = wheelSensors.filter(s => s.wheelType !== "omni");
+    const omniWheels = wheelSensors.filter(s => s.wheelType === "omni");
+    
+    let activeMotorPos = (typeof motorPos !== "undefined") ? motorPos : 0;
+    
+    // ถ้ามีล้อธรรมดา ให้ใช้ตำแหน่งล้อธรรมดาเป็นจุดหมุนหลัก (เพราะล้อออมนิสไลด์ข้างได้)
+    if (normalWheels.length > 0) {
+      const sumPos = normalWheels.reduce((sum, s) => sum + (s.motorPos || 0), 0);
+      activeMotorPos = sumPos / normalWheels.length;
+    } else if (omniWheels.length > 0) {
+      // ถ้าไม่มีล้อธรรมดาเลย (เป็นออมนิทั้งหมด) ให้เฉลี่ยจากออมนิ
+      const sumPos = omniWheels.reduce((sum, s) => sum + (s.motorPos || 0), 0);
+      activeMotorPos = sumPos / omniWheels.length;
+    }
 
     // คำนวณตำแหน่งปัจจุบันโดยอ้างอิงจากแกนล้อ
     let pose = {
-      x: robotX + 25 + motorPos * Math.cos((angle * Math.PI) / 180),
-      y: robotY + 25 + motorPos * Math.sin((angle * Math.PI) / 180),
+      x: robotX + 25 + activeMotorPos * Math.cos((angle * Math.PI) / 180),
+      y: robotY + 25 + activeMotorPos * Math.sin((angle * Math.PI) / 180),
       theta: angle * (Math.PI / 180),
     };
 
-    robotDrive.step(pose, dt);
+    // ตรวจสอบว่าเป็น Holonomic Mode หรือไม่ (ต้องมี 2 รายการล้อ และทุกตัวเป็น Omni)
+    const isHolonomic = wheelSensors.length === 2 && wheelSensors.every(s => s.wheelType === "omni");
+    robotDrive.step(pose, dt, isHolonomic);
 
     // แปลงพิกัดกลับจากจุดกึ่งกลางแกนล้อ มาเป็นพิกัดมุมซ้ายบนของหุ่นยนต์ (Global Coordinates)
-    const newCenterX = pose.x - motorPos * Math.cos(pose.theta);
-    const newCenterY = pose.y - motorPos * Math.sin(pose.theta);
+    const newCenterX = pose.x - activeMotorPos * Math.cos(pose.theta);
+    const newCenterY = pose.y - activeMotorPos * Math.sin(pose.theta);
 
     const nextX = newCenterX - 25;
     const nextY = newCenterY - 25;
@@ -201,6 +272,9 @@ function updatePhysics(timestamp) {
   }
   requestAnimationFrame(updatePhysics);
 }
+
+// Expose to window for executor.js
+window.physics = robotDrive;
 
 // --- 3. ระบบการจัดการเซนเซอร์ (Sensor Management) ---
 
