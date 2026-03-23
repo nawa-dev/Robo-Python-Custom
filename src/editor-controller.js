@@ -12,25 +12,54 @@ require.config({
 });
 
 require(["vs/editor/editor.main"], function () {
+  const defaultCode = [
+    "print('Robot Start')",
+    "",
+    "while True:",
+    "    motor(60, 60)",
+    "    delay(200)",
+    "",
+    "    motor(60, -60)",
+    "    delay(50)",
+    "",
+    "motor(0, 0)",
+  ].join("\n");
+
   editor = monaco.editor.create(document.getElementById("monaco-container"), {
-    value: [
-      "print('Robot Start')",
-      "",
-      "while True:",
-      "    motor(60, 60)",
-      "    delay(200)",
-      "",
-      "    motor(60, -60)",
-      "    delay(50)",
-      "",
-      "motor(0, 0)",
-    ].join("\n"),
+    value: defaultCode,
     language: "python",
     theme: "vs-dark",
     automaticLayout: true,
     fontSize: currentFontSize,
     minimap: { enabled: false },
   });
+
+  // ✅ Load initial code from config if no autosave exists
+  const savedData = localStorage.getItem("robot_sim_autosave");
+  if (!savedData) {
+    fetch("./config.json")
+      .then((r) => r.json())
+      .then((config) => {
+        if (config.initialProject) {
+          fetch(`./${config.initialProject}`)
+            .then((r) => r.json())
+            .then((projectData) => {
+              // Only apply if user hasn't changed the content or if it's still the default
+              if (projectData.sourceCode && editor.getValue() === defaultCode) {
+                // We use applyProjectData from storage.js if available to load everything, 
+                // not just sourceCode, since we are loading an example project.
+                if (typeof window.applyProjectData === "function") {
+                  window.applyProjectData(projectData);
+                } else {
+                  editor.setValue(projectData.sourceCode);
+                }
+              }
+            })
+            .catch((err) => console.error("Error loading initial project:", err));
+        }
+      })
+      .catch((err) => console.error("Error loading config for editor:", err));
+  }
 
   // ✅ ซูมเฉพาะ Monaco (Ctrl + Scroll)
   editor.onMouseWheel((e) => {

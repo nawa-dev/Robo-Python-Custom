@@ -14,5 +14,6 @@
         "ultrasonic",
         "grip",
         "compass"
-    ]
+    ],
+    "initialProject": "example/FollowLine.json"
 }
