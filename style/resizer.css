@@ -8,7 +8,7 @@
 }
 
 .resizer:hover {
-  background: #ff4757;
+  background: var(--primary-hover);
 }
 
 .h-resizer {
@@ -19,5 +19,5 @@
 }
 
 .h-resizer:hover {
-  background: #ff4757;
+  background: var(--primary-hover);
 }

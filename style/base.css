@@ -1,3 +1,22 @@
+:root {
+  --bg-color: #1e1e1e;
+  --text-color: #ffffff;
+  --secondary-text: #aaaaaa;
+  --primary-color: #0099ff;
+  --primary-hover: #52baff;
+  --secondary-color: #555555;
+  --secondary-hover: #666666;
+  --success-color: #28a745;
+  --success-hover: #20c997;
+  --danger-color: #d63031;
+  --danger-hover: #ff6348;
+  --border-color: #333333;
+  --surface-color: #2d2d2d;
+  --header-bg: #252526;
+  --accent-color: #61afef;
+  --accent-hover: #3498db;
+}
+
 /* Base styles and layout */
 body,
 html {
@@ -5,8 +24,8 @@ html {
   padding: 0;
   height: 100%;
   width: 100%;
-  background: #1e1e1e;
-  color: #fff;
+  background: var(--bg-color);
+  color: var(--text-color);
   font-family: "Segoe UI", sans-serif;
   overflow: hidden;
 }
@@ -30,7 +49,7 @@ button {
   position: fixed;
   bottom: 5px;
   right: 10px;
-  color: #666;
+  color: var(--secondary-text);
   font-size: 11px;
   font-family: monospace;
   opacity: 0.6;
@@ -41,5 +60,5 @@ button {
 .separator {
   width: 1px;
   height: 20px;
-  background: #555;
+  background: var(--border-color);
 }

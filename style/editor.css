@@ -14,14 +14,14 @@
 .console-pane {
   height: 150px;
   min-height: 50px;
-  background: #1e1e1e;
-  border-top: 1px solid #3e3e3e;
+  background: var(--bg-color);
+  border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
 }
 
 .console-header {
-  background: #252526;
+  background: var(--header-bg);
   padding: 5px 15px;
   font-size: 12px;
   display: flex;
@@ -35,19 +35,20 @@
   font-family: "Consolas", monospace;
   font-size: 13px;
   overflow-y: auto;
-  color: #d4d4d4;
+  color: var(--secondary-text);
   white-space: pre-wrap;
 }
 
 .log-error {
-  color: #f48771;
+  color: var(--danger-color);
 }
 
 .log-info {
-  color: #75beff;
+  color: var(--accent-color);
 }
 
 .robot-function {
-  color: #ffb81c !important;
+  color: #ffb81c !important; /* Keep brand yellow for robot functions */
   font-weight: bold;
 }
+

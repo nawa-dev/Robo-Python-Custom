@@ -2,21 +2,21 @@
 .sensors-section h3 {
   margin-top: 0;
   font-size: 16px;
-  color: #fff;
+  color: var(--text-color);
 }
 
 .info-text {
   font-size: 12px;
-  color: #999;
+  color: var(--secondary-text);
   margin: 5px 0 15px 0;
 }
 
 .sensor-preview-container {
-  background: #1e1e1e;
+  background: var(--bg-color);
   padding: 15px;
   border-radius: 6px;
   /* margin-bottom: 20px; Removed to let flex gap handle it */
-  border: 1px solid #3e3e3e;
+  border: 1px solid var(--border-color);
   flex: 1; /* Take available space */
   display: flex;
   flex-direction: column;
@@ -73,36 +73,36 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  background: #1e1e1e;
+  background: var(--bg-color);
   padding-left: 20px;
   border-radius: 6px;
   margin-bottom: 20px;
-  border: 1px solid #3e3e3e;
+  border: 1px solid var(--border-color);
 }
 
 .motorPosition-input input {
   width: 50px;
   padding: 4px 6px;
-  background: #1e1e1e;
-  color: #fff;
-  border: 1px solid #555;
+  background: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
   border-radius: 3px;
   font-size: 11px;
   text-align: center;
 }
 
 .motorPosition-input input:focus {
-  border-color: #4caf50;
+  border-color: var(--success-color);
   outline: none;
   box-shadow: 0 0 4px rgba(76, 175, 80, 0.3);
 }
 
 .sensor-controls {
-  background: #1e1e1e;
+  background: var(--bg-color);
   padding: 15px;
   border-radius: 6px;
   margin-bottom: 20px;
-  border: 1px solid #3e3e3e;
+  border: 1px solid var(--border-color);
 }
 
 .sensor-controls h4 {
@@ -126,18 +126,18 @@
   flex: 1;
   max-width: 100px;
   padding: 6px;
-  background: #252526;
-  color: #fff;
-  border: 1px solid #555;
+  background: var(--header-bg);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
   border-radius: 3px;
   font-size: 12px;
 }
 
 .sensors-list {
-  background: #1e1e1e;
+  background: var(--bg-color);
   padding: 15px;
   border-radius: 6px;
-  border: 1px solid #3e3e3e;
+  border: 1px solid var(--border-color);
 }
 
 .sensors-list h4 {
@@ -153,13 +153,13 @@
 }
 
 .sensor-item {
-  background: #252526;
+  background: var(--header-bg);
   padding: 10px 12px;
   border-radius: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-left: 3px solid #4caf50;
+  border-left: 3px solid var(--success-color);
   font-size: 12px;
   transition: all 0.2s;
 }
@@ -175,7 +175,7 @@
 
 .sensor-item-label {
   font-weight: bold;
-  color: #4caf50;
+  color: var(--success-color);
   margin-bottom: 8px;
 }
 
@@ -192,7 +192,7 @@
 }
 
 .sensor-coord-input label {
-  color: #999;
+  color: var(--secondary-text);
   font-size: 11px;
   min-width: 20px;
 }
@@ -200,16 +200,16 @@
 .sensor-coord-input input {
   width: 50px;
   padding: 4px 6px;
-  background: #1e1e1e;
-  color: #fff;
-  border: 1px solid #555;
+  background: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
   border-radius: 3px;
   font-size: 11px;
   text-align: center;
 }
 
 .sensor-coord-input input:focus {
-  border-color: #4caf50;
+  border-color: var(--success-color);
   outline: none;
   box-shadow: 0 0 4px rgba(76, 175, 80, 0.3);
 }
@@ -221,7 +221,7 @@
 }
 
 .empty-message {
-  color: #999;
+  color: var(--secondary-text);
   font-size: 12px;
   padding: 20px;
   text-align: center;
