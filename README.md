@@ -3,7 +3,7 @@
 A web-based **2D robot programming simulator** that allows users to control a robot using **Python**, designed for learning, experimentation, and education.
 
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
-![Version](https://img.shields.io/badge/Version-v2.2.0-blue)
+![Version](https://img.shields.io/badge/Version-v2.2.2-blue)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![Python](https://img.shields.io/badge/Language-Python-yellow)
 

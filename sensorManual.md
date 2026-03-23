@@ -1,4 +1,4 @@
-# 🛠️ Sensor Creation Manual (Robo-Python v2.2.0)
+# 🛠️ Sensor Creation Manual (Robo-Python v2.2.2)
 
 This guide explains how to create and install a new sensor or actuator in the Robo-Python simulator.
 
