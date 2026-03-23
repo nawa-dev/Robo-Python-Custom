@@ -59,8 +59,10 @@
   display: flex;
   min-width: 100px;
   justify-content: flex-end;
-  padding: 10px;
+  padding: 10px 0 10px 10px; /* Remove right padding to get closer to edge */
   margin-left: auto; /* Push to the far right */
+  gap: 20px; /* Increase gap between github and tour buttons */
+  align-items: center;
 }
 
 .github-button {
@@ -74,4 +76,29 @@
   border-radius: 6px;
   font-size: 15px;
   font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.github-button:hover {
+  opacity: 0.8;
+}
+
+.btn-tour-icon {
+  background: none;
+  border: none;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.2s,
+    color 0.2s;
+  border-radius: 50%;
+}
+
+.btn-tour-icon:hover {
+  color: #c3c3c3;
+  transform: scale(1.1);
 }

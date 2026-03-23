@@ -32,7 +32,8 @@
   background-color: #f1f1f1;
 }
 
-.dropdown:hover > .dropdown-content {
+.dropdown:hover > .dropdown-content,
+.dropdown.show-dropdown > .dropdown-content {
   display: block;
 }
 

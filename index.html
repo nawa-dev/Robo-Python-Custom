@@ -43,6 +43,12 @@
     <link rel="stylesheet" href="style/input-buttons.css" />
     <link rel="stylesheet" href="style/tabs.css" />
 
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css"
+    />
+    <link rel="stylesheet" href="style/tour-style.css" />
+
     <link rel="stylesheet" href="src/cdn_file/fontawesome/css/all.min.css" />
     <script src="src/cdn_file/skulpt/skulpt.min.js"></script>
     <script src="src/cdn_file/skulpt/skulpt-stdlib.js"></script>
@@ -58,7 +64,9 @@
     <script src="src/sensors.js" defer></script>
     <script src="src/executor.js" defer></script>
     <script src="src/storage.js" defer></script>
+    <script src="src/tour.js" defer></script>
     <script src="src/script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
     <script src="src/config.js" defer></script>
     <script src="src/sensorLoader.js" defer></script>
   </head>
@@ -243,6 +251,17 @@
           <i class="fa-brands fa-github"></i>
           <span>GITHUB</span>
         </a>
+        <button
+          id="tour-btn"
+          class="btn-tour-icon"
+          onclick="
+            if (typeof startTour === 'function') startTour();
+            trackEvent('click', 'Toolbar', 'Tour');
+          "
+          title="Start Product Tour"
+        >
+          <i class="fas fa-question-circle" style="font-size: 20px"></i>
+        </button>
       </div>
     </header>
 
@@ -298,7 +317,10 @@
             <div class="settings-preview-box">
               <div class="settings-preview-header">
                 <span>Preview</span>
-                <div id="preview-toggles" style="display: flex; gap: 8px; align-items: center">
+                <div
+                  id="preview-toggles"
+                  style="display: flex; gap: 8px; align-items: center"
+                >
                   <!-- Dynamic toggles injected here -->
                 </div>
               </div>
@@ -476,7 +498,7 @@
             style="left: 100px; top: 100px; transform: rotate(0deg)"
           >
             <div class="wheel w-l"></div>
-            <div class="wheel w-l-back" style="display: none;"></div>
+            <div class="wheel w-l-back" style="display: none"></div>
             <span
               style="
                 font-size: 8px;
@@ -486,7 +508,7 @@
               >ROBOT</span
             >
             <div class="wheel w-r"></div>
-            <div class="wheel w-r-back" style="display: none;"></div>
+            <div class="wheel w-r-back" style="display: none"></div>
           </div>
           <!-- Global SVG layer for sensors and rays -->
           <svg
