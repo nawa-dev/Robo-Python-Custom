@@ -7,7 +7,7 @@ let currentFontSize = 16;
 
 require.config({
   paths: {
-    vs: "src/cdn_file/monaco-editor/min/vs",
+    vs: "src/lib/monaco-editor/min/vs",
   },
 });
 

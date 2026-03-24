@@ -139,8 +139,8 @@
       "ultrasonic": {
         "name": "อัลตราโซนิก",
         "inputs": {
-          "x": "กว้าง (X)",
-          "y": "ลึก (Y)",
+          "x": "แกน X",
+          "y": "แกน Y",
           "angle": "มุม ∠",
           "color": "สีลำแสง"
         }
@@ -148,8 +148,8 @@
       "light": {
         "name": "แสง/เส้น",
         "inputs": {
-          "x": "กว้าง (X)",
-          "y": "ลึก (Y)",
+          "x": "แกน X",
+          "y": "แกน Y",
           "color": "สีเซนเซอร์"
         }
       },
@@ -159,8 +159,10 @@
       "grip": {
         "name": "ตัวคีบ",
         "inputs": {
+          "x": "แกน X",
+          "y": "แกน Y",
           "angle": "มุม ∠",
-          "distance": "ระยะยืด"
+          "armLength": "ระยะยืด"
         }
       },
       "common": {
@@ -330,8 +332,8 @@
       "ultrasonic": {
         "name": "Ultrasonic",
         "inputs": {
-          "x": "Width (X)",
-          "y": "Depth (Y)",
+          "x": "X-axis",
+          "y": "Y-axis",
           "angle": "Angle ∠",
           "color": "Beam Color"
         }
@@ -339,8 +341,8 @@
       "light": {
         "name": "Light/Line",
         "inputs": {
-          "x": "Width (X)",
-          "y": "Depth (Y)",
+          "x": "X-axis",
+          "y": "Y-axis",
           "color": "Sensor Color"
         }
       },
@@ -350,8 +352,10 @@
       "grip": {
         "name": "Gripper",
         "inputs": {
+          "x": "X-axis",
+          "y": "Y-axis",
           "angle": "Angle ∠",
-          "distance": "Extension"
+          "armLength": "Arm Length"
         }
       },
       "common": {

@@ -11,7 +11,7 @@ class I18nManager {
 
   async init() {
     try {
-      const response = await fetch("src/lang.json");
+      const response = await fetch("src/assets/lang.json");
       this.translations = await response.json();
       this.isLoaded = true;
       this.updateUI();
