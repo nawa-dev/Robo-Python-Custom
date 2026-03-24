@@ -56,6 +56,7 @@
 
     <!-- Main modules (load in order) -->
     <script src="src/variableGlobal.js" defer></script>
+    <script src="src/i18n.js" defer></script>
     <script src="src/ui-manager.js" defer></script>
     <script src="src/editor-controller.js" defer></script>
     <script src="src/interaction-handler.js" defer></script>
@@ -85,7 +86,7 @@
 
       <div class="actions">
         <div class="dropdown">
-          <button class="btn-tool dropbtn">
+          <button class="btn-tool dropbtn" data-i18n="toolbar.file">
             <i class="fas fa-file-alt"></i> File
             <i class="fas fa-caret-down"></i>
           </button>
@@ -97,6 +98,7 @@
                 newProject();
                 trackEvent('click', 'FileMenu', 'New');
               "
+              data-i18n="toolbar.new"
             >
               <i class="fas fa-file"></i> New
             </a>
@@ -106,6 +108,7 @@
                 openProject();
                 trackEvent('click', 'FileMenu', 'Open');
               "
+              data-i18n="toolbar.open"
             >
               <i class="fas fa-folder-open"></i> Open
             </a>
@@ -115,13 +118,18 @@
                 saveProjectAs();
                 trackEvent('click', 'FileMenu', 'Export');
               "
+              data-i18n="toolbar.export"
             >
               <i class="fas fa-download"></i> Export
             </a>
             <!-- <div class="separator"></div> -->
             <!-- <div class="separator"></div> -->
             <div class="dropdown-submenu">
-              <a href="javascript:void(0)" class="submenu-trigger">
+              <a
+                href="javascript:void(0)"
+                class="submenu-trigger"
+                data-i18n="toolbar.example"
+              >
                 <i class="fas fa-lightbulb"></i> Example
                 <i
                   class="fas fa-caret-right"
@@ -133,6 +141,7 @@
                 <a
                   href="javascript:void(0)"
                   style="color: #999; pointer-events: none"
+                  data-i18n="toolbar.loading"
                   >Loading...</a
                 >
               </div>
@@ -147,6 +156,7 @@
             toggleRunStop();
             trackEvent('click', 'Toolbar', 'RunStop');
           "
+          data-i18n="toolbar.run"
         >
           <i class="fas fa-play"></i> Run
         </button>
@@ -157,6 +167,7 @@
             resetPosition();
             trackEvent('click', 'Toolbar', 'Reset');
           "
+          data-i18n="toolbar.reset"
         >
           <i class="fas fa-undo"></i> Reset
         </button>
@@ -176,12 +187,13 @@
         <div class="separator"></div>
 
         <div class="angle-control">
-          <span>Angle:</span>
+          <span data-i18n="toolbar.angle">Angle:</span>
           <div class="angle-buttons">
             <button
               class="btn-angle"
               onclick="rotateRobot(-45)"
               title="Rotate Left 45°"
+              data-i18n-title="toolbar.rotate_left"
             >
               <i class="fas fa-undo"></i>
             </button>
@@ -189,6 +201,7 @@
               class="btn-angle"
               onclick="rotateRobot(45)"
               title="Rotate Right 45°"
+              data-i18n-title="toolbar.rotate_right"
             >
               <i class="fas fa-redo"></i>
             </button>
@@ -198,7 +211,7 @@
         <div class="separator"></div>
 
         <div class="canvas-settings">
-          <span>Canvas: </span>
+          <span data-i18n="toolbar.canvas">Canvas: </span>
           <input
             type="number"
             id="canvas-w"
@@ -216,7 +229,7 @@
           <div class="separator"></div>
 
           <!-- Map selector -->
-          <label for="map-select">Map:</label>
+          <label for="map-select" data-i18n="toolbar.map">Map:</label>
           <select
             id="map-select"
             onchange="
@@ -224,11 +237,20 @@
               trackEvent('change', 'Settings', 'MapSelect:' + this.value);
             "
           >
-            <option value="default">Default Map</option>
-            <option value="current" id="current-map-option" data-filename="">
+            <option value="default" data-i18n="toolbar.default_map">
+              Default Map
+            </option>
+            <option
+              value="current"
+              id="current-map-option"
+              data-filename=""
+              data-i18n="toolbar.no_map"
+            >
               No map loaded
             </option>
-            <option value="upload">Upload My Map...</option>
+            <option value="upload" data-i18n="toolbar.upload_map">
+              Upload My Map...
+            </option>
           </select>
 
           <!-- hidden file input used for uploads -->
@@ -249,8 +271,24 @@
           target="_blank"
         >
           <i class="fa-brands fa-github"></i>
-          <span>GITHUB</span>
+          <span data-i18n="toolbar.github">GITHUB</span>
         </a>
+        <div class="lang-switcher">
+          <button
+            id="lang-th"
+            class="lang-btn active"
+            onclick="i18n.setLanguage('th')"
+          >
+            TH
+          </button>
+          <button
+            id="lang-en"
+            class="lang-btn"
+            onclick="i18n.setLanguage('en')"
+          >
+            EN
+          </button>
+        </div>
         <button
           id="tour-btn"
           class="btn-tour-icon"
@@ -259,6 +297,7 @@
             trackEvent('click', 'Toolbar', 'Tour');
           "
           title="Start Product Tour"
+          data-i18n-title="toolbar.tour"
         >
           <i class="fas fa-question-circle" style="font-size: 20px"></i>
         </button>
@@ -273,6 +312,7 @@
             id="tab-btn-code"
             class="tab-btn active"
             onclick="switchTab('code')"
+            data-i18n="tabs.code"
           >
             <i class="fas fa-code"></i> Code
           </button>
@@ -280,6 +320,7 @@
             id="tab-btn-settings"
             class="tab-btn"
             onclick="switchTab('settings')"
+            data-i18n="tabs.settings"
           >
             <i class="fa-solid fa-gear"></i> Robot Setting
           </button>
@@ -293,7 +334,7 @@
 
           <div class="console-pane">
             <div class="console-header">
-              <span>Console</span>
+              <span data-i18n="console.title">Console</span>
 
               <button
                 onclick="
@@ -301,6 +342,7 @@
                   trackEvent('click', 'Console', 'Clear');
                 "
                 style="padding: 2px 8px; font-size: 10px"
+                data-i18n="console.clear"
               >
                 Clear
               </button>
@@ -316,7 +358,7 @@
             <!-- Top Left: Preview -->
             <div class="settings-preview-box">
               <div class="settings-preview-header">
-                <span>Preview</span>
+                <span data-i18n="settings.preview">Preview</span>
                 <div
                   id="preview-toggles"
                   style="display: flex; gap: 8px; align-items: center"
@@ -407,7 +449,9 @@
 
             <!-- Top Right: Device Selector -->
             <div class="settings-device-selector" id="dynamic-device-selector">
-              <div class="device-selector-title">Devices</div>
+              <div class="device-selector-title" data-i18n="settings.devices">
+                Devices
+              </div>
               <!-- Buttons injected dynamically -->
             </div>
           </div>
@@ -423,7 +467,9 @@
 
       <section class="canvas-pane">
         <div class="button-sensor-container">
-          <span class="sensor-label">Input Buttons:</span>
+          <span class="sensor-label" data-i18n="inputs.buttons"
+            >Input Buttons:</span
+          >
           <div class="button-sensor-group">
             <div class="button-div">
               <label for="" style="margin: 0px">SW1</label>
@@ -460,7 +506,12 @@
             </div>
           </div>
 
-          <span class="sensor-label" style="margin-left: 15px">Objects:</span>
+          <span
+            class="sensor-label"
+            style="margin-left: 15px"
+            data-i18n="inputs.objects"
+            >Objects:</span
+          >
           <div class="button-sensor-group" id="object-palette">
             <div
               class="draggable-obj"
@@ -468,6 +519,7 @@
               data-color="#e74c3c"
               title="Red Object"
               style="background-color: #e74c3c"
+              data-i18n-title="inputs.red_obj"
             ></div>
             <div
               class="draggable-obj"
@@ -475,6 +527,7 @@
               data-color="#3498db"
               title="Blue Object"
               style="background-color: #3498db"
+              data-i18n-title="inputs.blue_obj"
             ></div>
             <div
               class="draggable-obj"
@@ -482,6 +535,7 @@
               data-color="#2ecc71"
               title="Green Object"
               style="background-color: #2ecc71"
+              data-i18n-title="inputs.green_obj"
             ></div>
             <div
               class="draggable-obj"
@@ -489,22 +543,49 @@
               data-color="#f1c40f"
               title="Yellow Object"
               style="background-color: #f1c40f"
+              data-i18n-title="inputs.yellow_obj"
             ></div>
           </div>
 
           <!-- Right-aligned View Dropdown -->
           <div class="dropdown view-dropdown" style="margin-left: auto">
-            <button class="sensor-btn dropbtn" title="View Options">
+            <button
+              class="sensor-btn dropbtn"
+              title="View Options"
+              data-i18n-title="view_menu.title"
+            >
               <i class="fas fa-ellipsis-v"></i>
             </button>
             <div class="dropdown-content view-menu-content">
-              <a href="javascript:void(0)" onclick="zoomIn()"><i class="fas fa-search-plus"></i> Zoom In</a>
-              <a href="javascript:void(0)" onclick="zoomOut()"><i class="fas fa-search-minus"></i> Zoom Out</a>
-              <a href="javascript:void(0)" id="menu-drag-mode" onclick="toggleDragMode()"><i class="fas fa-arrows-alt"></i> Drag Mode</a>
-              <a href="javascript:void(0)" onclick="resetView()"><i class="fas fa-sync-alt"></i> Reset View</a>
+              <a
+                href="javascript:void(0)"
+                onclick="zoomIn()"
+                data-i18n="view_menu.zoom_in"
+                ><i class="fas fa-search-plus"></i> Zoom In</a
+              >
+              <a
+                href="javascript:void(0)"
+                onclick="zoomOut()"
+                data-i18n="view_menu.zoom_out"
+                ><i class="fas fa-search-minus"></i> Zoom Out</a
+              >
+              <a
+                href="javascript:void(0)"
+                id="menu-drag-mode"
+                onclick="toggleDragMode()"
+                data-i18n="view_menu.drag_mode"
+                ><i class="fas fa-arrows-alt"></i> Drag Mode</a
+              >
+              <a
+                href="javascript:void(0)"
+                onclick="resetView()"
+                data-i18n="view_menu.reset_view"
+                ><i class="fas fa-sync-alt"></i> Reset View</a
+              >
             </div>
           </div>
-        </div> <!-- Close button-sensor-container -->
+        </div>
+        <!-- Close button-sensor-container -->
 
         <div id="canvas-viewport">
           <div id="canvas-area">

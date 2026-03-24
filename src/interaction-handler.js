@@ -186,7 +186,7 @@ window.addEventListener("mousemove", (e) => {
 // --- 2. Robot Rotation and Angle Control ---
 window.handleAngleInput = function (value) {
   if (state.isRunning) {
-    if (typeof logToConsole === "function") logToConsole("Cannot change angle while program is running!", "error");
+    if (typeof logToConsole === "function") logToConsole(window.i18n.t("interaction.canvas.running_error"), "error");
     return;
   }
 
@@ -198,12 +198,15 @@ window.handleAngleInput = function (value) {
 
   state.angle = newAngle;
   if (typeof updateRobotDOM === "function") updateRobotDOM();
-  if (typeof logToConsole === "function") logToConsole(`Robot angle set to ${Math.round(state.angle)}°`, "info");
+  if (typeof logToConsole === "function") {
+    const msg = window.i18n.t("interaction.robot.angle_set").replace("{angle}", Math.round(state.angle));
+    logToConsole(msg, "info");
+  }
 };
 
 window.rotateRobot = function (delta) {
   if (state.isRunning) {
-    if (typeof logToConsole === "function") logToConsole("Cannot rotate robot while program is running!", "error");
+    if (typeof logToConsole === "function") logToConsole(window.i18n.t("interaction.canvas.running_error"), "error");
     return;
   }
 
@@ -220,12 +223,15 @@ window.rotateRobot = function (delta) {
 
   state.angle = newAngle;
   if (typeof updateRobotDOM === "function") updateRobotDOM();
-  if (typeof logToConsole === "function") logToConsole(`Robot rotated to ${Math.round(state.angle)}°`, "info");
+  if (typeof logToConsole === "function") {
+    const msg = window.i18n.t("interaction.robot.rotated").replace("{angle}", Math.round(state.angle));
+    logToConsole(msg, "info");
+  }
 };
 
 window.updateRobotAngle = function (value) {
   if (state.isRunning) {
-    if (typeof logToConsole === "function") logToConsole("Cannot change angle while program is running!", "error");
+    if (typeof logToConsole === "function") logToConsole(window.i18n.t("interaction.canvas.running_error"), "error");
     return;
   }
   state.angle = parseFloat(value);
@@ -270,7 +276,12 @@ if (typeof canvasArea !== "undefined" && canvasArea) {
         };
         state.canvasObjects.push(newObj);
 
-        if (typeof logToConsole === "function") logToConsole(`Placed object at (${x}, ${y}) [Drop]`, "info");
+        if (typeof logToConsole === "function") {
+          const msg = window.i18n.t("interaction.object.placed")
+            .replace("{x}", x)
+            .replace("{y}", y);
+          logToConsole(msg, "info");
+        }
 
         draggingObjectFromPalette = null;
         if (typeof updateObjectsDOM === "function") updateObjectsDOM();
@@ -339,9 +350,14 @@ window.addEventListener("mouseup", (e) => {
       state.canvasObjects = state.canvasObjects.filter(
         (o) => o.id !== draggingObjectOnCanvas.id,
       );
-      if (typeof logToConsole === "function") logToConsole("Object deleted.", "info");
+      if (typeof logToConsole === "function") logToConsole(window.i18n.t("interaction.object.deleted"), "info");
     } else {
-      if (typeof logToConsole === "function") logToConsole(`Moved object to (${draggingObjectOnCanvas.x}, ${draggingObjectOnCanvas.y})`, "info");
+      if (typeof logToConsole === "function") {
+        const msg = window.i18n.t("interaction.object.moved")
+          .replace("{x}", draggingObjectOnCanvas.x)
+          .replace("{y}", draggingObjectOnCanvas.y);
+        logToConsole(msg, "info");
+      }
     }
 
     draggingObjectOnCanvas = null;

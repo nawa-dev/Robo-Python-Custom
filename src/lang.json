@@ -1,0 +1,384 @@
+{
+  "th": {
+    "toolbar": {
+      "file": "ไฟล์",
+      "new": "สร้างใหม่",
+      "open": "เปิด",
+      "export": "ส่งออก",
+      "example": "ตัวอย่าง",
+      "loading": "กำลังโหลด...",
+      "run": "เริ่ม",
+      "stop": "หยุด",
+      "reset": "รีเซ็ต",
+      "angle": "มุม:",
+      "rotate_left": "หมุนซ้าย 45°",
+      "rotate_right": "หมุนขวา 45°",
+      "canvas": "พื้นที่จำลอง:",
+      "map": "แผนที่:",
+      "default_map": "แผนที่เริ่มต้น",
+      "no_map": "ไม่ได้โหลดแผนที่",
+      "upload_map": "อัปโหลดแผนที่...",
+      "github": "GITHUB",
+      "tour": "แนะนำการใช้งาน"
+    },
+    "tabs": {
+      "code": "โค้ด",
+      "settings": "ตั้งค่าหุ่นยนต์"
+    },
+    "console": {
+      "title": "คอนโซล",
+      "clear": "ล้าง"
+    },
+    "settings": {
+      "preview": "ตัวอย่าง",
+      "devices": "อุปกรณ์"
+    },
+    "inputs": {
+      "buttons": "ปุ่มกด:",
+      "objects": "วัตถุ:",
+      "red_obj": "วัตถุสีแดง",
+      "blue_obj": "วัตถุสีน้ำเงิน",
+      "green_obj": "วัตถุสีเขียว",
+      "yellow_obj": "วัตถุสีเหลือง"
+    },
+    "view_menu": {
+      "title": "ตัวเลือกมุมมอง",
+      "zoom_in": "ขยาย",
+      "zoom_out": "ย่อ",
+      "drag_mode": "โหมดลาก",
+      "reset_view": "รีเซ็ตมุมมอง"
+    },
+    "tour": {
+      "doneBtnText": "เสร็จสิ้น",
+      "closeBtnText": "ปิด",
+      "nextBtnText": "ถัดไป",
+      "prevBtnText": "ก่อนหน้า",
+      "steps": [
+        {
+          "title": "ยินดีต้อนรับสู่ ROBO-PYTHON!",
+          "description": "นี่คือสภาพแวดล้อมจำลองหุ่นยนต์ 2 มิติผ่านเว็บประสิทธิภาพสูงสำหรับการเรียนรู้การเขียนโปรแกรม Python มาดูฟีเจอร์หลักๆ กันเลย!"
+        },
+        {
+          "title": "เมนูไฟล์",
+          "description": "ทุกอย่างที่เกี่ยวข้องกับการจัดการโปรเจกต์อยู่ที่นี่ คุณสามารถสร้าง เปิด และส่งออกโปรเจกต์หุ่นยนต์ของคุณได้"
+        },
+        {
+          "title": "โหลดตัวอย่าง",
+          "description": "ลองดูตัวอย่างที่มีให้เพื่อดูว่า Robo-Python ทำอะไรได้บ้าง! เรามีตั้งแต่การควบคุมมอเตอร์พื้นฐานไปจนถึงการวิ่งตามเส้นขั้นสูง"
+        },
+        {
+          "title": "รันและหยุด",
+          "description": "คลิกที่นี่เพื่อรันโค้ด Python ของคุณ ปุ่มจะเปลี่ยนเป็น \"หยุด\" ในขณะที่โค้ดกำลังทำงาน"
+        },
+        {
+          "title": "รีเซ็ต",
+          "description": "รีเซ็ตหุ่นยนต์กลับไปยังตำแหน่งเริ่มต้นและล้างสถานะการจำลอง"
+        },
+        {
+          "title": "การตั้งค่าสภาพแวดล้อม",
+          "description": "เปลี่ยนขนาดพื้นที่จำลอง หรือเลือก/อัปโหลดแผนที่เพื่อทดสอบหุ่นยนต์ของคุณในสภาพแวดล้อมต่างๆ"
+        },
+        {
+          "title": "แท็บเอดิเตอร์",
+          "description": "สลับระหว่างการเขียน **โค้ด** และการตั้งค่า **หุ่นยนต์** (เซ็นเซอร์, มอเตอร์ ฯลฯ)"
+        },
+        {
+          "title": "การตั้งค่าหุ่นยนต์",
+          "description": "กำหนดค่าเซ็นเซอร์ มอเตอร์ และส่วนประกอบฮาร์ดแวร์อื่นๆ ของหุ่นยนต์ได้ที่นี่ เราจะสลับไปยังแท็บนี้ให้คุณเอง!"
+        },
+        {
+          "title": "ตัวอย่างหุ่นยนต์",
+          "description": "ดูหุ่นยนต์ของคุณในมุมมองจากด้านบน การเปลี่ยนแปลงตำแหน่งเซ็นเซอร์หรือประเภทมอเตอร์จะแสดงผลที่นี่แบบเรียลไทม์"
+        },
+        {
+          "title": "หมวดหมู่ของอุปกรณ์",
+          "description": "เลือกหมวดหมู่ (เช่น ล้อ, เซ็นเซอร์ หรือตัวคีบ) เพื่อดูฮาร์ดแวร์ที่ติดตั้งอยู่"
+        },
+        {
+          "title": "การกำหนดค่าฮาร์ดแวร์",
+          "description": "ปรับแต่งพารามิเตอร์เฉพาะสำหรับแต่ละอุปกรณ์ เช่น พอร์ตมอเตอร์, ระยะของเซ็นเซอร์ หรือมุมการติดตั้ง"
+        },
+        {
+          "title": "กลับไปที่โค้ด",
+          "description": "เมื่อคุณตั้งค่าเสร็จแล้ว ให้สลับกลับไปที่แท็บโค้ดเพื่อเขียนตรรกะการทำงาน"
+        },
+        {
+          "title": "เอดิเตอร์ Python",
+          "description": "เขียนตรรกะของหุ่นยนต์ที่นี่ เรารองรับฟีเจอร์ Python ที่ทันสมัยและมีการเติมโค้ดอัตโนมัติ (autocomplete) สำหรับคำสั่งเฉพาะของหุ่นยนต์"
+        },
+        {
+          "title": "คอนโซล",
+          "description": "นี่คือที่ที่คุณจะเห็นผลลัพธ์ของโปรแกรม, ค่าจากเซ็นเซอร์ และข้อความแสดงข้อผิดพลาด"
+        },
+        {
+          "title": "พื้นที่จำลอง",
+          "description": "นี่คือจุดที่ความสนุกเกิดขึ้น! ดูหุ่นยนต์ของคุณเคลื่อนที่และตอบสนองต่อสภาพแวดล้อม"
+        },
+        {
+          "title": "การโต้ตอบและวัตถุ",
+          "description": "ใช้ปุ่มเสมือน SW1-SW3 เพื่อโต้ตอบกับโค้ดของคุณ หรือลากวัตถุจากพาเลทวางลงในพื้นที่จำลอง"
+        },
+        {
+          "title": "เข้าร่วมชุมชน",
+          "description": "ดูคลังเก็บซอร์สโค้ด (GitHub) ของเราเพื่อดูการทำงาน, รายงานปัญหา หรือมีส่วนร่วมในโปรเจกต์!"
+        }
+      ]
+    },
+    "sensors": {
+      "wheel": {
+        "name": "ล้อ",
+        "front": "ล้อหน้า",
+        "back": "ล้อหลัง",
+        "inputs": {
+          "motorPos": "ตำแหน่งมอเตอร์ (Y)",
+          "wheelType": "ประเภทล้อ",
+          "normal": "ธรรมดา",
+          "omni": "โอมนิ"
+        }
+      },
+      "ultrasonic": {
+        "name": "อัลตราโซนิก",
+        "inputs": {
+          "x": "กว้าง (X)",
+          "y": "ลึก (Y)",
+          "angle": "มุม ∠",
+          "color": "สีลำแสง"
+        }
+      },
+      "light": {
+        "name": "แสง/เส้น",
+        "inputs": {
+          "x": "กว้าง (X)",
+          "y": "ลึก (Y)",
+          "color": "สีเซนเซอร์"
+        }
+      },
+      "compass": {
+        "name": "เข็มทิศ"
+      },
+      "grip": {
+        "name": "ตัวคีบ",
+        "inputs": {
+          "angle": "มุม ∠",
+          "distance": "ระยะยืด"
+        }
+      },
+      "common": {
+        "add": "เพิ่ม",
+        "delete": "ลบ",
+        "max_reached": "จำนวนสูงสุดของ {name} ({limit}) แล้ว!",
+        "new_added": "เพิ่ม {name} ใหม่แล้ว",
+        "deleted": "ลบเซนเซอร์แล้ว",
+        "protected": "ไม่สามารถลบ {name} ที่กำหนดไว้ได้!",
+        "min_required": "ไม่สามารถลบได้! ต้องมีอย่างน้อย {limit} ตัว",
+        "updated": "อัปเดต {name} แล้ว: {axis} = {value}",
+        "empty": "ยังไม่มี {name} คลิก เพิ่ม เพื่อเริ่มต้น (สูงสุด {limit})"
+      }
+    },
+    "interaction": {
+      "canvas": {
+        "running_error": "ไม่สามารถเปลี่ยนค่าได้ขณะโปรแกรมกำลังทำงาน!"
+      },
+      "robot": {
+        "angle_set": "ตั้งค่ามุมหุ่นยนต์เป็น {angle}°",
+        "rotated": "หมุนหุ่นยนต์เป็น {angle}°"
+      },
+      "object": {
+        "placed": "วางวัตถุที่ ({x}, {y})",
+        "moved": "ย้ายวัตถุไปที่ ({x}, {y})",
+        "deleted": "ลบวัตถุแล้ว"
+      }
+    }
+  },
+  "en": {
+    "toolbar": {
+      "file": "File",
+      "new": "New",
+      "open": "Open",
+      "export": "Export",
+      "example": "Example",
+      "loading": "Loading...",
+      "run": "Run",
+      "stop": "Stop",
+      "reset": "Reset",
+      "angle": "Angle:",
+      "rotate_left": "Rotate Left 45°",
+      "rotate_right": "Rotate Right 45°",
+      "canvas": "Canvas:",
+      "map": "Map:",
+      "default_map": "Default Map",
+      "no_map": "No map loaded",
+      "upload_map": "Upload My Map...",
+      "github": "GITHUB",
+      "tour": "Tour"
+    },
+    "tabs": {
+      "code": "Code",
+      "settings": "Robot Setting"
+    },
+    "console": {
+      "title": "Console",
+      "clear": "Clear"
+    },
+    "settings": {
+      "preview": "Preview",
+      "devices": "Devices"
+    },
+    "inputs": {
+      "buttons": "Input Buttons:",
+      "objects": "Objects:",
+      "red_obj": "Red Object",
+      "blue_obj": "Blue Object",
+      "green_obj": "Green Object",
+      "yellow_obj": "Yellow Object"
+    },
+    "view_menu": {
+      "title": "View Options",
+      "zoom_in": "Zoom In",
+      "zoom_out": "Zoom Out",
+      "drag_mode": "Drag Mode",
+      "reset_view": "Reset View"
+    },
+    "tour": {
+      "doneBtnText": "Finish",
+      "closeBtnText": "Close",
+      "nextBtnText": "Next",
+      "prevBtnText": "Previous",
+      "steps": [
+        {
+          "title": "Welcome to ROBO-PYTHON!",
+          "description": "This is a high-performance, web-based 2D robotics simulation environment for learning Python programming. Let's take a quick look at the main features!"
+        },
+        {
+          "title": "File Menu",
+          "description": "Everything related to project management is here. You can create, open, and export your robot projects."
+        },
+        {
+          "title": "Load Examples",
+          "description": "Check out our built-in examples to see what Robo-Python can do! We have everything from basic motor controls to advanced line following."
+        },
+        {
+          "title": "Run & Stop",
+          "description": "Click here to execute your Python code. The button will change to \"Stop\" while the code is running."
+        },
+        {
+          "title": "Reset",
+          "description": "Resets the robot to its initial position and clears the simulation state."
+        },
+        {
+          "title": "Environment Settings",
+          "description": "Change the canvas size or select/upload a map to test your robot in different environments."
+        },
+        {
+          "title": "Editor Tabs",
+          "description": "Switch between writing **Code** and configuring **Robot Settings** (sensors, motors, etc.)."
+        },
+        {
+          "title": "Robot Settings",
+          "description": "Configure your robot's sensors, motors, and other hardware components here. We will switch to this tab for you!"
+        },
+        {
+          "title": "Robot Preview",
+          "description": "See a top-down view of your robot. Changes to sensor positions or motor types will be reflected here in real-time."
+        },
+        {
+          "title": "Device Categories",
+          "description": "Select a category (like Wheels, Sensors, or Grips) to see the attached hardware."
+        },
+        {
+          "title": "Hardware Configuration",
+          "description": "Adjust specific parameters for each device, such as motor ports, sensor ranges, or installation angles."
+        },
+        {
+          "title": "Back to Code",
+          "description": "When you're done configuring, switch back to the Code tab to write your logic."
+        },
+        {
+          "title": "Python Editor",
+          "description": "Write your robot logic here. We support modern Python features and provide autocomplete for robot-specific commands."
+        },
+        {
+          "title": "Console",
+          "description": "This is where you see your program output, sensor readings, and error messages."
+        },
+        {
+          "title": "Simulation Arena",
+          "description": "This is where the magic happens! Watch your robot move and interact with the environment."
+        },
+        {
+          "title": "Interactions & Objects",
+          "description": "Use SW1-SW3 virtual buttons to interact with your code, or drag objects from the palette into the arena."
+        },
+        {
+          "title": "Join the Community",
+          "description": "Check out our GitHub repository to see the source code, report bugs, or contribute to the project!"
+        }
+      ]
+    },
+    "sensors": {
+      "wheel": {
+        "name": "Wheel",
+        "front": "Front Wheel",
+        "back": "Back Wheel",
+        "inputs": {
+          "motorPos": "Motor Pos (Y)",
+          "wheelType": "Wheel Type",
+          "normal": "Normal",
+          "omni": "Omni"
+        }
+      },
+      "ultrasonic": {
+        "name": "Ultrasonic",
+        "inputs": {
+          "x": "Width (X)",
+          "y": "Depth (Y)",
+          "angle": "Angle ∠",
+          "color": "Beam Color"
+        }
+      },
+      "light": {
+        "name": "Light/Line",
+        "inputs": {
+          "x": "Width (X)",
+          "y": "Depth (Y)",
+          "color": "Sensor Color"
+        }
+      },
+      "compass": {
+        "name": "Compass"
+      },
+      "grip": {
+        "name": "Gripper",
+        "inputs": {
+          "angle": "Angle ∠",
+          "distance": "Extension"
+        }
+      },
+      "common": {
+        "add": "ADD",
+        "delete": "Delete",
+        "max_reached": "Maximum {name} ({limit}) reached!",
+        "new_added": "New {name} added.",
+        "deleted": "Sensor deleted.",
+        "protected": "Cannot delete protected {name}!",
+        "min_required": "Cannot delete! Minimum {limit} required.",
+        "updated": "{name} updated: {axis} = {value}",
+        "empty": "No {name} added. Click ADD to start. (Max {limit})"
+      }
+    },
+    "interaction": {
+      "canvas": {
+        "running_error": "Cannot change settings while program is running!"
+      },
+      "robot": {
+        "angle_set": "Robot angle set to {angle}°",
+        "rotated": "Robot rotated to {angle}°"
+      },
+      "object": {
+        "placed": "Placed object at ({x}, {y})",
+        "moved": "Moved object to ({x}, {y})",
+        "deleted": "Object deleted."
+      }
+    }
+  }
+}
