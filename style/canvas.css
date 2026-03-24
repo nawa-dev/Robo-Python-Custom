@@ -26,9 +26,6 @@
   background-repeat: no-repeat;
   background-position: center;
   transform-origin: 0 0;
-  will-change: transform;
-  image-rendering: pixelated; /* Sharp edges for zoomed images */
-  image-rendering: crisp-edges; /* Firefox & Safari compatibility */
   transition:
     width 0.3s,
     height 0.3s;
