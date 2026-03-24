@@ -6,6 +6,7 @@
   background: var(--header-bg);
   padding: 4px 10px;
   height: 30px;
+
   /* border-radius: 4px; */
   border-width: 0 0px 1px 0px;
   border-style: solid;
@@ -69,6 +70,59 @@
 .sensor-btn.is-pressed {
   background: var(--primary-color);
   border-color: var(--primary-hover);
+}
+
+/* View control specific styles */
+.view-btn {
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.view-btn.active {
+  background: var(--primary-color) !important;
+  color: white !important;
+  border-color: var(--primary-hover) !important;
+  box-shadow: 0 0 8px var(--primary-glow);
+}
+
+/* View dropdown specific adjustments */
+.view-dropdown {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.view-dropdown .dropbtn i {
+  color: var(--text-color); /* Explicitly set to white from base.css */
+}
+
+.view-menu-content {
+  right: 0; /* Align to the right edge of button */
+  top: 100%;
+  min-width: 140px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 0; /* Removed gap (was 5px) to prevent flicker on hover */
+  padding-top: 5px; /* Visual gap inside the container instead */
+}
+
+.view-menu-content a {
+  padding: 10px 15px !important;
+  font-size: 13px !important;
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+}
+
+.view-menu-content i {
+  width: 16px;
+  text-align: center;
+}
+
+#menu-drag-mode.active {
+  color: var(--primary-color);
+  font-weight: bold;
 }
 
 /* Draggable Objects Palette */

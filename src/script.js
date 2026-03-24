@@ -109,9 +109,17 @@ window.updateRobotDOM = updateRobotDOM;
 // --- 2. Initial System Start ---
 updatePhysics();
 updateCanvasSize();
+
+// Center canvas initially
 setTimeout(() => {
+  const viewport = document.getElementById("canvas-viewport");
+  if (viewport && canvasArea) {
+    state.cameraX = (viewport.offsetWidth - canvasArea.offsetWidth) / 2;
+    state.cameraY = (viewport.offsetHeight - canvasArea.offsetHeight) / 2;
+    if (typeof updateCanvasTransform === "function") updateCanvasTransform();
+  }
   updateCanvasImageData();
-  if (typeof logToConsole === "function") logToConsole("System initialized.", "info");
+  if (typeof logToConsole === "function") logToConsole("System initialized with Zoom/Pan support.", "info");
 }, 100);
 
 // --- 3. Canvas Renderer (Optional/Alternate) ---

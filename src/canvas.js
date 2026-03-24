@@ -2,6 +2,13 @@
  * Canvas & Image Data System
  */
 
+// --- Update canvas transform (Zoom & Pan) ---
+function updateCanvasTransform() {
+  if (!canvasArea) return;
+  canvasArea.style.transformOrigin = "0 0";
+  canvasArea.style.transform = `translate(${state.cameraX}px, ${state.cameraY}px) scale(${state.zoom})`;
+}
+
 // --- Update canvas image data when background changes ---
 function updateCanvasImageData() {
   const canvas = document.createElement("canvas");

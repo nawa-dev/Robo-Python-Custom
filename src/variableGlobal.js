@@ -37,6 +37,12 @@ class SimulationState {
     this.canvasImageData = null;
     this.canvasPixelData = null;
 
+    // --- 9. ระบบ Zoom และ Pan ---
+    this.zoom = 1.0;
+    this.cameraX = 0;
+    this.cameraY = 0;
+    this.dragMode = false;
+
     // --- Legacy / Others ---
     this.motorPos = 0;
   }
