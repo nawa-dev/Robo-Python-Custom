@@ -112,14 +112,11 @@ updateCanvasSize();
 
 // Center canvas initially
 setTimeout(() => {
-  const viewport = document.getElementById("canvas-viewport");
-  if (viewport && canvasArea) {
-    state.cameraX = (viewport.offsetWidth - canvasArea.offsetWidth) / 2;
-    state.cameraY = (viewport.offsetHeight - canvasArea.offsetHeight) / 2;
-    if (typeof updateCanvasTransform === "function") updateCanvasTransform();
+  if (typeof fitCanvasToViewport === "function") {
+    fitCanvasToViewport();
   }
   updateCanvasImageData();
-  if (typeof logToConsole === "function") logToConsole("System initialized with Zoom/Pan support.", "info");
+  if (typeof logToConsole === "function") logToConsole("System initialized with Auto-Fit Zoom.", "info");
 }, 100);
 
 // --- 3. Canvas Renderer (Optional/Alternate) ---

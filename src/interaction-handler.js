@@ -112,17 +112,35 @@ window.zoomOut = function() {
   if (typeof updateCanvasTransform === "function") updateCanvasTransform();
 };
 
-window.resetView = function() {
-  state.zoom = 1.0;
+window.fitCanvasToViewport = function() {
   const viewport = document.getElementById("canvas-viewport");
-  if (viewport && canvasArea) {
-    state.cameraX = (viewport.offsetWidth - canvasArea.offsetWidth) / 2;
-    state.cameraY = (viewport.offsetHeight - canvasArea.offsetHeight) / 2;
-  } else {
-    state.cameraX = 0;
-    state.cameraY = 0;
-  }
+  if (!viewport || !canvasArea) return;
+
+  const vw = viewport.offsetWidth;
+  const vh = viewport.offsetHeight;
+  const cw = canvasArea.offsetWidth;
+  const ch = canvasArea.offsetHeight;
+
+  if (cw === 0 || ch === 0) return;
+
+  // Calculate zoom to fit with some padding (90% of viewport)
+  const padding = 20;
+  const availableW = vw - padding * 2;
+  const availableH = vh - padding * 2;
+  
+  const zoomX = availableW / cw;
+  const zoomY = availableH / ch;
+  state.zoom = Math.min(zoomX, zoomY, 1.0); // Fit but don't upscale past 1.0x by default
+  
+  // Center
+  state.cameraX = (vw - cw * state.zoom) / 2;
+  state.cameraY = (vh - ch * state.zoom) / 2;
+
   if (typeof updateCanvasTransform === "function") updateCanvasTransform();
+};
+
+window.resetView = function() {
+  window.fitCanvasToViewport();
 };
 
 window.toggleDragMode = function() {

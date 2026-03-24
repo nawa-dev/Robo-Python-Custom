@@ -74,6 +74,7 @@ function updateCanvasSize() {
   canvasArea.style.width = document.getElementById("canvas-w").value + "px";
   canvasArea.style.height = document.getElementById("canvas-h").value + "px";
   updateCanvasImageData();
+  if (typeof fitCanvasToViewport === "function") fitCanvasToViewport();
 }
 
 // --- Handle map change ---
