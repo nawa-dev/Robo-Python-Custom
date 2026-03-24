@@ -71,10 +71,25 @@ function updateCanvasImageData() {
 
 // --- Update canvas size ---
 function updateCanvasSize() {
+  if (!canvasArea) return;
+
+  // Temporarily disable transition for immediate calculation of fit/center
+  const originalTransition = canvasArea.style.transition;
+  canvasArea.style.transition = "none";
+
   canvasArea.style.width = document.getElementById("canvas-w").value + "px";
   canvasArea.style.height = document.getElementById("canvas-h").value + "px";
+
+  // Force a reflow
+  canvasArea.offsetHeight;
+
   updateCanvasImageData();
   if (typeof fitCanvasToViewport === "function") fitCanvasToViewport();
+
+  // Restore transition for smooth manual resizing
+  setTimeout(() => {
+    canvasArea.style.transition = originalTransition;
+  }, 0);
 }
 
 // --- Handle map change ---
@@ -150,6 +165,21 @@ function loadMapFile(input) {
       canvasArea.style.backgroundImage = `url('${e.target.result}')`;
       canvasArea.style.backgroundColor = "transparent";
       logToConsole("New map loaded successfully.");
+
+      // Automatically resize canvas to match image dimensions
+      const img = new Image();
+      img.onload = () => {
+        const wInput = document.getElementById("canvas-w");
+        const hInput = document.getElementById("canvas-h");
+        if (wInput && hInput) {
+          wInput.value = img.naturalWidth;
+          hInput.value = img.naturalHeight;
+          updateCanvasSize();
+          if (typeof resetView === "function") resetView();
+          logToConsole(`Canvas resized to ${img.naturalWidth}x${img.naturalHeight} and view reset.`, "info");
+        }
+      };
+      img.src = e.target.result;
 
       // update current map option to show filename
       const currentOpt = document.getElementById("current-map-option");
