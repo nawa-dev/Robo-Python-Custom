@@ -218,30 +218,30 @@ function renderCanvasFrame() {
   const robotSize = 25;
   ctx.fillStyle = "#2d3436";
   ctx.beginPath();
-  ctx.arc(state.robotX + 25, state.robotY + 25, robotSize, 0, Math.PI * 2);
+  ctx.arc(state.robotX, state.robotY, robotSize, 0, Math.PI * 2);
   ctx.fill();
 
   const rad = (state.angle * Math.PI) / 180;
   ctx.strokeStyle = "rgba(255,255,255,0.8)";
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(state.robotX + 25, state.robotY + 25);
+  ctx.moveTo(state.robotX, state.robotY);
   ctx.lineTo(
-    state.robotX + 25 + Math.cos(rad) * robotSize,
-    state.robotY + 25 + Math.sin(rad) * robotSize,
+    state.robotX + Math.cos(rad) * robotSize,
+    state.robotY + Math.sin(rad) * robotSize,
   );
   ctx.stroke();
 
   ctx.fillStyle = "rgba(100,200,255,0.6)";
   state.sensors.forEach((s) => {
-    const localX = s.x - 25;
-    const localY = s.y - 25;
+    const localX = (s.x / 100) * state.robotWidth - (state.robotWidth / 2);
+    const localY = (s.y / 100) * state.robotHeight;
     const cos_a = Math.cos(rad);
     const sin_a = Math.sin(rad);
     const rotatedX = localX * cos_a - localY * sin_a;
     const rotatedY = localX * sin_a + localY * cos_a;
     ctx.beginPath();
-    ctx.arc(state.robotX + 25 + rotatedX, state.robotY + 25 + rotatedY, 3, 0, Math.PI * 2);
+    ctx.arc(state.robotX + rotatedX, state.robotY + rotatedY, 3, 0, Math.PI * 2);
     ctx.fill();
   });
 }

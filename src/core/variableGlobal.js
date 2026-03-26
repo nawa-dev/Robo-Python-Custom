@@ -65,6 +65,16 @@ class SimulationState {
     this.objectMass = 1.0;
     this.objectFriction = 0.92;
 
+    // --- 12. ระบบ Physics Engine (Multi-Engine support) ---
+    this.physicsEngine = "custom"; // "custom" or "matter"
+    this.matterState = {
+        engine: null,
+        world: null,
+        robotBody: null,
+        objectBodies: new Map(), // Map of state.canvasObjects -> Matter.Body
+        wallBodies: []
+    };
+
     // --- Legacy / Others ---
     this.motorPos = 0;
   }

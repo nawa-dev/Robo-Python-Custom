@@ -19,7 +19,10 @@
       "no_map": "ไม่ได้โหลดแผนที่",
       "upload_map": "อัปโหลดแผนที่...",
       "github": "GITHUB",
-      "tour": "แนะนำการใช้งาน"
+      "tour": "แนะนำการใช้งาน",
+      "physics": "ระบบฟิสิกส์:",
+      "engine_custom": "ระบบเดิม (Custom)",
+      "engine_matter": "Matter.js (สมจริง)"
     },
     "tabs": {
       "code": "โค้ด",
@@ -241,7 +244,10 @@
       "no_map": "No map loaded",
       "upload_map": "Upload My Map...",
       "github": "GITHUB",
-      "tour": "Tour"
+      "tour": "Tour",
+      "physics": "Physics Engine:",
+      "engine_custom": "Custom Engine",
+      "engine_matter": "Matter.js (Realistic)"
     },
     "tabs": {
       "code": "Code",

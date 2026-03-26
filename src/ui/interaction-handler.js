@@ -185,6 +185,7 @@ window.addEventListener("mousemove", (e) => {
   state.robotY = Math.max(minY, Math.min(nextY, maxY));
 
   if (typeof updateRobotDOM === "function") updateRobotDOM();
+  if (typeof window.syncStateToMatter === "function") window.syncStateToMatter();
 });
 
 // --- 2. Robot Rotation and Angle Control ---
@@ -202,6 +203,7 @@ window.handleAngleInput = function (value) {
 
   state.angle = newAngle;
   if (typeof updateRobotDOM === "function") updateRobotDOM();
+  if (typeof window.syncStateToMatter === "function") window.syncStateToMatter();
   if (typeof logToConsole === "function") {
     const msg = window.i18n.t("interaction.robot.angle_set").replace("{angle}", Math.round(state.angle));
     logToConsole(msg, "info");
@@ -227,6 +229,7 @@ window.rotateRobot = function (delta) {
 
   state.angle = newAngle;
   if (typeof updateRobotDOM === "function") updateRobotDOM();
+  if (typeof window.syncStateToMatter === "function") window.syncStateToMatter();
   if (typeof logToConsole === "function") {
     const msg = window.i18n.t("interaction.robot.rotated").replace("{angle}", Math.round(state.angle));
     logToConsole(msg, "info");
@@ -240,6 +243,7 @@ window.updateRobotAngle = function (value) {
   }
   state.angle = parseFloat(value);
   if (typeof updateRobotDOM === "function") updateRobotDOM();
+  if (typeof window.syncStateToMatter === "function") window.syncStateToMatter();
 };
 
 // --- 3. Object Drag & Drop System ---
@@ -340,6 +344,7 @@ window.addEventListener("mousemove", (e) => {
 
     if (typeof updateObjectsDOM === "function") updateObjectsDOM();
     if (typeof updateSensorDots === "function") updateSensorDots();
+    if (typeof window.syncStateToMatter === "function") window.syncStateToMatter();
   }
 });
 

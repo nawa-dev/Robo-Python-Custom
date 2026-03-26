@@ -15,7 +15,7 @@ window.SensorRegistry["light"] = {
     if (template) {
       const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
       g.innerHTML = template;
-      const lx = (window.state.robotWidth / 2) - (sensor.x / 100) * window.state.robotWidth;
+      const lx = (sensor.x / 100) * window.state.robotWidth - (window.state.robotWidth / 2);
       const ly = (sensor.y / 100) * window.state.robotHeight;
       g.setAttribute("transform", `translate(${lx}, ${ly})`);
       g.classList.add("sensor-circle");
@@ -31,7 +31,7 @@ window.SensorRegistry["light"] = {
     }
   },
   read: function (sensor, globals) {
-    const localX = (globals.robotWidth / 2) - (sensor.x / 100) * globals.robotWidth;
+    const localX = (sensor.x / 100) * globals.robotWidth - (globals.robotWidth / 2);
     const localY = (sensor.y / 100) * globals.robotHeight;
     const rad = (globals.angle * Math.PI) / 180;
 
@@ -62,7 +62,7 @@ window.SensorRegistry["light"] = {
     const cos_a = Math.cos(rad);
     const sin_a = Math.sin(rad);
 
-    const localX = (globals.robotWidth / 2) - (sensor.x / 100) * globals.robotWidth;
+    const localX = (sensor.x / 100) * globals.robotWidth - (globals.robotWidth / 2);
     const localY = (sensor.y / 100) * globals.robotHeight;
     const rotatedX = localX * cos_a - localY * sin_a;
     const rotatedY = localX * sin_a + localY * cos_a;

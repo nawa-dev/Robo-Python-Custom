@@ -162,6 +162,17 @@ function updatePhysics(timestamp) {
  * @param {number} dt - ระยะเวลาคงที่ (Fixed Delta Time)
  */
 function applyPhysicsStep(dt) {
+  if (state.physicsEngine === "matter") {
+    applyMatterPhysicsStep(dt);
+  } else {
+    applyCustomPhysicsStep(dt);
+  }
+}
+
+/**
+ * 1. ระบบฟิสิกส์เดิม (Custom)
+ */
+function applyCustomPhysicsStep(dt) {
   // Update wheelBase dynamically if it changed
   robotDrive.wheelBase = state.robotHeight || 42;
 
@@ -354,6 +365,242 @@ function applyPhysicsStep(dt) {
     });
   }
 }
+
+/**
+ * 2. ระบบฟิสิกส์ Matter.js
+ */
+function initMatter() {
+  console.log("Initializing Matter.js Engine...");
+  if (!window.Matter) {
+    console.error("Matter.js library not found! Please check index.html script tags.");
+    return;
+  }
+  const { Engine, World, Bodies, Composite } = Matter;
+
+  const canvasArea = document.getElementById("canvas-area");
+  if (!canvasArea) {
+    console.warn("canvas-area not found during initMatter");
+    return;
+  }
+
+  if (!state.matterState.engine) {
+    state.matterState.engine = Engine.create({ 
+        gravity: { x: 0, y: 0 },
+        enableSleeping: false 
+    });
+    state.matterState.world = state.matterState.engine.world;
+  }
+
+  const world = state.matterState.world;
+  Composite.clear(world, false);
+  state.matterState.objectBodies.clear();
+  state.matterState.wallBodies = [];
+
+  // Create Walls (Boundaries)
+  const w = canvasArea.offsetWidth;
+  const h = canvasArea.offsetHeight;
+  const thickness = 100;
+  const walls = [
+    Bodies.rectangle(w / 2, -thickness / 2, w + thickness * 2, thickness, { isStatic: true }), // Top
+    Bodies.rectangle(w / 2, h + thickness / 2, w + thickness * 2, thickness, { isStatic: true }), // Bottom
+    Bodies.rectangle(-thickness / 2, h / 2, thickness, h + thickness * 2, { isStatic: true }), // Left
+    Bodies.rectangle(w + thickness / 2, h / 2, thickness, h + thickness * 2, { isStatic: true }), // Right
+  ];
+  state.matterState.wallBodies = walls;
+  Composite.add(world, walls);
+
+  // Create Robot Body
+  state.matterState.robotBody = Bodies.rectangle(
+    state.robotX,
+    state.robotY,
+    state.robotWidth,
+    state.robotHeight,
+    {
+      frictionAir: 0.02, // ลดลงจาก 0.1 เพื่อให้เห็นอาการแกว่ง
+      friction: 0.5,
+      restitution: 0.2,
+      mass: (state.robotUseMass && state.robotMass > 0) ? state.robotMass : 1.0,
+    }
+  );
+  Matter.Body.setAngle(state.matterState.robotBody, (state.angle * Math.PI) / 180);
+  Composite.add(world, state.matterState.robotBody);
+
+  // Create Object Bodies
+  if (state.canvasObjects) {
+    state.canvasObjects.forEach((obj) => {
+      const body = Bodies.circle(obj.x, obj.y, obj.radius || 15, {
+        frictionAir: 0.05,
+        friction: 0.1,
+        restitution: 0.8,
+        mass: obj.mass || 1.0,
+      });
+      state.matterState.objectBodies.set(obj, body);
+      Composite.add(world, body);
+    });
+  }
+}
+
+function applyMatterPhysicsStep(dt) {
+  if (!state.matterState.engine || !state.matterState.robotBody) {
+    initMatter();
+    return;
+  }
+
+  const { Engine, Body } = Matter;
+  const robotBody = state.matterState.robotBody;
+
+  // Differential Drive logic mapping to Body velocity
+  const speedFactor = dt * MOTOR_SPEED_FACTOR;
+  
+  const wheelBase = state.robotHeight || 42;
+  const isHolonomic = state.sensors.filter(s => s.type === 'wheel').length === 2 && 
+                     state.sensors.every(s => s.wheelType === 'omni');
+
+  // 1. Sync targets to robotDrive and apply ramping (Acceleration logic)
+  const vFL_target = state.motorFL !== undefined ? state.motorFL : (state.motorL || 0);
+  const vFR_target = state.motorFR !== undefined ? state.motorFR : (state.motorR || 0);
+  const vBL_target = state.motorBL !== undefined ? state.motorBL : (state.motorL || 0);
+  const vBR_target = state.motorBR !== undefined ? state.motorBR : (state.motorR || 0);
+
+  robotDrive.setTargets4(vFL_target, vFR_target, vBL_target, vBR_target);
+  
+  // Use a dummy pose just to run the ramping logic inside step
+  const dummyPose = { x: 0, y: 0, theta: 0 };
+  robotDrive.step(dummyPose, dt, isHolonomic);
+
+  // Get RAMPED velocities
+  const vFL = robotDrive.fl.current;
+  const vFR = robotDrive.fr.current;
+  const vBL = robotDrive.bl.current;
+  const vBR = robotDrive.br.current;
+
+  if (isHolonomic) {
+    const vxL = (vFL + vFR + vBL + vBR) / 4;
+    const vyL = (-vFL + vFR + vBL - vBR) / 4;
+    const omega = (-vFL + vFR - vBL + vBR) / (wheelBase * 2);
+
+    const cos = Math.cos(robotBody.angle);
+    const sin = Math.sin(robotBody.angle);
+    const vxG = (vxL * cos - vyL * sin) * speedFactor;
+    const vyG = (vxL * sin + vyL * cos) * speedFactor;
+
+    Body.setVelocity(robotBody, { x: vxG, y: vyG });
+    Body.setAngularVelocity(robotBody, omega * speedFactor);
+  } else {
+    const leftv = (vFL + vBL) / 2;
+    const rightv = (vFR + vBR) / 2;
+    const v = (rightv + leftv) / 2;
+    const omega = (rightv - leftv) / wheelBase;
+
+    const vx = v * Math.cos(robotBody.angle) * speedFactor;
+    const vy = v * Math.sin(robotBody.angle) * speedFactor;
+
+    Body.setVelocity(robotBody, { x: vx, y: vy });
+    Body.setAngularVelocity(robotBody, omega * speedFactor);
+  }
+
+  // 2. Step Engine (Using fixed dt from our loop)
+  Engine.update(state.matterState.engine, dt * 1000);
+
+  // 3. Sync State back from Matter.js
+  state.robotX = robotBody.position.x;
+  state.robotY = robotBody.position.y;
+  state.angle = (robotBody.angle * 180) / Math.PI;
+
+  // Sync canvas objects
+  state.matterState.objectBodies.forEach((body, obj) => {
+    // If object is grabbed, sync from state to Matter.js
+    if (typeof state.grabbedObjects !== 'undefined' && state.grabbedObjects.includes(obj)) {
+        Body.setPosition(body, { x: obj.x, y: obj.y });
+        Body.setVelocity(body, { x: 0, y: 0 });
+        return;
+    }
+    obj.x = body.position.x;
+    obj.y = body.position.y;
+    obj.vx = body.velocity.x * 60; // Approximate scale
+    obj.vy = body.velocity.y * 60;
+  });
+
+  // 4. Handle Sensor Physics Step (Internal sensor logic like light reading)
+  const physicsGlobals = {
+    robotX: state.robotX,
+    robotY: state.robotY,
+    angle: state.angle,
+    dt,
+    robotWidth: state.robotWidth,
+    robotHeight: state.robotHeight,
+  };
+  const typeCounters = {};
+  [...state.sensors, ...state.grips].forEach((sensor) => {
+    const type = sensor.type;
+    if (!typeCounters[type]) typeCounters[type] = 0;
+    const typeIdx = typeCounters[type]++;
+
+    const registry = window.SensorRegistry[type];
+    if (registry && typeof registry.physicsStep === "function") {
+      registry.physicsStep(sensor, typeIdx, physicsGlobals);
+    }
+  });
+}
+
+// Automatically init Matter if engine is switched or objects added
+window.addEventListener('load', () => {
+    if (state.physicsEngine === 'matter') initMatter();
+});
+
+// Watch for object additions to sync with Matter
+const originalAddCanvasObject = window.addCanvasObject;
+window.addCanvasObject = function(color) {
+    const obj = originalAddCanvasObject(color);
+    if (state.physicsEngine === 'matter' && state.matterState.world) {
+        const { Bodies, Composite } = Matter;
+        const body = Bodies.circle(obj.x, obj.y, obj.radius || 15, {
+            frictionAir: 0.05,
+            friction: 0.1,
+            restitution: 0.8,
+            mass: obj.mass || 1.0,
+        });
+        state.matterState.objectBodies.set(obj, body);
+        Composite.add(state.matterState.world, body);
+    }
+    return obj;
+};
+
+window.initMatter = initMatter;
+window.resetMatter = function() {
+    if (state.physicsEngine === 'matter' && state.matterState.robotBody) {
+        const { Body } = Matter;
+        Body.setPosition(state.matterState.robotBody, { x: state.robotX, y: state.robotY });
+        Body.setAngle(state.matterState.robotBody, (state.angle * Math.PI) / 180);
+        Body.setVelocity(state.matterState.robotBody, { x: 0, y: 0 });
+        Body.setAngularVelocity(state.matterState.robotBody, 0);
+        
+        // Reset objects too
+        state.matterState.objectBodies.forEach((body, obj) => {
+            Body.setPosition(body, { x: obj.x, y: obj.y });
+            Body.setVelocity(body, { x: 0, y: 0 });
+            Body.setAngularVelocity(body, 0);
+        });
+    }
+};
+
+window.syncStateToMatter = function() {
+    if (state.physicsEngine === 'matter' && state.matterState.robotBody) {
+        const { Body } = Matter;
+        // Sync Robot
+        Body.setPosition(state.matterState.robotBody, { x: state.robotX, y: state.robotY });
+        Body.setAngle(state.matterState.robotBody, (state.angle * Math.PI) / 180);
+        Body.setVelocity(state.matterState.robotBody, { x: 0, y: 0 });
+        Body.setAngularVelocity(state.matterState.robotBody, 0);
+
+        // Sync Objects
+        state.matterState.objectBodies.forEach((body, obj) => {
+            Body.setPosition(body, { x: obj.x, y: obj.y });
+            Body.setVelocity(body, { x: 0, y: 0 });
+            Body.setAngularVelocity(body, 0);
+        });
+    }
+};
 
 // Expose to window for executor.js
 window.physics = robotDrive;

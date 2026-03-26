@@ -179,6 +179,7 @@ function resetPosition() {
   state.robotY = 100;
   state.angle = 0;
   updateRobotDOM();
+  if (typeof window.resetMatter === "function") window.resetMatter();
   logToConsole("Robot position reset.", "info");
 
   // --- DYNAMIC HOOK: onReset ---
