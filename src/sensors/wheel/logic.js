@@ -9,7 +9,7 @@ window.SensorRegistry["wheel"] = {
     };
   },
   drawPreview: function(svg, sensor) {
-    if (typeof window.syncWheelDOM === "function") window.syncWheelDOM();
+    if (typeof window.syncWheelDOM === "function") window.syncWheelDOM(true);
   },
   read: function(sensor, globals) {
     return 0;

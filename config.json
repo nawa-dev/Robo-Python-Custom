@@ -13,7 +13,9 @@
         "light",
         "ultrasonic",
         "grip",
-        "compass"
+        "compass",
+        "robot",
+        "object"
     ],
     "initialProject": "example/FollowLine.json"
 }

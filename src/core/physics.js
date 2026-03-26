@@ -4,7 +4,7 @@
  */
 
 // ตัวคูณความเร็วล้อ (ปรับค่านี้เพื่อความเร็วที่สมจริง - เดิมคือ 2.5)
-const MOTOR_SPEED_FACTOR = 1.0;
+const MOTOR_SPEED_FACTOR = 1;
 
 // --- 1. ระบบขับเคลื่อน Differential Drive ---
 /**
@@ -105,9 +105,9 @@ DifferentialDrive.prototype.step = function (pose, dt, isHolonomic) {
 
 // สร้างอินสแตนซ์สำหรับการขับเคลื่อน
 const robotDrive = new DifferentialDrive({
-  wheelBase: 42,
+  wheelBase: state.robotHeight || 42,
   maxAccel: 400,
-  axisOffset: 0, // ค่านี้จะถูกอัปเดตตาม motorPos จริง
+  axisOffset: 0,
 });
 
 /**
@@ -162,18 +162,31 @@ function updatePhysics(timestamp) {
  * @param {number} dt - ระยะเวลาคงที่ (Fixed Delta Time)
  */
 function applyPhysicsStep(dt) {
+  // Update wheelBase dynamically if it changed
+  robotDrive.wheelBase = state.robotHeight || 42;
+
   // ตั้งค่าความเร็วมอเตอร์พร้อมตัวคูณเพื่อความเร็วที่สมจริงในโปรแกรมจำลอง
+  let speedFactor = MOTOR_SPEED_FACTOR;
+  if (state.robotUseMass && state.robotMass > 0) {
+    // Soften the mass penalty to keep the robot moving noticeably (mass^0.25)
+    speedFactor = MOTOR_SPEED_FACTOR / Math.pow(state.robotMass, 0.25);
+    // Scale acceleration (inertia) based on mass: heavier = slower acceleration/braking
+    robotDrive.maxAccel = 400 / Math.sqrt(state.robotMass);
+  } else {
+    robotDrive.maxAccel = 400; // Default acceleration
+  }
+
   if (typeof robotDrive.setTargets4 === "function") {
     robotDrive.setTargets4(
-      state.motorFL * MOTOR_SPEED_FACTOR,
-      state.motorFR * MOTOR_SPEED_FACTOR,
-      state.motorBL * MOTOR_SPEED_FACTOR,
-      state.motorBR * MOTOR_SPEED_FACTOR,
+      state.motorFL * speedFactor,
+      state.motorFR * speedFactor,
+      state.motorBL * speedFactor,
+      state.motorBR * speedFactor,
     );
   } else {
     robotDrive.setTargets(
-      state.motorL * MOTOR_SPEED_FACTOR,
-      state.motorR * MOTOR_SPEED_FACTOR,
+      state.motorL * speedFactor,
+      state.motorR * speedFactor,
     );
   }
 
@@ -182,28 +195,30 @@ function applyPhysicsStep(dt) {
   const normalWheels = wheelSensors.filter((s) => s.wheelType !== "omni");
   const omniWheels = wheelSensors.filter((s) => s.wheelType === "omni");
 
-  let activeMotorPos = typeof state.motorPos !== "undefined" ? state.motorPos : 0;
+  let activeMotorPosPercent =
+    typeof state.motorPos !== "undefined" ? state.motorPos : 20;
 
   // ถ้ามีล้อธรรมดา ให้ใช้ตำแหน่งล้อธรรมดาเป็นจุดหมุนหลัก (เพราะล้อออมนิสไลด์ข้างได้)
   if (normalWheels.length > 0) {
     const sumPos = normalWheels.reduce((sum, s) => sum + (s.motorPos || 0), 0);
-    activeMotorPos = sumPos / normalWheels.length;
+    activeMotorPosPercent = sumPos / normalWheels.length;
   } else if (omniWheels.length > 0) {
     // ถ้าไม่มีล้อธรรมดาเลย (เป็นออมนิทั้งหมด) ให้เฉลี่ยจากออมนิ
     const sumPos = omniWheels.reduce((sum, s) => sum + (s.motorPos || 0), 0);
-    activeMotorPos = sumPos / omniWheels.length;
+    activeMotorPosPercent = sumPos / omniWheels.length;
   }
+
+  // Convert percentage to pixels (0% front, 100% back)
+  const activeMotorPos =
+    state.robotWidth / 2 - (activeMotorPosPercent / 100) * state.robotWidth;
+
+  const halfWidth = state.robotWidth / 2;
+  const halfHeight = state.robotHeight / 2;
 
   // คำนวณตำแหน่งปัจจุบันโดยอ้างอิงจากแกนล้อ
   let pose = {
-    x:
-      state.robotX +
-      25 +
-      activeMotorPos * Math.cos((state.angle * Math.PI) / 180),
-    y:
-      state.robotY +
-      25 +
-      activeMotorPos * Math.sin((state.angle * Math.PI) / 180),
+    x: state.robotX + activeMotorPos * Math.cos((state.angle * Math.PI) / 180),
+    y: state.robotY + activeMotorPos * Math.sin((state.angle * Math.PI) / 180),
     theta: state.angle * (Math.PI / 180),
   };
 
@@ -213,19 +228,16 @@ function applyPhysicsStep(dt) {
     wheelSensors.every((s) => s.wheelType === "omni");
   robotDrive.step(pose, dt, isHolonomic);
 
-  // แปลงพิกัดกลับจากจุดกึ่งกลางแกนล้อ มาเป็นพิกัดมุมซ้ายบนของหุ่นยนต์ (Global Coordinates)
-  const newCenterX = pose.x - activeMotorPos * Math.cos(pose.theta);
-  const newCenterY = pose.y - activeMotorPos * Math.sin(pose.theta);
-
-  const nextX = newCenterX - 25;
-  const nextY = newCenterY - 25;
+  // แปลงพิกัดกลับจากจุดกึ่งกลางแกนล้อ มาเป็นพิกัดกึ่งกลางหุ่นยนต์ (Global Coordinates)
+  const nextX = pose.x - activeMotorPos * Math.cos(pose.theta);
+  const nextY = pose.y - activeMotorPos * Math.sin(pose.theta);
 
   // ตรวจสอบการชนขอบเขตสนาม (Collision Detection)
   if (
-    nextX < 0 ||
-    nextX > canvasArea.offsetWidth - 50 ||
-    nextY < 0 ||
-    nextY > canvasArea.offsetHeight - 50
+    nextX < halfWidth ||
+    nextX > canvasArea.offsetWidth - halfWidth ||
+    nextY < halfHeight ||
+    nextY > canvasArea.offsetHeight - halfHeight
   ) {
     stopProgram();
     logToConsole("ข้อผิดพลาดการชน: หุ่นยนต์ชนขอบสนาม!", "error");
@@ -241,6 +253,8 @@ function applyPhysicsStep(dt) {
     robotY: state.robotY,
     angle: state.angle,
     dt,
+    robotWidth: state.robotWidth,
+    robotHeight: state.robotHeight,
   };
   const typeCounters = {};
   [...state.sensors, ...state.grips].forEach((sensor) => {
@@ -269,8 +283,12 @@ function applyPhysicsStep(dt) {
       obj.y += obj.vy * dt;
 
       // แรงเสียดทาน (ลดความเร็วลงเรื่อยๆ)
-      obj.vx *= 0.92;
-      obj.vy *= 0.92;
+      // ปรับสเกลให้เห็นผลชัดเจนขึ้น: 0.0 = ลื่นมากๆ (0.998), 1.0 = หนืด (0.85)
+      const userFrictionValue = obj.friction !== undefined ? obj.friction : 0.4;
+      const f = Math.max(0.5, Math.min(0.999, 1.0 - (userFrictionValue * userFrictionValue * 0.15) - 0.002));
+      
+      obj.vx *= f;
+      obj.vy *= f;
 
       if (Math.abs(obj.vx) < 1) obj.vx = 0;
       if (Math.abs(obj.vy) < 1) obj.vy = 0;
@@ -296,7 +314,10 @@ function applyPhysicsStep(dt) {
     });
 
     // เช็คการชนระหว่างหุ่นยนต์กับวัตถุที่ไม่ได้ถูกจับ
-    const robotCenter = { x: state.robotX + 25, y: state.robotY + 25 };
+    const robotCenter = {
+      x: state.robotX,
+      y: state.robotY,
+    };
     state.canvasObjects.forEach((obj) => {
       if (
         typeof state.grabbedObjects !== "undefined" &&
@@ -307,7 +328,7 @@ function applyPhysicsStep(dt) {
       const dx = obj.x - robotCenter.x;
       const dy = obj.y - robotCenter.y;
       const dist = Math.hypot(dx, dy);
-      const minDist = 25 + (obj.radius || 15);
+      const minDist = Math.max(halfWidth, halfHeight) + (obj.radius || 15);
 
       if (dist < minDist) {
         // หากระยะห่างน้อยกว่ารัศมีรวม (เกิดการชน)
@@ -318,10 +339,17 @@ function applyPhysicsStep(dt) {
         obj.x += Math.cos(angleToObj) * overlap;
         obj.y += Math.sin(angleToObj) * overlap;
 
-        // ถ่ายเทความเร็วจากหุ่นยนต์ไปยังวัตถุ
+        // ถ่ายเทความเร็วจากหุ่นยนต์ไปยังวัตถุ (Exaggerated Momentum Transfer)
         const v = 0.5 * (robotDrive.left.current + robotDrive.right.current);
-        obj.vx += v * Math.cos((state.angle * Math.PI) / 180) * 0.8;
-        obj.vy += v * Math.sin((state.angle * Math.PI) / 180) * 0.8;
+        const mRobot = (state.robotUseMass && state.robotMass > 0) ? state.robotMass : 1.0;
+        const mObj = obj.mass || 1.0;
+        
+        // Exaggerated formula for "Game Physics" feel
+        const momentumFactor = (mRobot / mObj);
+        const transferVelocity = v * 1.2 * momentumFactor;
+        
+        obj.vx += transferVelocity * Math.cos((state.angle * Math.PI) / 180);
+        obj.vy += transferVelocity * Math.sin((state.angle * Math.PI) / 180);
       }
     });
   }
@@ -350,6 +378,8 @@ function updateSensorDots() {
     robotX: state.robotX,
     robotY: state.robotY,
     angle: state.angle,
+    robotWidth: state.robotWidth,
+    robotHeight: state.robotHeight,
     sensorVisibility: window.SensorSettings
       ? window.SensorSettings.visibility
       : {},
@@ -375,6 +405,8 @@ window.addCanvasObject = function (color = "#e74c3c") {
       x: Math.random() * (canvasArea.offsetWidth - 100) + 50,
       y: Math.random() * (canvasArea.offsetHeight - 100) + 50,
       radius: 15,
+      mass: state.objectMass !== undefined ? state.objectMass : 1.0,
+      friction: state.objectFriction !== undefined ? state.objectFriction : 0.92,
       color: color,
       vx: 0,
       vy: 0,
@@ -399,14 +431,15 @@ function handleGenericSensorCollision(sensor, globals) {
   if (typeof canvasObjects === "undefined" || !canvasObjects) return;
 
   const rad = (globals.angle * Math.PI) / 180;
-  const localX = (sensor.x || 0) - 25;
-  const localY = (sensor.y || 0) - 25;
+  const localX =
+    globals.robotWidth / 2 - ((sensor.x || 0) / 100) * globals.robotWidth;
+  const localY = ((sensor.y || 0) / 100) * globals.robotHeight;
 
   // คำนวณตำแหน่งโลกของเซนเซอร์
   const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
   const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
-  const worldX = globals.robotX + 25 + rotatedX;
-  const worldY = globals.robotY + 25 + rotatedY;
+  const worldX = globals.robotX + rotatedX;
+  const worldY = globals.robotY + rotatedY;
 
   state.canvasObjects.forEach((obj) => {
     if (
@@ -428,11 +461,15 @@ function handleGenericSensorCollision(sensor, globals) {
       obj.x += Math.cos(angleToObj) * overlap;
       obj.y += Math.sin(angleToObj) * overlap;
 
-      // ถ่ายเทความเร็ว
+      // ถ่ายเทความเร็ว (Exaggerated Momentum Transfer)
       if (typeof robotDrive !== "undefined") {
         const v = 0.5 * (robotDrive.left.current + robotDrive.right.current);
-        obj.vx += v * Math.cos(rad) * 0.8;
-        obj.vy += v * Math.sin(rad) * 0.8;
+        const mRobot = (state.robotUseMass && state.robotMass > 0) ? state.robotMass : 1.0;
+        const mObj = obj.mass || 1.0;
+        const transferVelocity = v * 1.2 * (mRobot / mObj);
+
+        obj.vx += transferVelocity * Math.cos(rad);
+        obj.vy += transferVelocity * Math.sin(rad);
       }
     }
   });

@@ -4,8 +4,8 @@ window.SensorRegistry["compass"] = {
       id: "compass_" + id,
       type: "compass",
       name: `Compass ${count}`,
-      x: 25,
-      y: 25,
+      x: 50,
+      y: 0,
     };
   },
 
@@ -14,7 +14,9 @@ window.SensorRegistry["compass"] = {
     if (template) {
       const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
       g.innerHTML = template;
-      g.setAttribute("transform", `translate(${sensor.x}, ${sensor.y})`);
+      const lx = (window.state.robotWidth / 2) - (sensor.x / 100) * window.state.robotWidth;
+      const ly = (sensor.y / 100) * window.state.robotHeight;
+      g.setAttribute("transform", `translate(${lx}, ${ly})`);
       g.classList.add("sensor-circle");
       svg.appendChild(g);
     }
@@ -28,12 +30,12 @@ window.SensorRegistry["compass"] = {
     const cos_a = Math.cos(rad);
     const sin_a = Math.sin(rad);
 
-    const localX = sensor.x - 25;
-    const localY = sensor.y - 25;
+    const localX = (globals.robotWidth / 2) - (sensor.x / 100) * globals.robotWidth;
+    const localY = (sensor.y / 100) * globals.robotHeight;
     const rotatedX = localX * cos_a - localY * sin_a;
     const rotatedY = localX * sin_a + localY * cos_a;
-    const canvasX = globals.robotX + 25 + rotatedX;
-    const canvasY = globals.robotY + 25 + rotatedY;
+    const canvasX = globals.robotX + rotatedX;
+    const canvasY = globals.robotY + rotatedY;
 
     // Use unified SVG template
     const template = window.SensorTemplates && window.SensorTemplates["compass"];

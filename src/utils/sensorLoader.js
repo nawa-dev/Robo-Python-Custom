@@ -3,10 +3,7 @@
  * Dynamically loads sensor configurations, templates, and logics based on config.json
  */
 
-window.SensorRegistry = {};
-window.SensorTemplates = {};
-window.SensorPreviewTemplates = {}; // SVG-fragment templates for preview
-window.SensorConfigs = {};
+// Registries are now initialized in variableGlobal.js to ensure availability
 
 async function initSensors() {
   try {

@@ -9,8 +9,8 @@ window.SensorRegistry["grip"] = {
     return {
       id,
       type: "grip",
-      x: 45,
-      y: 25,
+      x: 0,
+      y: 0,
       angle: 0,
       armLength: 20,
       name: `Grip ${count}`,
@@ -23,9 +23,12 @@ window.SensorRegistry["grip"] = {
     if (template) {
       const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
       g.innerHTML = template;
+      const lx =
+        window.state.robotWidth / 2 - (grip.x / 100) * window.state.robotWidth;
+      const ly = (grip.y / 100) * window.state.robotHeight;
       g.setAttribute(
         "transform",
-        `translate(${grip.x}, ${grip.y}) rotate(${grip.angle || 0})`,
+        `translate(${lx}, ${ly}) rotate(${grip.angle || 0})`,
       );
       g.classList.add("grip-preview-el");
 
@@ -65,12 +68,13 @@ window.SensorRegistry["grip"] = {
       const rad = (globals.angle * Math.PI) / 180;
       const gripRad = (globals.angle + (grip.angle || 0)) * (Math.PI / 180);
 
-      const localX = grip.x - 25;
-      const localY = grip.y - 25;
+      const localX =
+        globals.robotWidth / 2 - (grip.x / 100) * globals.robotWidth;
+      const localY = (grip.y / 100) * globals.robotHeight;
       const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
       const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
-      const gripCanvasX = globals.robotX + 25 + rotatedX;
-      const gripCanvasY = globals.robotY + 25 + rotatedY;
+      const gripCanvasX = globals.robotX + rotatedX;
+      const gripCanvasY = globals.robotY + rotatedY;
 
       if (obj) {
         const totalLen = armLen + 10; // Arm + Jaws
@@ -80,7 +84,9 @@ window.SensorRegistry["grip"] = {
         obj.vy = 0;
       } else {
         const config = window.SensorConfigs && window.SensorConfigs["grip"];
-        const canInteract = config ? config.canInteractWithObject !== false : true;
+        const canInteract = config
+          ? config.canInteractWithObject !== false
+          : true;
 
         if (canInteract) {
           // Pushing logic for non-grabbed objects
@@ -105,7 +111,8 @@ window.SensorRegistry["grip"] = {
 
                 // Transmit momentum
                 if (typeof robotDrive !== "undefined") {
-                  const v = 0.5 * (robotDrive.left.current + robotDrive.right.current);
+                  const v =
+                    0.5 * (robotDrive.left.current + robotDrive.right.current);
                   targetObj.vx += v * Math.cos(rad) * 0.8;
                   targetObj.vy += v * Math.sin(rad) * 0.8;
                 }
@@ -117,16 +124,17 @@ window.SensorRegistry["grip"] = {
     }
   },
   drawCanvas: function (svg, grip, globals, index) {
-    const isVisible = globals.sensorVisibility && globals.sensorVisibility["grip"] !== false;
+    const isVisible =
+      globals.sensorVisibility && globals.sensorVisibility["grip"] !== false;
     if (!isVisible) return;
 
     const rad = (globals.angle * Math.PI) / 180;
-    const localX = grip.x - 25;
-    const localY = grip.y - 25;
+    const localX = globals.robotWidth / 2 - (grip.x / 100) * globals.robotWidth;
+    const localY = (grip.y / 100) * globals.robotHeight;
     const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
     const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
-    const canvasX = globals.robotX + 25 + rotatedX;
-    const canvasY = globals.robotY + 25 + rotatedY;
+    const canvasX = globals.robotX + rotatedX;
+    const canvasY = globals.robotY + rotatedY;
     const globalAngle = globals.angle + (grip.angle || 0);
 
     const template = window.SensorTemplates && window.SensorTemplates["grip"];
@@ -165,17 +173,20 @@ window.SensorRegistry["grip"] = {
     }
   },
   getBounds: function (grip) {
+    const sx =
+      window.state.robotWidth / 2 - (grip.x / 100) * window.state.robotWidth;
+    const sy = (grip.y / 100) * window.state.robotHeight;
     const rad = ((grip.angle || 0) * Math.PI) / 180;
     const armLen = grip.armLength || 20;
     return [
-      { x: grip.x, y: grip.y },
+      { x: sx, y: sy },
       {
-        x: grip.x + Math.cos(rad) * armLen,
-        y: grip.y + Math.sin(rad) * armLen,
+        x: sx + Math.cos(rad) * armLen,
+        y: sy + Math.sin(rad) * armLen,
       },
       {
-        x: grip.x + Math.cos(rad) * (armLen + 10),
-        y: grip.y + Math.sin(rad) * (armLen + 10),
+        x: sx + Math.cos(rad) * (armLen + 10),
+        y: sy + Math.sin(rad) * (armLen + 10),
       },
     ];
   },

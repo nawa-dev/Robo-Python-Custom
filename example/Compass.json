@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "timestamp": "2026-03-22T07:09:18.331Z",
+  "timestamp": "2026-03-25T15:49:02.741Z",
   "projectName": "Compass",
   "canvas": {
     "width": "800",
@@ -9,15 +9,25 @@
   "map": {
     "type": "default",
     "imageData": "none",
-    "fileName": ""
+    "fileName": "Untitled.png"
   },
   "sensors": [
     {
-      "id": "compass_1774162976334",
       "type": "compass",
+      "index": 0,
+      "id": "compass_1774162976334",
       "name": "Compass 1",
-      "x": 25,
-      "y": 25
+      "x": 50,
+      "y": 0,
+      "isNew": false
+    },
+    {
+      "id": 1774453728360,
+      "type": "wheel",
+      "name": "Wheel",
+      "motorPos": 50,
+      "index": 0,
+      "isNew": false
     }
   ],
   "grips": [],
@@ -27,6 +37,14 @@
     "x": 374.79998779296875,
     "y": 273,
     "angle": 17.934807229770044,
-    "motorPos": 0
+    "motorPos": 50,
+    "width": 50,
+    "height": 50,
+    "color": "#ff4757",
+    "image": "",
+    "borderSize": 1,
+    "borderColor": "#333333",
+    "useMass": false,
+    "mass": 1
   }
 }

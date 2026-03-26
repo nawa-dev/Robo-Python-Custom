@@ -3,8 +3,8 @@ window.SensorRegistry["ultrasonic"] = {
     return {
       id,
       type: "ultrasonic",
-      x: 45,
-      y: 25,
+      x: 0,
+      y: 0,
       angle: 0,
       color: "#000000",
       name: `Ultra ${count}`,
@@ -17,9 +17,11 @@ window.SensorRegistry["ultrasonic"] = {
     if (template) {
       const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
       g.innerHTML = template;
+      const lx = (window.state.robotWidth / 2) - (sensor.x / 100) * window.state.robotWidth;
+      const ly = (sensor.y / 100) * window.state.robotHeight;
       g.setAttribute(
         "transform",
-        `translate(${sensor.x}, ${sensor.y}) rotate(${sensor.angle || 0})`,
+        `translate(${lx}, ${ly}) rotate(${sensor.angle || 0})`,
       );
       g.classList.add("sensor-circle");
       svg.appendChild(g);
@@ -41,12 +43,12 @@ window.SensorRegistry["ultrasonic"] = {
     const cos_a = Math.cos(rad);
     const sin_a = Math.sin(rad);
 
-    const localX = sensor.x - 25;
-    const localY = sensor.y - 25;
+    const localX = (globals.robotWidth / 2) - (sensor.x / 100) * globals.robotWidth;
+    const localY = (sensor.y / 100) * globals.robotHeight;
     const rotatedX = localX * cos_a - localY * sin_a;
     const rotatedY = localX * sin_a + localY * cos_a;
-    const canvasX = globals.robotX + 25 + rotatedX;
-    const canvasY = globals.robotY + 25 + rotatedY;
+    const canvasX = globals.robotX + rotatedX;
+    const canvasY = globals.robotY + rotatedY;
     const sensorGlobalAngle = globals.angle + (sensor.angle || 0);
 
     let dist = 800;
@@ -95,12 +97,14 @@ window.SensorRegistry["ultrasonic"] = {
     }
   },
   getBounds: function (sensor) {
+    const lx = (window.state.robotWidth / 2) - (sensor.x / 100) * window.state.robotWidth;
+    const ly = (sensor.y / 100) * window.state.robotHeight;
     const rad = ((sensor.angle || 0) * Math.PI) / 180;
     return [
-      { x: sensor.x, y: sensor.y },
+      { x: lx, y: ly },
       {
-        x: sensor.x + Math.cos(rad) * 15,
-        y: sensor.y + Math.sin(rad) * 15,
+        x: lx + Math.cos(rad) * 15,
+        y: ly + Math.sin(rad) * 15,
       },
     ];
   },

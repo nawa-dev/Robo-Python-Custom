@@ -29,7 +29,12 @@
         }
       }
     </script>
-    <link rel="icon" type="image/png" sizes="512x512" href="src/assets/img/icon.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="512x512"
+      href="src/assets/img/icon.png"
+    />
     <link rel="stylesheet" href="style/base.css" />
     <link rel="stylesheet" href="style/toolbar.css" />
     <link rel="stylesheet" href="style/buttons.css" />
@@ -374,6 +379,7 @@
                   height="160"
                 >
                   <rect
+                    id="robot-preview-body-rect"
                     x="0"
                     y="0"
                     width="50"
@@ -430,9 +436,11 @@
                     style="display: none"
                   ></rect>
                   <text
-                    x="25"
-                    y="-23"
+                    id="robot-preview-text"
+                    x="0"
+                    y="0"
                     text-anchor="middle"
+                    dominant-baseline="middle"
                     fill="white"
                     font-size="8"
                     font-weight="bold"
@@ -591,8 +599,9 @@
           <div id="canvas-area">
             <div
               id="robot"
-              style="left: 100px; top: 100px; transform: rotate(0deg)"
+              style="left: 400px; top: 300px; transform: rotate(0deg)"
             >
+              <div id="robot-bg"></div>
               <div class="wheel w-l"></div>
               <div class="wheel w-l-back" style="display: none"></div>
               <span

@@ -2,7 +2,7 @@
  * Dynamic Sensor Management System
  */
 
-let currentDevice = "light";
+let currentDevice = "Robot";
 window.SensorNextIndices = {};
 window.SensorSettings = {
   visibility: {},
@@ -39,8 +39,7 @@ window.renderSensorTabs = function () {
   if (!selectorContainer || !panelsContainer || !window.SensorConfigs) return;
 
   // Clear injected content except title
-  selectorContainer.innerHTML =
-    `<div class="device-selector-title" data-i18n="settings.devices">${window.i18n.t("settings.devices")}</div>`;
+  selectorContainer.innerHTML = `<div class="device-selector-title" data-i18n="settings.devices">${window.i18n.t("settings.devices")}</div>`;
   panelsContainer.innerHTML = "";
 
   let firstDevice = null;
@@ -86,12 +85,24 @@ window.renderSensorTabs = function () {
 
     // If singleton: true, inject auto-generated UI without add/delete flow.
     if (config.singleton === true) {
-      let inputsHtml = "";
+      const groups = {};
       if (config.inputs && Array.isArray(config.inputs)) {
         config.inputs.forEach((input) => {
+          const groupKey = input.group || "default";
+          if (!groups[groupKey]) groups[groupKey] = [];
+          groups[groupKey].push(input);
+        });
+      }
+
+      let groupCardsHtml = "";
+      Object.keys(groups).forEach((groupKey) => {
+        let inputsHtml = "";
+        groups[groupKey].forEach((input) => {
           const key = input.key || input.id;
           const defaultVal = input.default !== undefined ? input.default : "";
-          // Singleton values might be stored globally, rely on registry to handle it or use default
+          const currentVal =
+            state && state[key] !== undefined ? state[key] : defaultVal;
+
           if (input.type === "select") {
             inputsHtml += `
                 <div class="sensor-input-wrapper">
@@ -99,8 +110,29 @@ window.renderSensorTabs = function () {
                   <select class="sensor-input" 
                          id="singleton-${type}-${key}"
                          onchange="window.SensorRegistry['${type}'].updateValue('${key}', this.value)">
-                    ${(input.options || []).map(opt => `<option value="${opt.value}" ${opt.value == defaultVal ? "selected" : ""}>${window.i18n.t(`sensors.${type}.inputs.${opt.value}`) || opt.label}</option>`).join("")}
+                    ${(input.options || []).map((opt) => `<option value="${opt.value}" ${opt.value == currentVal ? "selected" : ""}>${window.i18n.t(`sensors.${type}.inputs.${opt.value}`) || opt.label}</option>`).join("")}
                   </select>
+                </div>
+              `;
+          } else if (input.type === "image-upload") {
+            inputsHtml += `
+                <div class="sensor-input-wrapper" style="grid-column: span 2;">
+                  <label>${window.i18n.t(`sensors.${type}.inputs.${key}`) || input.label}</label>
+                    <div class="image-upload-controls" style="display: flex; gap: 10px; align-items: center;">
+                      <input type="file" accept="image/*" style="display:none" id="file-${type}-${key}" 
+                             onchange="if(this.files[0] && this.files[0].size > 512 * 1024) { alert(window.i18n.t('sensors.common.max_reached').replace('{name}', 'File').replace('{limit}', '512KB') || 'File too large (max 512KB)'); return; } const r=new FileReader(); r.onload=(e)=>window.SensorRegistry['${type}'].updateValue('${key}', e.target.result); if(this.files[0]) r.readAsDataURL(this.files[0])" />
+                      <button class="btn btn-secondary" onclick="document.getElementById('file-${type}-${key}').click()" title="Upload">
+                        <i class="fas fa-upload"></i>
+                      </button>
+                      <div id="wrapper-${type}-${key}" class="image-preview-wrapper" style="display: ${currentVal ? "inline-block" : "none"};">
+                        <div id="preview-${type}-${key}" class="image-preview-box" style="background-image: ${currentVal ? `url('${currentVal}')` : "none"}"></div>
+                        <button class="btn btn-danger btn-badge-delete" 
+                                onclick="window.SensorRegistry['${type}'].updateValue('${key}', '')" 
+                                title="Remove">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
                 </div>
               `;
           } else {
@@ -109,27 +141,34 @@ window.renderSensorTabs = function () {
                   <label>${window.i18n.t(`sensors.${type}.inputs.${key}`) || input.label}</label>
                   <input type="${input.type || "number"}" class="sensor-input" 
                          id="singleton-${type}-${key}"
+                         ${input.type === "checkbox" ? (currentVal ? "checked" : "") : `value="${currentVal}"`}
                          min="${input.min !== undefined ? input.min : ""}" 
                          max="${input.max !== undefined ? input.max : ""}" 
-                         value="${defaultVal}" 
-                         onchange="window.SensorRegistry['${type}'].updateValue('${key}', this.value)" />
+                         onchange="window.SensorRegistry['${type}'].updateValue('${key}', this.type === 'checkbox' ? this.checked : this.value)" />
                 </div>
               `;
           }
         });
-      }
-      document.getElementById(`list-${type}`).innerHTML = `
-        <div class="sensor-panel-item">
-          <div class="sensor-panel-item-info">
-            <div class="sensor-panel-item-header">
-                <span class="sensor-panel-item-name">${window.i18n.t(`sensors.${type}.name`) || config.name}</span>
-            </div>
-            <div class="sensor-panel-inputs-grid">
-                ${inputsHtml.length > 0 ? inputsHtml : `<span>${window.i18n.t(`sensors.${type}.name`) || config.name} is active.</span>`}
+
+        const groupTitle =
+          window.i18n.t(`sensors.${type}.groups.${groupKey}`) || groupKey;
+        groupCardsHtml += `
+          <div class="sensor-panel-item" style="margin-bottom: 15px;">
+            <div class="sensor-panel-item-info">
+              <div class="sensor-panel-item-header">
+                  <span class="sensor-panel-item-name">${groupTitle}</span>
+              </div>
+              <div class="sensor-panel-inputs-grid">
+                  ${inputsHtml}
+              </div>
             </div>
           </div>
-        </div>
-      `;
+        `;
+      });
+
+      document.getElementById(`list-${type}`).innerHTML =
+        groupCardsHtml ||
+        `<span>${window.i18n.t(`sensors.${type}.name`) || config.name} is active.</span>`;
     }
   });
 
@@ -172,7 +211,9 @@ window.renderSensorTabs = function () {
 window.getSensorTargetArray = function (type) {
   const config = window.SensorConfigs[type];
   if (!config) return state.sensors;
-  return config.targetArray === "grips" ? state.grips : state.sensors;
+  if (config.targetArray === "grips") return state.grips;
+  if (config.targetArray === "canvasObjects") return state.canvasObjects;
+  return state.sensors;
 };
 
 // --- Add sensor ---
@@ -183,7 +224,8 @@ window.addDynamicSensor = function (type) {
   const targetArray = window.getSensorTargetArray(type);
 
   if (targetArray.filter((s) => s.type === type).length >= config.maxLimit) {
-    const msg = window.i18n.t("sensors.common.max_reached")
+    const msg = window.i18n
+      .t("sensors.common.max_reached")
       .replace("{name}", window.i18n.t(`sensors.${type}.name`) || config.name)
       .replace("{limit}", config.maxLimit);
     logToConsole(msg, "error");
@@ -213,7 +255,8 @@ window.addDynamicSensor = function (type) {
   updateSensorPreview();
   renderDynamicSensorsList(type);
   if (typeof updateSensorDots === "function") updateSensorDots();
-  const addedMsg = window.i18n.t("sensors.common.new_added")
+  const addedMsg = window.i18n
+    .t("sensors.common.new_added")
     .replace("{name}", window.i18n.t(`sensors.${type}.name`) || config.name);
   logToConsole(addedMsg, "info");
 };
@@ -234,8 +277,12 @@ window.deleteSensor = function (id, typeVal) {
     typedConfig.protectedIndex !== undefined &&
     sensor.index === typedConfig.protectedIndex
   ) {
-    const protMsg = window.i18n.t("sensors.common.protected")
-      .replace("{name}", window.i18n.t(`sensors.${type}.name`) || typedConfig.name);
+    const protMsg = window.i18n
+      .t("sensors.common.protected")
+      .replace(
+        "{name}",
+        window.i18n.t(`sensors.${type}.name`) || typedConfig.name,
+      );
     logToConsole(protMsg, "error");
     return;
   }
@@ -244,7 +291,8 @@ window.deleteSensor = function (id, typeVal) {
   const currentTyped = targetArray.filter((s) => s.type === type);
 
   if (currentTyped.length <= minLimit) {
-    const minMsg = window.i18n.t("sensors.common.min_required")
+    const minMsg = window.i18n
+      .t("sensors.common.min_required")
       .replace("{limit}", minLimit);
     logToConsole(minMsg, "error");
     return;
@@ -253,6 +301,8 @@ window.deleteSensor = function (id, typeVal) {
   // Perform deletion
   if (config && config.targetArray === "grips") {
     state.grips = state.grips.filter((g) => String(g.id) !== String(id));
+  } else if (config && config.targetArray === "canvasObjects") {
+    state.canvasObjects = state.canvasObjects.filter((o) => String(o.id) !== String(id));
   } else {
     state.sensors = state.sensors.filter((s) => String(s.id) !== String(id));
   }
@@ -291,18 +341,32 @@ window.updateSensorValueDOM = function (id, type, axis, value) {
     : null;
 
   if (inputConfig && inputConfig.type === "number") {
+    let min = inputConfig.min;
+    let max = inputConfig.max;
+    if (axis === "x") {
+      min = 0;
+      max = 100;
+    } else if (axis === "y") {
+      min = -50;
+      max = 50;
+    }
+
     if (
       isNaN(numValue) ||
-      numValue < inputConfig.min ||
-      numValue > inputConfig.max
+      (min !== undefined && numValue < min) ||
+      (max !== undefined && numValue > max)
     ) {
       logToConsole(
-        `Value must be between ${inputConfig.min} and ${inputConfig.max}!`,
+        `Value must be between ${min} and ${max}!`,
         "error",
       );
 
       // revert DOM
-      const inputId = `${config.targetArray === "grips" ? "grip" : "sensor"}-${id}-${axis}`;
+      let prefix = "sensor";
+      if (config.targetArray === "grips") prefix = "grip";
+      else if (config.targetArray === "canvasObjects") prefix = "object";
+      
+      const inputId = `${prefix}-${id}-${axis}`;
       const inputEl = document.getElementById(inputId);
       if (inputEl) inputEl.value = sensor[axis];
       return;
@@ -319,9 +383,15 @@ window.updateSensorValueDOM = function (id, type, axis, value) {
   updateSensorPreview();
   if (typeof updateSensorDots === "function") updateSensorDots();
 
-  const upMsg = window.i18n.t("sensors.common.updated")
+  const upMsg = window.i18n
+    .t("sensors.common.updated")
     .replace("{name}", window.i18n.t(`sensors.${type}.name`) || config.name)
-    .replace("{axis}", inputConfig ? (window.i18n.t(`sensors.${type}.inputs.${axis}`) || inputConfig.label) : axis)
+    .replace(
+      "{axis}",
+      inputConfig
+        ? window.i18n.t(`sensors.${type}.inputs.${axis}`) || inputConfig.label
+        : axis,
+    )
     .replace("{value}", value);
   logToConsole(upMsg, "info");
 };
@@ -338,15 +408,21 @@ window.updateSensorPreview = function () {
   const svg = document.getElementById("preview-svg");
   if (!svg) return;
 
+  // Ensure robot body is updated
+  if (typeof window.updateRobotPreview === "function")
+    window.updateRobotPreview();
+
   // Clear previous sensor elements
   svg.querySelectorAll(".sensor-circle").forEach((el) => el.remove());
   svg.querySelectorAll(".grip-preview-el").forEach((el) => el.remove());
 
   // Dynamic ViewBox Zoom: Calculate bounding box to fit all sensors + robot
-  let minX = 0,
-    minY = 0,
-    maxX = 50,
-    maxY = 50;
+  const halfW = (state.robotWidth || 50) / 2;
+  const halfH = (state.robotHeight || 50) / 2;
+  let minX = -halfW,
+    minY = -halfH,
+    maxX = halfW,
+    maxY = halfH;
 
   // Collect all sensors from all possible target arrays
   const allTargetArrays = new Set(["sensors", "grips"]); // Initial defaults
@@ -376,10 +452,12 @@ window.updateSensorPreview = function () {
 
     // 1. Basic position
     if (s.x !== undefined && s.y !== undefined) {
-      minX = Math.min(minX, s.x);
-      minY = Math.min(minY, s.y);
-      maxX = Math.max(maxX, s.x);
-      maxY = Math.max(maxY, s.y);
+      const px = state.robotWidth / 2 - (s.x / 100) * state.robotWidth;
+      const py = (s.y / 100) * state.robotHeight;
+      minX = Math.min(minX, px);
+      minY = Math.min(minY, py);
+      maxX = Math.max(maxX, px);
+      maxY = Math.max(maxY, py);
     }
 
     // 2. Dynamic bounding box from registry
@@ -435,7 +513,8 @@ window.renderDynamicSensorsList = function (type) {
 
   if (config.singleton === true) return; // Singleton devices are rendered inline at tab creation
 
-  const targetArray = window.getSensorTargetArray(type)
+  const targetArray = window
+    .getSensorTargetArray(type)
     .filter((s) => s.type === type)
     .sort((a, b) => (a.index || 0) - (b.index || 0));
   const countLabel = document.getElementById(`count-label-${type}`);
@@ -446,7 +525,8 @@ window.renderDynamicSensorsList = function (type) {
   if (addBtn) addBtn.disabled = targetArray.length >= config.maxLimit;
 
   if (targetArray.length === 0) {
-    const emptyMsg = window.i18n.t("sensors.common.empty")
+    const emptyMsg = window.i18n
+      .t("sensors.common.empty")
       .replace("{name}", window.i18n.t(`sensors.${type}.name`) || config.name)
       .replace("{limit}", config.maxLimit);
     container.innerHTML = `<div class="panel-empty-message">${emptyMsg}</div>`;
@@ -464,7 +544,7 @@ window.renderDynamicSensorsList = function (type) {
 
           let inputElHtml = "";
           const inputId = `${config.targetArray === "grips" ? "grip" : "sensor"}-${sensor.id}-${key}`;
-          
+
           if (input.type === "checkbox") {
             inputElHtml = `
               <input type="checkbox" class="sensor-checkbox" 
@@ -479,22 +559,33 @@ window.renderDynamicSensorsList = function (type) {
                       id="${inputId}"
                       onchange="window.updateSensorValueDOM('${sensor.id}', '${type}', '${key}', this.value)" 
                       onclick="event.stopPropagation()">
-                ${(input.options || []).map(opt => `<option value="${opt.value}" ${val === opt.value ? "selected" : ""}>${window.i18n.t(`sensors.${type}.inputs.${opt.value}`) || opt.label}</option>`).join("")}
+                ${(input.options || []).map((opt) => `<option value="${opt.value}" ${val === opt.value ? "selected" : ""}>${window.i18n.t(`sensors.${type}.inputs.${opt.value}`) || opt.label}</option>`).join("")}
               </select>
             `;
           } else {
+            let min = input.min;
+            let max = input.max;
+            if (key === "x") {
+              min = 0;
+              max = 100;
+            } else if (key === "y") {
+              min = -50;
+              max = 50;
+            }
+
             inputElHtml = `
               <input type="${input.type || "number"}" class="sensor-input" 
                      id="${inputId}"
-                     min="${input.min !== undefined ? input.min : ""}" 
-                     max="${input.max !== undefined ? input.max : ""}" 
+                     min="${min !== undefined ? min : ""}" 
+                     max="${max !== undefined ? max : ""}" 
                      value="${val}" 
                      onchange="window.updateSensorValueDOM('${sensor.id}', '${type}', '${key}', this.value)" 
                      onclick="event.stopPropagation()" />
             `;
           }
 
-          const labelText = window.i18n.t(`sensors.${type}.inputs.${key}`) || input.label;
+          const labelText =
+            window.i18n.t(`sensors.${type}.inputs.${key}`) || input.label;
           inputsHtml += `
             <div class="sensor-input-wrapper">
               <label>${labelText}</label>
@@ -512,14 +603,18 @@ window.renderDynamicSensorsList = function (type) {
               sensor.index !== undefined ? sensor.index : index,
             )
           : `${window.i18n.t(`sensors.${type}.name`) || config.name.toUpperCase()} ${sensor.index !== undefined ? sensor.index : index}`;
-      
+
       // Special case: if getDisplayName returns a key that we can translate
       if (type === "wheel") {
-          if (displayName === "FRONT WHEEL") displayName = window.i18n.t("sensors.wheel.front");
-          if (displayName === "BACK WHEEL") displayName = window.i18n.t("sensors.wheel.back");
+        if (displayName === "FRONT WHEEL")
+          displayName = window.i18n.t("sensors.wheel.front");
+        if (displayName === "BACK WHEEL")
+          displayName = window.i18n.t("sensors.wheel.back");
       }
 
-      const isProtected = config.protectedIndex !== undefined && sensor.index === config.protectedIndex;
+      const isProtected =
+        config.protectedIndex !== undefined &&
+        sensor.index === config.protectedIndex;
 
       return `
         <div class="sensor-panel-item" id="sensor-item-${type}-${sensor.id}">
@@ -554,11 +649,11 @@ window.renderSensorsList = function () {
 
 // --- Language Change Listener ---
 window.addEventListener("langChanged", () => {
-    // Re-render both tabs (for category names) and current list (for labels)
-    renderSensorTabs();
-    if (typeof currentDevice !== "undefined") {
-        renderDynamicSensorsList(currentDevice);
-    } else {
-        renderSensorsList();
-    }
+  // Re-render both tabs (for category names) and current list (for labels)
+  renderSensorTabs();
+  if (typeof currentDevice !== "undefined") {
+    renderDynamicSensorsList(currentDevice);
+  } else {
+    renderSensorsList();
+  }
 });

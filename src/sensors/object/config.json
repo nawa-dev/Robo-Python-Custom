@@ -1,0 +1,9 @@
+{
+  "name": "Object",
+  "icon": "fas fa-cube",
+  "singleton": true,
+  "inputs": [
+    { "key": "objectMass", "label": "Mass", "type": "number", "min": 0.1, "max": 100, "default": 1.0 },
+    { "key": "objectFriction", "label": "Friction", "type": "number", "min": 0.01, "max": 0.99, "default": 0.4 }
+  ]
+}

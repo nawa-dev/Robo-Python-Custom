@@ -154,7 +154,11 @@
         }
       },
       "compass": {
-        "name": "เข็มทิศ"
+        "name": "เข็มทิศ",
+        "inputs": {
+          "x": "แกน X",
+          "y": "แกน Y"
+        }
       },
       "grip": {
         "name": "ตัวคีบ",
@@ -163,6 +167,31 @@
           "y": "แกน Y",
           "angle": "มุม ∠",
           "armLength": "ระยะยืด"
+        }
+      },
+      "robot": {
+        "name": "หุ่นยนต์",
+        "groups": {
+          "dimensions": "ขนาดตัวเครื่อง",
+          "appearance": "รูปลักษณ์",
+          "physics": "ฟิสิกส์"
+        },
+        "inputs": {
+          "robotWidth": "ความกว้าง",
+          "robotHeight": "ความยาว/สูง",
+          "robotColor": "สีตัวเครื่อง",
+          "robotImage": "รูปภาพ",
+          "robotBorderSize": "ขนาดเส้นขอบ",
+          "robotBorderColor": "สีเส้นขอบ",
+          "robotUseMass": "เปิดใช้งานน้ำหนัก",
+          "robotMass": "น้ำหนัก (กก.)"
+        }
+      },
+      "object": {
+        "name": "วัตถุ",
+        "inputs": {
+          "objectMass": "น้ำหนักวัตถุ (กก.)",
+          "objectFriction": "แรงเสียดทานวัตถุ"
         }
       },
       "common": {
@@ -347,7 +376,11 @@
         }
       },
       "compass": {
-        "name": "Compass"
+        "name": "Compass",
+        "inputs": {
+          "x": "X-axis",
+          "y": "Y-axis"
+        }
       },
       "grip": {
         "name": "Gripper",
@@ -356,6 +389,31 @@
           "y": "Y-axis",
           "angle": "Angle ∠",
           "armLength": "Arm Length"
+        }
+      },
+      "robot": {
+        "name": "Robot",
+        "groups": {
+          "dimensions": "Dimensions",
+          "appearance": "Appearance",
+          "physics": "Physics"
+        },
+        "inputs": {
+          "robotWidth": "Width",
+          "robotHeight": "Height",
+          "robotColor": "Color",
+          "robotImage": "Image",
+          "robotBorderSize": "Border Size",
+          "robotBorderColor": "Border Color",
+          "robotUseMass": "Enable Mass",
+          "robotMass": "Mass (kg)"
+        }
+      },
+      "object": {
+        "name": "Object",
+        "inputs": {
+          "objectMass": "Object Mass (kg)",
+          "objectFriction": "Object Friction"
         }
       },
       "common": {

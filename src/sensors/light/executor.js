@@ -22,7 +22,14 @@ if (window.SensorRegistry["light"]) {
                 const registry = window.SensorRegistry["light"];
                 let result = 0;
                 if (registry && typeof registry.read === "function") {
-                    result = registry.read(s, { robotX: state.robotX, robotY: state.robotY, angle: state.angle, motorPos: state.motorPos });
+                    result = registry.read(s, { 
+                        robotX: state.robotX, 
+                        robotY: state.robotY, 
+                        angle: state.angle, 
+                        motorPos: state.motorPos,
+                        robotWidth: state.robotWidth,
+                        robotHeight: state.robotHeight
+                    });
                 }
                 resolve(new Sk.builtin.int_(result));
             }, 0);

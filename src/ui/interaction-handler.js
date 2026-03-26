@@ -171,14 +171,18 @@ window.addEventListener("mousemove", (e) => {
   if (!canvasArea) return;
   
   const pos = screenToCanvas(e.clientX, e.clientY);
-  let nextX = pos.x - 25;
-  let nextY = pos.y - 25;
+  let nextX = pos.x;
+  let nextY = pos.y;
 
-  const maxX = canvasArea.offsetWidth - 50;
-  const maxY = canvasArea.offsetHeight - 50;
+  const halfWidth = state.robotWidth / 2;
+  const halfHeight = state.robotHeight / 2;
+  const minX = halfWidth;
+  const minY = halfHeight;
+  const maxX = canvasArea.offsetWidth - halfWidth;
+  const maxY = canvasArea.offsetHeight - halfHeight;
 
-  state.robotX = Math.max(0, Math.min(nextX, maxX));
-  state.robotY = Math.max(0, Math.min(nextY, maxY));
+  state.robotX = Math.max(minX, Math.min(nextX, maxX));
+  state.robotY = Math.max(minY, Math.min(nextY, maxY));
 
   if (typeof updateRobotDOM === "function") updateRobotDOM();
 });

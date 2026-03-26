@@ -42,6 +42,16 @@ function createProjectData() {
       y: state.robotY,
       angle: state.angle,
       motorPos: state.motorPos, // Keep for backward compat if needed, though we use sensors now
+      width: state.robotWidth,
+      height: state.robotHeight,
+      color: state.robotColor,
+      image: state.robotImage,
+      borderSize: state.robotBorderSize,
+      robotBorderColor: state.robotBorderColor,
+      robotUseMass: state.robotUseMass,
+      robotMass: state.robotMass,
+      objectMass: state.objectMass,
+      objectFriction: state.objectFriction,
     },
   };
 }
@@ -266,6 +276,20 @@ function applyProjectData(projectData) {
   state.robotY = rs.y || 100;
   state.angle = rs.angle || 0;
   state.motorPos = rs.motorPos || 0;
+
+  // Restore customization
+  state.robotWidth = rs.width || 50;
+  state.robotHeight = rs.height || 50;
+  state.robotColor = rs.color || "#ff4757";
+  state.robotImage = rs.image || "";
+  state.robotBorderSize = rs.borderSize !== undefined ? rs.borderSize : 1;
+  state.robotBorderColor = rs.borderColor || "#333333";
+  state.robotUseMass = rs.useMass || false;
+  state.robotMass = rs.mass || 1.0;
+  
+  state.objectMass = projectData.objectMass !== undefined ? projectData.objectMass : 1.0;
+  state.objectFriction = projectData.objectFriction !== undefined ? projectData.objectFriction : 0.92;
+
   updateRobotDOM();
   // Ensure at least one wheel exists if none in project
   if (state.sensors.filter(s => s.type === "wheel").length === 0) {
@@ -274,7 +298,9 @@ function applyProjectData(projectData) {
   if (typeof syncWheelDOM === "function") syncWheelDOM();
 
   currentProjectName = projectData.projectName || "Untitled Project";
-  // updateStatusBar();
+  
+  // Re-render tabs to ensure singletons (like robot image) reflect the new state
+  if (typeof renderSensorTabs === "function") renderSensorTabs();
 }
 
 /**

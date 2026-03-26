@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "timestamp": "2026-01-20T02:50:25.665Z",
+  "timestamp": "2026-03-25T15:51:25.694Z",
   "projectName": "sampleSetupPython",
   "canvas": {
     "width": "800",
@@ -13,29 +13,59 @@
   },
   "sensors": [
     {
+      "type": "light",
+      "index": 0,
       "id": 1766739136338,
-      "x": 45,
-      "y": 15,
-      "name": "Light Sensor 1"
+      "x": 0,
+      "y": -20,
+      "name": "Light Sensor 1",
+      "isNew": false,
+      "value": 1024
     },
     {
+      "type": "light",
+      "index": 1,
       "id": 1766739521361,
-      "x": 45,
-      "y": 35,
-      "name": "Light Sensor 2"
+      "x": 0,
+      "y": 0,
+      "name": "Light Sensor 2",
+      "isNew": false,
+      "value": 1024
     },
     {
+      "type": "light",
+      "index": 2,
       "id": 1767546923902,
-      "x": 45,
-      "y": 25,
-      "name": "Light Sensor 3"
+      "x": 0,
+      "y": 20,
+      "name": "Light Sensor 3",
+      "isNew": false,
+      "value": 1024
+    },
+    {
+      "id": 1774453862270,
+      "type": "wheel",
+      "name": "Wheel",
+      "motorPos": 50,
+      "index": 0,
+      "isNew": false
     }
   ],
+  "grips": [],
+  "canvasObjects": [],
   "sourceCode": "# ===============================\n# PID Line Following Robot\n# ===============================\n\nprint(\"System Ready\")\n\n# รอกดปุ่มเริ่ม (SW1)\nwaitSW(1)\nprint(\"Robot Starting\")\n\n# ---------- PID PARAM ----------\nKp = 0.6      # แรงเลี้ยว\nKi = 0.0      # Integral (เริ่ม 0)\nKd = 0.3      # ลดการสั่น\n\nbaseSpeed = 50\n\nerror = 0\nlastError = 0\nintegral = 0\n# -------------------------------\n\nwhile True:\n\n    # อ่านค่าเซนเซอร์\n    lineL = analogRead(0)   # ซ้าย\n    lineC = analogRead(2)   # กลาง (ยังไม่ใช้)\n    lineR = analogRead(1)   # ขวา\n\n    # คำนวณ error\n    # ขวาเจอเส้นมาก → เลี้ยวขวา\n    # ซ้ายเจอเส้นมาก → เลี้ยวซ้าย\n    error = lineR - lineL\n\n    # ---------- PID ----------\n    integral += error\n    derivative = error - lastError\n\n    correction = (\n        Kp * error +\n        Ki * integral +\n        Kd * derivative\n    )\n\n    lastError = error\n    # -------------------------\n\n    # คำนวณความเร็วล้อ\n    leftSpeed  = baseSpeed + correction\n    rightSpeed = baseSpeed - correction\n\n    # จำกัดความเร็ว 0–100\n    leftSpeed  = max(0, min(100, leftSpeed))\n    rightSpeed = max(0, min(100, rightSpeed))\n\n    # สั่งมอเตอร์\n    motor(leftSpeed, rightSpeed)\n\n    # ปุ่มหยุดฉุกเฉิน\n    if SW(3):\n        motor(0, 0)\n        print(\"Emergency Stop\")\n        break\n\n    delay(1)   # หน่วงเวลาเล็กน้อย\n",
   "robotState": {
-    "x": 443.8842211844034,
-    "y": 252.08643483339705,
-    "angle": 36.73580078859547,
-    "motorPos": 0
+    "x": 374.79998779296875,
+    "y": 273,
+    "angle": 17.934807229770044,
+    "motorPos": 50,
+    "width": 50,
+    "height": 50,
+    "color": "#ff4757",
+    "image": "",
+    "borderSize": 1,
+    "borderColor": "#333333",
+    "useMass": false,
+    "mass": 1
   }
 }

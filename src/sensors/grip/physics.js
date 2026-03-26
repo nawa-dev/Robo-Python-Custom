@@ -6,14 +6,14 @@ window.grabObject = function (index = 0) {
   const cos_a = Math.cos(rad);
   const sin_a = Math.sin(rad);
 
-  // หาตำแหน่ง global ของกริปที่ต้องการ
+  // Find global position of the grip using percentage-based local coordinates
   const grip = state.grips[index];
-  const localX = grip.x - 25;
-  const localY = grip.y - 25;
+  const localX = state.robotWidth / 2 - (grip.x / 100) * state.robotWidth;
+  const localY = (grip.y / 100) * state.robotHeight;
   const rotatedX = localX * cos_a - localY * sin_a;
   const rotatedY = localX * sin_a + localY * cos_a;
-  const gripCanvasX = state.robotX + 25 + rotatedX;
-  const gripCanvasY = state.robotY + 25 + rotatedY;
+  const gripCanvasX = state.robotX + rotatedX;
+  const gripCanvasY = state.robotY + rotatedY;
   
   const gripGlobalAngle = (state.angle + (grip.angle || 0)) * (Math.PI / 180);
   const armLen = grip.armLength || 20;
@@ -22,11 +22,11 @@ window.grabObject = function (index = 0) {
   const tipY = gripCanvasY + totalLen * Math.sin(gripGlobalAngle);
 
   let closestObj = null;
-  let closestDist = 19; // รัศมีวัตถุ (15) + ระยะผลัก (2) + ระยะจับที่มากกว่า (2)
+  let closestDist = 22; // Extended slightly for reliability (Radius 15 + buffer)
 
   if (typeof state.canvasObjects !== "undefined" && state.canvasObjects) {
     state.canvasObjects.forEach((obj) => {
-      // ข้ามวัตถุที่ถูกจับโดยกริปอื่นอยู่แล้ว
+      // Skip objects already grabbed
       if (state.grabbedObjects.includes(obj)) return;
 
       const dx = obj.x - tipX;
@@ -52,26 +52,26 @@ window.releaseObject = function (index = 0) {
     const obj = state.grabbedObjects[index];
     obj.isGrabbed = false;
 
-    // ปล่อยวัตถุไว้ที่ตำแหน่งกริป (บวกระยะยื่นเล็กน้อย)
+    // Release at grip position
     const grip = state.grips[index];
     const armLen = grip.armLength || 20;
     const totalLen = armLen + 10; // Arm + Jaws
     const gripGlobalAngle = (state.angle + (grip.angle || 0)) * (Math.PI / 180);
 
-    // Calculate tip position again to ensure it's released exactly at the current tip
     const rad = (state.angle * Math.PI) / 180;
-    const localX = grip.x - 25;
-    const localY = grip.y - 25;
+    const localX = state.robotWidth / 2 - (grip.x / 100) * state.robotWidth;
+    const localY = (grip.y / 100) * state.robotHeight;
     const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
     const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
-    const gripCanvasX = state.robotX + 25 + rotatedX;
-    const gripCanvasY = state.robotY + 25 + rotatedY;
+    const gripCanvasX = state.robotX + rotatedX;
+    const gripCanvasY = state.robotY + rotatedY;
     
     obj.x = gripCanvasX + totalLen * Math.cos(gripGlobalAngle);
     obj.y = gripCanvasY + totalLen * Math.sin(gripGlobalAngle);
 
-    obj.vx = 0;
-    obj.vy = 0;
+    const robotV = 0.5 * (window.physics.left.current + window.physics.right.current);
+    obj.vx = robotV * Math.cos((state.angle * Math.PI) / 180);
+    obj.vy = robotV * Math.sin((state.angle * Math.PI) / 180);
 
     state.grabbedObjects[index] = null;
     if (typeof updateObjectsDOM === "function") updateObjectsDOM();

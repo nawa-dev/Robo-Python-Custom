@@ -3,11 +3,17 @@
  * ใช้สำหรับจัดเก็บค่าพื้นฐานที่ทุกส่วนของโปรแกรมต้องเข้าถึงร่วมกัน
  */
 
+// Initialize Sensor Registries early to avoid race conditions
+window.SensorRegistry = window.SensorRegistry || {};
+window.SensorTemplates = window.SensorTemplates || {};
+window.SensorPreviewTemplates = window.SensorPreviewTemplates || {};
+window.SensorConfigs = window.SensorConfigs || {};
+
 class SimulationState {
   constructor() {
     // --- 2. สถานะตำแหน่งและทิศทางของหุ่นยนต์ ---
-    this.robotX = 100;
-    this.robotY = 100;
+    this.robotX = 400; // Center of default 800x600 canvas
+    this.robotY = 300;
     this.angle = 0;
 
     // --- 3. สถานะการทำงานของมอเตอร์ ---
@@ -24,7 +30,9 @@ class SimulationState {
     this.myInterpreter = null;
 
     // --- 5. ระบบเซนเซอร์ ---
-    this.sensors = [];
+    this.sensors = [
+        { id: "robot_instance", type: "robot", index: 0 }
+    ];
     
     // --- 8. ระบบ Grip ---
     this.grips = [];
@@ -42,6 +50,20 @@ class SimulationState {
     this.cameraX = 0;
     this.cameraY = 0;
     this.dragMode = false;
+
+    // --- 10. ระบบปรับแต่งหุ่นยนต์ ---
+    this.robotWidth = 50;
+    this.robotHeight = 50;
+    this.robotColor = "#ff4757";
+    this.robotImage = "";
+    this.robotBorderSize = 1;
+    this.robotBorderColor = "#333333";
+    this.robotUseMass = false;
+    this.robotMass = 1.0;
+
+    // --- 11. ระบบปรับแต่งวัตถุ (Defaults for dragged objects) ---
+    this.objectMass = 1.0;
+    this.objectFriction = 0.92;
 
     // --- Legacy / Others ---
     this.motorPos = 0;
