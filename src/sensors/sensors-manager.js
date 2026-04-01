@@ -2,17 +2,33 @@
  * Dynamic Sensor Management System
  */
 
+import { getSensorPlugin, state } from "../core/index.js";
+import { logToConsole } from "../ui/ui-manager.js";
+
+function getPlugin(type) {
+  return getSensorPlugin(type) || window.SensorRegistry[type];
+}
+
+function updateSingletonSensorValue(type, key, value) {
+  const plugin = getPlugin(type);
+  if (plugin && typeof plugin.updateValue === "function") {
+    plugin.updateValue(key, value);
+  }
+}
+
 let currentDevice = "Robot";
 window.SensorNextIndices = {};
 window.SensorSettings = {
   visibility: {},
 };
 
+window.updateSingletonSensorValue = updateSingletonSensorValue;
+
 window.toggleSensorVisibility = function (type, enabled) {
   if (!window.SensorSettings.visibility) window.SensorSettings.visibility = {};
   window.SensorSettings.visibility[type] = enabled;
-  if (typeof updateSensorDots === "function") updateSensorDots();
-  if (typeof updateSensorPreview === "function") updateSensorPreview();
+  if (typeof window.updateSensorDots === "function") window.updateSensorDots();
+  if (typeof window.updateSensorPreview === "function") window.updateSensorPreview();
 };
 
 window.selectDevice = function (type) {
@@ -28,7 +44,7 @@ window.selectDevice = function (type) {
     btn.classList.toggle("active", btn.id === `dev-btn-${type}`);
   });
 
-  renderDynamicSensorsList(type);
+  window.renderDynamicSensorsList(type);
 };
 
 // Render the device selector buttons and panels based on loaded configs
@@ -56,7 +72,7 @@ window.renderSensorTabs = function () {
     btn.className = "device-btn";
     const sensorName = window.i18n.t(`sensors.${type}.name`) || config.name;
     btn.innerHTML = `<i class="${config.icon || "fas fa-plug"}"></i> ${sensorName}`;
-    btn.onclick = () => selectDevice(type);
+    btn.onclick = () => window.selectDevice(type);
     selectorContainer.appendChild(btn);
 
     // 2. Create Panel Container
@@ -69,7 +85,7 @@ window.renderSensorTabs = function () {
     let addBtnHtml = "";
     if (!config.singleton) {
       const addText = window.i18n.t("sensors.common.add");
-      addBtnHtml = `<button class="btn-panel-add" id="btn-add-${type}" onclick="addDynamicSensor('${type}')">${addText}</button>`;
+      addBtnHtml = `<button class="btn-panel-add" id="btn-add-${type}" onclick="window.addDynamicSensor('${type}')">${addText}</button>`;
     }
 
     const displayName = window.i18n.t(`sensors.${type}.name`) || config.name;
@@ -109,7 +125,7 @@ window.renderSensorTabs = function () {
                   <label>${window.i18n.t(`sensors.${type}.inputs.${key}`) || input.label}</label>
                   <select class="sensor-input" 
                          id="singleton-${type}-${key}"
-                         onchange="window.SensorRegistry['${type}'].updateValue('${key}', this.value)">
+                         onchange="window.updateSingletonSensorValue('${type}', '${key}', this.value)">
                     ${(input.options || []).map((opt) => `<option value="${opt.value}" ${opt.value == currentVal ? "selected" : ""}>${window.i18n.t(`sensors.${type}.inputs.${opt.value}`) || opt.label}</option>`).join("")}
                   </select>
                 </div>
@@ -120,14 +136,14 @@ window.renderSensorTabs = function () {
                   <label>${window.i18n.t(`sensors.${type}.inputs.${key}`) || input.label}</label>
                     <div class="image-upload-controls" style="display: flex; gap: 10px; align-items: center;">
                       <input type="file" accept="image/*" style="display:none" id="file-${type}-${key}" 
-                             onchange="if(this.files[0] && this.files[0].size > 512 * 1024) { alert(window.i18n.t('sensors.common.max_reached').replace('{name}', 'File').replace('{limit}', '512KB') || 'File too large (max 512KB)'); return; } const r=new FileReader(); r.onload=(e)=>window.SensorRegistry['${type}'].updateValue('${key}', e.target.result); if(this.files[0]) r.readAsDataURL(this.files[0])" />
+                             onchange="if(this.files[0] && this.files[0].size > 512 * 1024) { alert(window.i18n.t('sensors.common.max_reached').replace('{name}', 'File').replace('{limit}', '512KB') || 'File too large (max 512KB)'); return; } const r=new FileReader(); r.onload=(e)=>window.updateSingletonSensorValue('${type}', '${key}', e.target.result); if(this.files[0]) r.readAsDataURL(this.files[0])" />
                       <button class="btn btn-secondary" onclick="document.getElementById('file-${type}-${key}').click()" title="Upload">
                         <i class="fas fa-upload"></i>
                       </button>
                       <div id="wrapper-${type}-${key}" class="image-preview-wrapper" style="display: ${currentVal ? "inline-block" : "none"};">
                         <div id="preview-${type}-${key}" class="image-preview-box" style="background-image: ${currentVal ? `url('${currentVal}')` : "none"}"></div>
                         <button class="btn btn-danger btn-badge-delete" 
-                                onclick="window.SensorRegistry['${type}'].updateValue('${key}', '')" 
+                                onclick="window.updateSingletonSensorValue('${type}', '${key}', '')" 
                                 title="Remove">
                           <i class="fas fa-times"></i>
                         </button>
@@ -144,7 +160,7 @@ window.renderSensorTabs = function () {
                          ${input.type === "checkbox" ? (currentVal ? "checked" : "") : `value="${currentVal}"`}
                          min="${input.min !== undefined ? input.min : ""}" 
                          max="${input.max !== undefined ? input.max : ""}" 
-                         onchange="window.SensorRegistry['${type}'].updateValue('${key}', this.type === 'checkbox' ? this.checked : this.value)" />
+                         onchange="window.updateSingletonSensorValue('${type}', '${key}', this.type === 'checkbox' ? this.checked : this.value)" />
                 </div>
               `;
           }
@@ -173,7 +189,7 @@ window.renderSensorTabs = function () {
   });
 
   if (firstDevice) {
-    selectDevice(firstDevice);
+    window.selectDevice(firstDevice);
   }
 
   // --- Dynamic Preview Toggles ---
@@ -219,7 +235,8 @@ window.getSensorTargetArray = function (type) {
 // --- Add sensor ---
 window.addDynamicSensor = function (type) {
   const config = window.SensorConfigs[type];
-  if (!config || !window.SensorRegistry[type]) return;
+  const plugin = getPlugin(type);
+  if (!config || !plugin) return;
 
   const targetArray = window.getSensorTargetArray(type);
 
@@ -248,13 +265,13 @@ window.addDynamicSensor = function (type) {
   }
 
   const index = window.SensorNextIndices[type]++;
-  const newSensor = window.SensorRegistry[type].create(id, index);
+  const newSensor = plugin.create(id, index);
   newSensor.index = index;
   targetArray.push(newSensor);
 
-  updateSensorPreview();
-  renderDynamicSensorsList(type);
-  if (typeof updateSensorDots === "function") updateSensorDots();
+  window.updateSensorPreview();
+  window.renderDynamicSensorsList(type);
+  if (typeof window.updateSensorDots === "function") window.updateSensorDots();
   const addedMsg = window.i18n
     .t("sensors.common.new_added")
     .replace("{name}", window.i18n.t(`sensors.${type}.name`) || config.name);
@@ -321,9 +338,9 @@ window.deleteSensor = function (id, typeVal) {
       ) + 1;
   }
 
-  updateSensorPreview();
-  renderDynamicSensorsList(type);
-  if (typeof updateSensorDots === "function") updateSensorDots();
+  window.updateSensorPreview();
+  window.renderDynamicSensorsList(type);
+  if (typeof window.updateSensorDots === "function") window.updateSensorDots();
   logToConsole(window.i18n.t("sensors.common.deleted"), "info");
 };
 
@@ -380,8 +397,8 @@ window.updateSensorValueDOM = function (id, type, axis, value) {
   }
 
   sensor.isNew = false;
-  updateSensorPreview();
-  if (typeof updateSensorDots === "function") updateSensorDots();
+  window.updateSensorPreview();
+  if (typeof window.updateSensorDots === "function") window.updateSensorDots();
 
   const upMsg = window.i18n
     .t("sensors.common.updated")
@@ -397,7 +414,7 @@ window.updateSensorValueDOM = function (id, type, axis, value) {
 };
 window.updateSensorValue = function (id, axis, value) {
   const s = state.sensors.find((x) => x.id === id);
-  if (s) updateSensorValueDOM(id, s.type, axis, value);
+  if (s) window.updateSensorValueDOM(id, s.type, axis, value);
 };
 
 // =============================================
@@ -448,7 +465,7 @@ window.updateSensorPreview = function () {
   });
 
   visibleSensors.forEach((s) => {
-    const registry = window.SensorRegistry[s.type];
+    const registry = getPlugin(s.type);
 
     // 1. Basic position
     if (s.x !== undefined && s.y !== undefined) {
@@ -494,7 +511,7 @@ window.updateSensorPreview = function () {
     );
     if (!isVisible) return;
 
-    const registry = window.SensorRegistry[sensor.type];
+    const registry = getPlugin(sensor.type);
     if (registry && registry.drawPreview) {
       registry.drawPreview(svg, sensor);
     }
@@ -595,7 +612,7 @@ window.renderDynamicSensorsList = function (type) {
         });
       }
 
-      const registry = window.SensorRegistry[type];
+      const registry = getPlugin(type);
       let displayName =
         registry && registry.getDisplayName
           ? registry.getDisplayName(
@@ -642,7 +659,7 @@ window.renderDynamicSensorsList = function (type) {
 window.renderSensorsList = function () {
   if (window.SensorConfigs) {
     Object.keys(window.SensorConfigs).forEach((type) => {
-      renderDynamicSensorsList(type);
+      window.renderDynamicSensorsList(type);
     });
   }
 };
@@ -650,10 +667,39 @@ window.renderSensorsList = function () {
 // --- Language Change Listener ---
 window.addEventListener("langChanged", () => {
   // Re-render both tabs (for category names) and current list (for labels)
-  renderSensorTabs();
+  window.renderSensorTabs();
   if (typeof currentDevice !== "undefined") {
-    renderDynamicSensorsList(currentDevice);
+    window.renderDynamicSensorsList(currentDevice);
   } else {
-    renderSensorsList();
+    window.renderSensorsList();
   }
 });
+
+const sensorsManagerApi = {
+  addDynamicSensor: window.addDynamicSensor,
+  deleteSensor: window.deleteSensor,
+  getSensorTargetArray: window.getSensorTargetArray,
+  renderDynamicSensorsList: window.renderDynamicSensorsList,
+  renderSensorsList: window.renderSensorsList,
+  renderSensorTabs: window.renderSensorTabs,
+  selectDevice: window.selectDevice,
+  toggleSensorVisibility: window.toggleSensorVisibility,
+  updateSensorPreview: window.updateSensorPreview,
+  updateSensorValue: window.updateSensorValue,
+  updateSensorValueDOM: window.updateSensorValueDOM,
+  updateSingletonSensorValue: window.updateSingletonSensorValue,
+};
+
+const renderDynamicSensorsList = (...args) =>
+  window.renderDynamicSensorsList(...args);
+const renderSensorsList = (...args) => window.renderSensorsList(...args);
+const renderSensorTabs = (...args) => window.renderSensorTabs(...args);
+const updateSensorPreview = (...args) => window.updateSensorPreview(...args);
+
+export {
+  sensorsManagerApi,
+  renderDynamicSensorsList,
+  renderSensorsList,
+  renderSensorTabs,
+  updateSensorPreview,
+};

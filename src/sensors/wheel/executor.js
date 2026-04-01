@@ -1,2 +1,3 @@
-// Wheel sensor currently uses core motor() API.
-// No sensor-specific Python API registration needed yet.
+export function registerWheelPythonAPI() {
+  // Wheel sensor currently uses core motor() API.
+}

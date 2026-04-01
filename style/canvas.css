@@ -36,6 +36,8 @@
   height: 50px;
   background: #ff4757;
   position: absolute;
+  will-change: transform;
+  backface-visibility: hidden;
   border-radius: 4px;
   border: 2px solid #333;
   cursor: grab;

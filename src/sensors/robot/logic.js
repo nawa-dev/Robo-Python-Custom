@@ -1,19 +1,18 @@
 const state = window.state;
 
-window.SensorRegistry["robot"] = {
-  create: function (id, count) {
+const robotPlugin = {
+  create: function (id) {
     return {
       id,
       type: "robot",
     };
   },
-  drawPreview: function (svg, sensor) {
+  drawPreview: function () {
     if (typeof updateRobotPreview === "function") {
       updateRobotPreview();
     }
   },
   updateValue: function (key, value) {
-    // Singleton updates global state directly
     if (
       key === "robotWidth" ||
       key === "robotHeight" ||
@@ -27,10 +26,9 @@ window.SensorRegistry["robot"] = {
       state[key] = value;
     }
 
-    // Update the image preview div if it exists
     if (key === "robotImage") {
-      const previewDiv = document.getElementById(`preview-robot-robotImage`);
-      const wrapperDiv = document.getElementById(`wrapper-robot-robotImage`);
+      const previewDiv = document.getElementById("preview-robot-robotImage");
+      const wrapperDiv = document.getElementById("wrapper-robot-robotImage");
       if (previewDiv) {
         previewDiv.style.backgroundImage = value ? `url('${value}')` : "none";
       }
@@ -39,17 +37,22 @@ window.SensorRegistry["robot"] = {
       }
     }
 
-    // Trigger UI updates
-    if (typeof updateRobotDOM === "function") updateRobotDOM();
-    if (typeof updateSensorDots === "function") updateSensorDots();
-    if (typeof updateSensorPreview === "function") updateSensorPreview();
+    if (typeof updateRobotDOM === "function") {
+      updateRobotDOM();
+    }
+    if (typeof updateSensorDots === "function") {
+      updateSensorDots();
+    }
+    if (typeof updateSensorPreview === "function") {
+      updateSensorPreview();
+    }
 
     if (key === "robotWidth" || key === "robotHeight") {
-      // Re-render all sensor lists to update min/max constraints in UI
       if (window.SensorConfigs) {
         Object.keys(window.SensorConfigs).forEach((type) => {
-          if (typeof renderDynamicSensorsList === "function")
+          if (typeof renderDynamicSensorsList === "function") {
             renderDynamicSensorsList(type);
+          }
         });
       }
     }
@@ -58,9 +61,10 @@ window.SensorRegistry["robot"] = {
 
 function updateRobotPreview() {
   const svg = document.getElementById("preview-svg");
-  if (!svg) return;
+  if (!svg) {
+    return;
+  }
 
-  // Define pattern for robot image in SVG
   let defs = svg.querySelector("defs");
   if (!defs) {
     defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
@@ -95,7 +99,7 @@ function updateRobotPreview() {
       img.setAttribute("width", "1");
       img.setAttribute("height", "1");
       img.setAttribute("preserveAspectRatio", "none");
-      img.setAttribute("transform", "rotate(90, 0.5, 0.5)"); // Rotate image 90 degrees
+      img.setAttribute("transform", "rotate(90, 0.5, 0.5)");
       img.setAttribute("href", state.robotImage);
       img.setAttributeNS(
         "http://www.w3.org/1999/xlink",
@@ -110,7 +114,6 @@ function updateRobotPreview() {
   const halfW = state.robotWidth / 2;
   const halfH = state.robotHeight / 2;
 
-  // Find the main robot rect in the preview
   const rect = document.getElementById("robot-preview-body-rect");
   if (rect) {
     rect.setAttribute("x", -halfW);
@@ -127,7 +130,6 @@ function updateRobotPreview() {
     rect.setAttribute("stroke-width", state.robotImage ? 0 : state.robotBorderSize);
   }
 
-  // Update motors/wheels in preview based on new size
   const ml = document.getElementById("motor-left");
   const mr = document.getElementById("motor-right");
   const mlb = document.getElementById("motor-left-back");
@@ -159,3 +161,12 @@ function updateRobotPreview() {
 }
 
 window.updateRobotPreview = updateRobotPreview;
+
+if (window.registerSensorPlugin) {
+  window.registerSensorPlugin("robot", robotPlugin);
+} else {
+  window.SensorRegistry["robot"] = robotPlugin;
+}
+
+export { updateRobotPreview };
+export default robotPlugin;

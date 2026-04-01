@@ -6,13 +6,56 @@
 // --- 1. Robot DOM Updates ---
 let lastRobotState = { img: null, color: null, borderSize: null, borderColor: null, width: null, height: null };
 
+function getActiveMotorOffsetX() {
+  const wheelSensors = state.sensors.filter((sensor) => sensor.type === "wheel");
+  const normalWheels = wheelSensors.filter((sensor) => sensor.wheelType !== "omni");
+  const omniWheels = wheelSensors.filter((sensor) => sensor.wheelType === "omni");
+
+  let activeMotorPosPercent = state.motorPos !== undefined ? state.motorPos : 20;
+  if (normalWheels.length > 0) {
+    activeMotorPosPercent =
+      normalWheels.reduce((sum, sensor) => sum + (parseFloat(sensor.motorPos) || 0), 0) /
+      normalWheels.length;
+  } else if (omniWheels.length > 0) {
+    activeMotorPosPercent =
+      omniWheels.reduce((sum, sensor) => sum + (parseFloat(sensor.motorPos) || 0), 0) /
+      omniWheels.length;
+  }
+
+  return state.robotWidth / 2 - (activeMotorPosPercent / 100) * state.robotWidth;
+}
+
+function applyRobotPoseTransform() {
+  if (typeof robot === "undefined" || !robot) return;
+
+  const motorOffsetX = getActiveMotorOffsetX();
+  const angleRad = (state.angle * Math.PI) / 180;
+  const originX = state.robotWidth / 2 + motorOffsetX;
+  const originY = state.robotHeight / 2;
+  const left = state.robotX - originX + motorOffsetX * Math.cos(angleRad);
+  const top = state.robotY - originY + motorOffsetX * Math.sin(angleRad);
+
+  // Keep layout fixed and animate through transform to reduce CSS jitter.
+  robot.style.left = "0px";
+  robot.style.top = "0px";
+  robot.style.transformOrigin = `${originX}px ${originY}px`;
+  robot.style.transform = `translate3d(${left}px, ${top}px, 0) rotate(${state.angle}deg)`;
+  if (typeof window.updateRobotRenderPose === "function") {
+    window.updateRobotRenderPose({
+      left,
+      top,
+      originX,
+      originY,
+      angle: state.angle,
+    });
+  }
+}
+
 function updateRobotDOM() {
   if (typeof robot === "undefined" || !robot) return;
-  
-  robot.style.left = (state.robotX - state.robotWidth / 2) + "px";
-  robot.style.top = (state.robotY - state.robotHeight / 2) + "px";
-  robot.style.transform = `rotate(${state.angle}deg)`;
-  
+
+  applyRobotPoseTransform();
+
   if (state.robotWidth !== lastRobotState.width) {
     robot.style.width = state.robotWidth + "px";
     lastRobotState.width = state.robotWidth;
@@ -153,13 +196,15 @@ function syncWheelDOM(force = false) {
 
   // Update last state
   lastWheelState = { visible: isVisible, count: wheelSensors.length, posPercent: rawPosPercent, posBackPercent: rawPosBackPercent, color, colorBack };
+
+  // Keep visual pivot synced with current wheel placement.
+  applyRobotPoseTransform();
 }
 
 window.syncWheelDOM = syncWheelDOM;
 window.updateRobotDOM = updateRobotDOM;
 
 // --- 2. Initial System Start ---
-updatePhysics();
 updateCanvasSize();
 
 // Center canvas initially

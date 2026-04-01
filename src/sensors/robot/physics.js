@@ -1,1 +1,3 @@
-// Physics logic for robot singleton is handled in src/core/physics.js
+export function robotPhysicsStep() {
+  // Robot singleton physics is handled in src/core/physics.js.
+}

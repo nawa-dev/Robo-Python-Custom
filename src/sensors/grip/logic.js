@@ -1,10 +1,12 @@
 window.showGripPreview = true;
 window.toggleGripPreview = function (checked) {
   window.showGripPreview = checked;
-  if (typeof updateSensorPreview === "function") updateSensorPreview();
+  if (typeof updateSensorPreview === "function") {
+    updateSensorPreview();
+  }
 };
 
-window.SensorRegistry["grip"] = {
+const gripPlugin = {
   create: function (id, count) {
     return {
       id,
@@ -17,7 +19,9 @@ window.SensorRegistry["grip"] = {
     };
   },
   drawPreview: function (svg, grip) {
-    if (typeof showGripPreview !== "undefined" && !showGripPreview) return;
+    if (typeof showGripPreview !== "undefined" && !showGripPreview) {
+      return;
+    }
 
     const template = window.SensorTemplates && window.SensorTemplates["grip"];
     if (template) {
@@ -32,13 +36,14 @@ window.SensorRegistry["grip"] = {
       );
       g.classList.add("grip-preview-el");
 
-      // Scale arm and jaws
       const armLen = grip.armLength || 20;
       const jawLen = 10;
       const arm = g.querySelector(".grip-arm-el");
       const jawL = g.querySelector(".grip-jaw-l");
       const jawR = g.querySelector(".grip-jaw-r");
-      if (arm) arm.setAttribute("x2", armLen);
+      if (arm) {
+        arm.setAttribute("x2", armLen);
+      }
       if (jawL) {
         jawL.setAttribute("x1", armLen);
         jawL.setAttribute("x2", armLen + jawLen);
@@ -51,8 +56,7 @@ window.SensorRegistry["grip"] = {
       svg.appendChild(g);
     }
   },
-  read: function (sensor, globals) {
-    // Grips don't usually return an analog value this way
+  read: function () {
     return 0;
   },
   updateValue: function (id, axis, value) {
@@ -77,7 +81,7 @@ window.SensorRegistry["grip"] = {
       const gripCanvasY = globals.robotY + rotatedY;
 
       if (obj) {
-        const totalLen = armLen + 10; // Arm + Jaws
+        const totalLen = armLen + 10;
         obj.x = gripCanvasX + totalLen * Math.cos(gripRad);
         obj.y = gripCanvasY + totalLen * Math.sin(gripRad);
         obj.vx = 0;
@@ -88,37 +92,34 @@ window.SensorRegistry["grip"] = {
           ? config.canInteractWithObject !== false
           : true;
 
-        if (canInteract) {
-          // Pushing logic for non-grabbed objects
+        if (canInteract && typeof state.canvasObjects !== "undefined") {
           const totalLen = armLen + 10;
           const tipX = gripCanvasX + totalLen * Math.cos(gripRad);
           const tipY = gripCanvasY + totalLen * Math.sin(gripRad);
 
-          if (typeof state.canvasObjects !== "undefined") {
-            state.canvasObjects.forEach((targetObj) => {
-              if (state.grabbedObjects.includes(targetObj)) return;
+          state.canvasObjects.forEach((targetObj) => {
+            if (state.grabbedObjects.includes(targetObj)) {
+              return;
+            }
 
-              const dx = targetObj.x - tipX;
-              const dy = targetObj.y - tipY;
-              const dist = Math.hypot(dx, dy);
-              const minDist = (targetObj.radius || 15) + 2;
+            const dx = targetObj.x - tipX;
+            const dy = targetObj.y - tipY;
+            const dist = Math.hypot(dx, dy);
+            const minDist = (targetObj.radius || 15) + 2;
 
-              if (dist < minDist) {
-                const angleToObj = Math.atan2(dy, dx);
-                const overlap = minDist - dist;
-                targetObj.x += Math.cos(angleToObj) * overlap;
-                targetObj.y += Math.sin(angleToObj) * overlap;
+            if (dist < minDist) {
+              const angleToObj = Math.atan2(dy, dx);
+              const overlap = minDist - dist;
+              targetObj.x += Math.cos(angleToObj) * overlap;
+              targetObj.y += Math.sin(angleToObj) * overlap;
 
-                // Transmit momentum
-                if (typeof robotDrive !== "undefined") {
-                  const v =
-                    0.5 * (robotDrive.left.current + robotDrive.right.current);
-                  targetObj.vx += v * Math.cos(rad) * 0.8;
-                  targetObj.vy += v * Math.sin(rad) * 0.8;
-                }
+              if (typeof robotDrive !== "undefined") {
+                const v = 0.5 * (robotDrive.left.current + robotDrive.right.current);
+                targetObj.vx += v * Math.cos(rad) * 0.8;
+                targetObj.vy += v * Math.sin(rad) * 0.8;
               }
-            });
-          }
+            }
+          });
         }
       }
     }
@@ -126,10 +127,13 @@ window.SensorRegistry["grip"] = {
   drawCanvas: function (svg, grip, globals, index) {
     const isVisible =
       globals.sensorVisibility && globals.sensorVisibility["grip"] !== false;
-    if (!isVisible) return;
+    if (!isVisible) {
+      return;
+    }
 
     const rad = (globals.angle * Math.PI) / 180;
-    const localX = globals.robotWidth / 2 - (grip.x / 100) * globals.robotWidth;
+    const localX =
+      globals.robotWidth / 2 - (grip.x / 100) * globals.robotWidth;
     const localY = (grip.y / 100) * globals.robotHeight;
     const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
     const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
@@ -146,13 +150,14 @@ window.SensorRegistry["grip"] = {
         `translate(${canvasX}, ${canvasY}) rotate(${globalAngle})`,
       );
 
-      // Scale arm and jaws
       const armLen = grip.armLength || 20;
       const jawLen = 10;
       const arm = g.querySelector(".grip-arm-el");
       const jawL = g.querySelector(".grip-jaw-l");
       const jawR = g.querySelector(".grip-jaw-r");
-      if (arm) arm.setAttribute("x2", armLen);
+      if (arm) {
+        arm.setAttribute("x2", armLen);
+      }
       if (jawL) {
         jawL.setAttribute("x1", armLen);
         jawL.setAttribute("x2", armLen + jawLen);
@@ -191,3 +196,11 @@ window.SensorRegistry["grip"] = {
     ];
   },
 };
+
+if (window.registerSensorPlugin) {
+  window.registerSensorPlugin("grip", gripPlugin);
+} else {
+  window.SensorRegistry["grip"] = gripPlugin;
+}
+
+export default gripPlugin;

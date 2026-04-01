@@ -1,97 +1,95 @@
 /**
  * Sensor Loader
- * Dynamically loads sensor configurations, templates, and logics based on config.json
+ * Module-first bootstrap for sensor configurations, templates, and plugins.
  */
 
-// Registries are now initialized in variableGlobal.js to ensure availability
+import { registerSensorPlugin } from "../core/sensor-plugin-registry.js";
 
-async function initSensors() {
+function resolveSensorAssetUrl(sensorName, fileName) {
+  return new URL(`../sensors/${sensorName}/${fileName}`, import.meta.url);
+}
+
+export async function initSensors() {
   try {
-    const response = await fetch("./config.json");
-    const mainConfig = await response.json();
-    
-    if (mainConfig.installed_sensors && Array.isArray(mainConfig.installed_sensors)) {
-      for (const sensorName of mainConfig.installed_sensors) {
-        await loadSensorComponent(sensorName);
-      }
-    }
-    
-    // Once everything is loaded, we can trigger rendering
-    if (typeof renderSensorTabs === "function") {
-      renderSensorTabs();
-    }
-    
-    // Refresh UI components for existing arrays populated by storage.js
-    if (typeof renderSensorsList === "function") {
-      renderSensorsList();
-    }
-    if (typeof updateSensorPreview === "function") {
-      updateSensorPreview();
-    }
-    if (typeof updateSensorDots === "function") {
-      updateSensorDots();
+    const sensorNames = await resolveInstalledSensors();
+
+    for (const sensorName of sensorNames) {
+      await loadSensorComponent(sensorName);
     }
 
-    // Refresh Editor Highlighting for Dynamic Keywords (New!)
-    if (typeof refreshEditorHighlighting === "function") {
-      refreshEditorHighlighting();
+    if (typeof window.renderSensorTabs === "function") {
+      window.renderSensorTabs();
+    }
+
+    if (typeof window.renderSensorsList === "function") {
+      window.renderSensorsList();
+    }
+    if (typeof window.updateSensorPreview === "function") {
+      window.updateSensorPreview();
+    }
+    if (typeof window.updateSensorDots === "function") {
+      window.updateSensorDots();
+    }
+
+    if (typeof window.refreshEditorHighlighting === "function") {
+      window.refreshEditorHighlighting();
     }
   } catch (error) {
     console.error("Error initializing sensors:", error);
   }
 }
 
-async function loadSensorComponent(sensorName) {
-  const basePath = `./src/sensors/${sensorName}`;
-  
+export async function resolveInstalledSensors() {
+  const response = await fetch("./config.json");
+  const mainConfig = await response.json();
+  if (
+    mainConfig.installed_sensors &&
+    Array.isArray(mainConfig.installed_sensors)
+  ) {
+    return mainConfig.installed_sensors;
+  }
+  return [];
+}
+
+export async function loadSensorModule(basePath, sensorName) {
   try {
-    // 1. Load config
-    const configRes = await fetch(`${basePath}/config.json`);
-    if (!configRes.ok) throw new Error(`Missing ${sensorName}/config.json`);
+    const moduleUrl = new URL("index.js", basePath);
+    const module = await import(moduleUrl.href);
+    const plugin = module.default || module.sensorPlugin || module.plugin;
+    if (!plugin) {
+      throw new Error(`Sensor module '${sensorName}' did not export a plugin`);
+    }
+
+    registerSensorPlugin(sensorName, plugin);
+    return plugin;
+  } catch (error) {
+    console.error(`Failed to load sensor module '${sensorName}'`, error);
+    throw error;
+  }
+}
+
+export async function loadSensorComponent(sensorName) {
+  const basePath = new URL(`../sensors/${sensorName}/`, import.meta.url);
+
+  try {
+    const configRes = await fetch(resolveSensorAssetUrl(sensorName, "config.json"));
+    if (!configRes.ok) {
+      throw new Error(`Missing ${sensorName}/config.json`);
+    }
     const config = await configRes.json();
     window.SensorConfigs[sensorName] = config;
 
-    // 2. Load render template (New: single SVG-based template for both canvas and preview)
-    const templateRes = await fetch(`${basePath}/render.html`);
-    if (!templateRes.ok) throw new Error(`Missing ${sensorName}/render.html`);
+    const templateRes = await fetch(resolveSensorAssetUrl(sensorName, "render.html"));
+    if (!templateRes.ok) {
+      throw new Error(`Missing ${sensorName}/render.html`);
+    }
     const templateHtml = await templateRes.text();
     window.SensorTemplates[sensorName] = templateHtml.trim();
 
-    // 3. Load logic script
-    const script = document.createElement("script");
-    script.src = `${basePath}/logic.js`;
-    script.defer = true;
-    document.head.appendChild(script);
-
-    // 4. Load physics script (optional)
-    try {
-      const physRes = await fetch(`${basePath}/physics.js`);
-      if (physRes.ok) {
-        const physScript = document.createElement("script");
-        physScript.src = `${basePath}/physics.js`;
-        physScript.defer = true;
-        document.head.appendChild(physScript);
-      }
-    } catch (e) {}
-
-    // 5. Load executor script (optional - New!)
-    try {
-      const execRes = await fetch(`${basePath}/executor.js`);
-      if (execRes.ok) {
-        const execScript = document.createElement("script");
-        execScript.src = `${basePath}/executor.js`;
-        execScript.defer = true;
-        document.head.appendChild(execScript);
-      }
-    } catch (e) {}
-
+    await loadSensorModule(basePath, sensorName);
   } catch (err) {
     console.warn(`Failed to load component for sensor '${sensorName}':`, err);
   }
 }
 
-// Global initialization
-window.addEventListener("DOMContentLoaded", () => {
-  // Load config then components
-  initSensors();
-});
+window.initSensors = initSensors;

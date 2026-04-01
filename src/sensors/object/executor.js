@@ -1,7 +1,3 @@
-/**
- * Object configuration executor logic (optional)
- * Used to register custom Python functions if needed.
- */
-// window.SensorRegistry["object"].registerPythonAPI = function(Sk, mod, state) {
-//     // Not needed for generic objects
-// };
+export function registerObjectPythonAPI() {
+  // Generic objects do not expose Python APIs yet.
+}

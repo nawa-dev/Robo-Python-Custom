@@ -42,7 +42,7 @@ function resizeHorizontal(e) {
 }
 
 // --- 2. Tab Switching ---
-window.switchTab = function (tabId) {
+export function switchTab(tabId) {
   document.querySelectorAll(".tab-content").forEach((el) => {
     el.classList.remove("active");
   });
@@ -63,10 +63,10 @@ window.switchTab = function (tabId) {
       setTimeout(() => editor.layout(), 0);
     }
   }
-};
+}
 
 // --- 3. Console Logging ---
-window.logToConsole = function (msg, type = "info") {
+export function logToConsole(msg, type = "info") {
   const output = document.getElementById("console-output");
   if (!output) return;
   const div = document.createElement("div");
@@ -74,12 +74,12 @@ window.logToConsole = function (msg, type = "info") {
   div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
   output.appendChild(div);
   output.scrollTop = output.scrollHeight;
-};
+}
 
-window.clearConsole = function () {
+export function clearConsole() {
   const output = document.getElementById("console-output");
   if (output) output.innerHTML = "";
-};
+}
 
 // --- 4. Settings View Resizer (Vertical) ---
 document.addEventListener("DOMContentLoaded", () => {
@@ -116,3 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("mouseup", onUp);
   });
 });
+
+window.switchTab = switchTab;
+window.logToConsole = logToConsole;
+window.clearConsole = clearConsole;
