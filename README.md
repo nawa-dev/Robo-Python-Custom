@@ -1,66 +1,148 @@
-# 🤖 Robo-Python
+# Robo-Python
 
-A web-based **2D robot programming simulator** that allows users to control a robot using **Python**, designed for learning, experimentation, and education.
+A web-based **2D robot programming simulator** that lets users control a robot using **Python** for learning, experimentation, and education.
 
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
-![Version](https://img.shields.io/badge/Version-v2.2.2-blue)
+![Version](https://img.shields.io/badge/Version-v2.2.3-blue)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![Python](https://img.shields.io/badge/Language-Python-yellow)
 
 ---
 
-## ✨ Features
+## Features
 
 - **2D robot simulation** with differential drive kinematics
-- **Integrated Tabbed Interface**: Seamlessly switch between the **Code Editor** and **Robot Settings** within the same pane.
-- **Specialized Sensor APIs**:
-    - **Light Sensors**: Use `analogRead(index)` to measure surface brightness.
-    - **Ultrasonic Sensors**: Use `getUltrasonic(index)` or `ultrasonic(index)` for distance (type-relative indexing).
-    - **Compass**: Use `getCompass()` or `compass()` for robot orientation (only if equipped).
-- **Actuators & Objects**:
-    - **Grip System**: Use `grab(index)` and `release(index)` to interact with objects.
-    - **Interactive Objects**: Drag and drop objects onto the canvas. Now supports **manual interaction during runtime!**
-- **Dynamic Modular Architecture**: Every sensor is a standalone module with its own drawing, physics, and Python API logic.
-- **Smart Python Environment**:
-    - **In-browser execution** via [Skulpt](https://skulpt.org/)
-    - **Auto-Delay Injection**: Automatically prevents browser freeze in infinite loops.
-    - **Zero-Based Indexing**: UI and Code consistent with 0-based counting.
-- **Customizable**: Configure sensor positions, angles, arm lengths, and detection parameters.
+- **Integrated tabbed interface** for switching between the code editor and robot settings
+- **Sensor APIs**:
+  - `analogRead(index)` for light sensors
+  - `getUltrasonic(index)` / `ultrasonic(index)` for ultrasonic sensors
+  - `getCompass()` / `compass()` for compass readings
+- **Actuator and object support**:
+  - `grab(index)` / `release(index)` for grips
+  - Interactive canvas objects that can be dragged during runtime
+- **Dynamic modular sensor architecture** where each sensor is a standalone package
+- **In-browser Python execution** via [Skulpt](https://skulpt.org/)
+- **Automatic loop delay injection** to reduce browser freezing from tight `while` loops
+- **Configurable robot and sensor settings** such as position, angle, color, and interaction options
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
-1. **Open** `index.html` in your browser.
-2. **Switch to Robot Setting Tab**: Configure your robot by adding Wheels, Ultrasonic, Light Sensors, or Grips.
-3. **Configure Devices**: Each device has its own panel with parameters like `x`, `y`, `angle`, and specialized options like `canInteractWithObject`.
-4. **Write Code**: Switch back to the "Code" tab and write Python code using the API below.
-5. **Run**: Click the "Run" button in the toolbar to start the simulation!
+1. Open `index.html` in your browser.
+2. Switch to the Robot Settings tab.
+3. Add or configure Wheels, Ultrasonic sensors, Light sensors, Grips, Compass, and other supported modules.
+4. Return to the Code tab and write Python code using the simulator API.
+5. Click **Run** in the toolbar to start the simulation.
 
----
+### Development
 
-## 📟 Python API Reference
+1. Install [Node.js](https://nodejs.org/) 18+.
+2. From the project root, run:
 
-| Command                | Description                                                                                                                                                                                                 |
-| :--------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `motor(left, right)`   | Control motors. Speed: `-100` to `100`.<br>Example: `motor(50, 50)` moves forward.                                                                                                                          |
-| `delay(ms)`            | Pause execution for `ms` milliseconds.<br>Example: `delay(1000)` pauses for 1 second.                                                                                                                       |
-| `analogRead(index)`    | Read value from **Light Sensor** at `index` (separately indexed for Light type). Returns 0-1024.                                                                                                            |
-| `getUltrasonic(index)` | Read distance from **Ultrasonic Sensor** at `index` (pixels 0-800). Alias: `ultrasonic(index)`.                                                                                                             |
-| `getCompass()`         | Returns the robot's current angle (0-359). Only returns values if a Compass sensor is equipped. Alias: `compass()`.                                                                                       |
-| `SW(index)`            | Check state of switch pins `SW1`, `SW2`, or `SW3`. Returns `True` if pressed.<br>Example: `SW(1)`.                                                                                                            |
-| `waitSW(index)`        | Pause program until switch button is pressed.                                                                                                                                                               |
-| `grab(index)`          | Activate grabber at `index`.                                                                                                                                                                                |
-| `release(index)`       | Deactivate grabber at `index`.                                                                                                                                                                              |
-| `spawn_object(color)`  | Dynamically spawn an object of the specified color.<br>Example: `spawn_object("red")`.                                                                                                                      |
-| `getSensorCount()`     | Returns total number of sensors attached.                                                                                                                                                                   |
-| `print(message)`       | Print text to the debug console.                                                                                                                                                                            |
+```bash
+npm test
+```
 
 ---
 
-### 💡 Tips
-- **Index Separation**: Light Sensors and Ultrasonic Sensors have their own independent counts. `analogRead(0)` is always the first Light sensor, and `getUltrasonic(0)` is always the first Ultrasonic sensor.
-- **Infinite Loops**: You can safely use `while True:`. The system handles delays automatically.
-- **Runtime Interaction**: You can manually drag objects on the canvas even while your code is running to test your robot's reaction!
-- **Wheel Management**: The robot always starts with a permanent **FRONT WHEEL**. You can add a **BACK WHEEL** for stability, but the front wheel is protected from deletion to maintain basic mobility.
-- **Dynamic Storage**: Sensors and Actuators are now stored in specialized arrays (`sensors` vs `grips`) based on their configuration, managed automatically by the core system.
+## Python API Reference
+
+| Command | Description |
+| :-- | :-- |
+| `motor(left, right)` | Control motors with speed from `-100` to `100`. Example: `motor(50, 50)` |
+| `delay(ms)` | Pause execution for `ms` milliseconds |
+| `analogRead(index)` | Read value from a light sensor using type-relative indexing |
+| `getUltrasonic(index)` | Read distance from an ultrasonic sensor |
+| `ultrasonic(index)` | Alias for `getUltrasonic(index)` |
+| `getCompass()` | Read the robot angle if a compass is installed |
+| `compass()` | Alias for `getCompass()` |
+| `SW(index)` | Check whether `SW1`, `SW2`, or `SW3` is pressed |
+| `waitSW(index)` | Pause execution until the selected switch is pressed |
+| `grab(index)` | Activate a grip |
+| `release(index)` | Release a grip |
+| `spawn_object(color)` | Spawn an object with the given color |
+| `getSensorCount()` | Return the total number of attached sensors |
+| `print(message)` | Print text to the debug console |
+
+---
+
+## Tips
+
+- **Type-relative indexing**: `analogRead(0)` is always the first light sensor, and `getUltrasonic(0)` is always the first ultrasonic sensor.
+- **Infinite loops**: You can safely use `while True:` because the system injects `delay(1)` into loop execution paths.
+- **Runtime interaction**: Canvas objects can still be dragged while code is running.
+- **Wheel management**: The robot starts with a protected front wheel and can be extended with additional wheels.
+- **Dynamic storage**: Standard sensors and actuators are stored in separate arrays based on each sensor's configuration.
+
+---
+
+## Automation Testing
+
+The project includes a Node-based automation test suite for the core execution flow and the sensor plugin system.
+
+### Run Tests
+
+```bash
+npm test
+```
+
+### Run End-to-End Tests
+
+```bash
+npm run test:e2e
+```
+
+### Run End-to-End Tests With Browser Window
+
+```bash
+npm run test:e2e:headed
+```
+
+### Run End-to-End Tests In Playwright UI
+
+```bash
+npm run test:e2e:ui
+```
+
+### Run Everything
+
+```bash
+npm run test:all
+```
+
+### Current Coverage
+
+- Core execution behavior in `src/core/executor.js`
+- Shared sensor contract checks for every sensor under `src/sensors/`
+- Optional sensor-specific behavior tests when a sensor provides its own `*.test.js`
+- Browser end-to-end coverage for app boot, run/stop/reset, sensor APIs, and settings flows
+
+### Sensor Test Strategy
+
+The sensor test system is designed to support future sensors without forcing every sensor to have a dedicated test file.
+
+- `tests/sensors.test.js` automatically discovers all sensor folders in `src/sensors/`
+- Each sensor is checked for the expected module files:
+  - `config.json`
+  - `index.js`
+  - `logic.js`
+  - `executor.js`
+  - `render.html`
+- Shared contract tests validate that sensor plugins can be imported and used safely
+- If `config.json` declares Python APIs, the shared tests verify that those APIs are registered
+- If a sensor folder contains one or more `*.test.js` files, those tests are loaded automatically
+- If a sensor does not contain its own `.test.js`, it still receives baseline coverage from the shared contract tests
+- Browser-level E2E tests live under `tests/e2e/` and validate the integrated app in Playwright
+
+### Adding a New Sensor
+
+When adding a new sensor in `src/sensors/<name>/`:
+
+1. Add the sensor files: `config.json`, `index.js`, `logic.js`, `executor.js`, and `render.html`
+2. Register the sensor name in the root `config.json`
+3. Run `npm test`
+4. Optionally add `src/sensors/<name>/<name>.test.js` for sensor-specific behavior
+5. Run `npm run test:e2e` if the new sensor affects browser flows, rendering, or Python execution behavior
+
+This keeps every sensor testable by default while allowing richer tests for more complex sensors.

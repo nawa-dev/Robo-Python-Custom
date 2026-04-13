@@ -19,7 +19,10 @@
       "no_map": "ไม่ได้โหลดแผนที่",
       "upload_map": "อัปโหลดแผนที่...",
       "github": "GITHUB",
-      "tour": "แนะนำการใช้งาน"
+      "tour": "แนะนำการใช้งาน",
+      "physics": "ระบบฟิสิกส์:",
+      "engine_custom": "ระบบเดิม (Custom)",
+      "engine_matter": "Matter.js (สมจริง)"
     },
     "tabs": {
       "code": "โค้ด",
@@ -139,8 +142,8 @@
       "ultrasonic": {
         "name": "อัลตราโซนิก",
         "inputs": {
-          "x": "กว้าง (X)",
-          "y": "ลึก (Y)",
+          "x": "แกน X",
+          "y": "แกน Y",
           "angle": "มุม ∠",
           "color": "สีลำแสง"
         }
@@ -148,19 +151,50 @@
       "light": {
         "name": "แสง/เส้น",
         "inputs": {
-          "x": "กว้าง (X)",
-          "y": "ลึก (Y)",
+          "x": "แกน X",
+          "y": "แกน Y",
           "color": "สีเซนเซอร์"
         }
       },
       "compass": {
-        "name": "เข็มทิศ"
+        "name": "เข็มทิศ",
+        "inputs": {
+          "x": "แกน X",
+          "y": "แกน Y"
+        }
       },
       "grip": {
         "name": "ตัวคีบ",
         "inputs": {
+          "x": "แกน X",
+          "y": "แกน Y",
           "angle": "มุม ∠",
-          "distance": "ระยะยืด"
+          "armLength": "ระยะยืด"
+        }
+      },
+      "robot": {
+        "name": "หุ่นยนต์",
+        "groups": {
+          "dimensions": "ขนาดตัวเครื่อง",
+          "appearance": "รูปลักษณ์",
+          "physics": "ฟิสิกส์"
+        },
+        "inputs": {
+          "robotWidth": "ความกว้าง",
+          "robotHeight": "ความยาว/สูง",
+          "robotColor": "สีตัวเครื่อง",
+          "robotImage": "รูปภาพ",
+          "robotBorderSize": "ขนาดเส้นขอบ",
+          "robotBorderColor": "สีเส้นขอบ",
+          "robotUseMass": "เปิดใช้งานน้ำหนัก",
+          "robotMass": "น้ำหนัก (กก.)"
+        }
+      },
+      "object": {
+        "name": "วัตถุ",
+        "inputs": {
+          "objectMass": "น้ำหนักวัตถุ (กก.)",
+          "objectFriction": "แรงเสียดทานวัตถุ"
         }
       },
       "common": {
@@ -210,7 +244,10 @@
       "no_map": "No map loaded",
       "upload_map": "Upload My Map...",
       "github": "GITHUB",
-      "tour": "Tour"
+      "tour": "Tour",
+      "physics": "Physics Engine:",
+      "engine_custom": "Custom Engine",
+      "engine_matter": "Matter.js (Realistic)"
     },
     "tabs": {
       "code": "Code",
@@ -330,8 +367,8 @@
       "ultrasonic": {
         "name": "Ultrasonic",
         "inputs": {
-          "x": "Width (X)",
-          "y": "Depth (Y)",
+          "x": "X-axis",
+          "y": "Y-axis",
           "angle": "Angle ∠",
           "color": "Beam Color"
         }
@@ -339,19 +376,50 @@
       "light": {
         "name": "Light/Line",
         "inputs": {
-          "x": "Width (X)",
-          "y": "Depth (Y)",
+          "x": "X-axis",
+          "y": "Y-axis",
           "color": "Sensor Color"
         }
       },
       "compass": {
-        "name": "Compass"
+        "name": "Compass",
+        "inputs": {
+          "x": "X-axis",
+          "y": "Y-axis"
+        }
       },
       "grip": {
         "name": "Gripper",
         "inputs": {
+          "x": "X-axis",
+          "y": "Y-axis",
           "angle": "Angle ∠",
-          "distance": "Extension"
+          "armLength": "Arm Length"
+        }
+      },
+      "robot": {
+        "name": "Robot",
+        "groups": {
+          "dimensions": "Dimensions",
+          "appearance": "Appearance",
+          "physics": "Physics"
+        },
+        "inputs": {
+          "robotWidth": "Width",
+          "robotHeight": "Height",
+          "robotColor": "Color",
+          "robotImage": "Image",
+          "robotBorderSize": "Border Size",
+          "robotBorderColor": "Border Color",
+          "robotUseMass": "Enable Mass",
+          "robotMass": "Mass (kg)"
+        }
+      },
+      "object": {
+        "name": "Object",
+        "inputs": {
+          "objectMass": "Object Mass (kg)",
+          "objectFriction": "Object Friction"
         }
       },
       "common": {

@@ -1,16 +1,15 @@
-if (window.SensorRegistry["compass"]) {
-  window.SensorRegistry["compass"].registerPythonAPI = function (Sk, robotObj, globals) {
-    const getValue = new Sk.builtin.func(function () {
-      // Check if any compass sensor is currently equipped
-      const hasCompass = typeof state.sensors !== "undefined" && state.sensors.some(s => s.type === "compass");
-      
-      if (hasCompass && typeof state.angle !== "undefined") {
-        return new Sk.builtin.int_(Math.round(state.angle));
-      }
-      return new Sk.builtin.int_(0);
-    });
+export function registerCompassPythonAPI(Sk, robotObj) {
+  const getValue = new Sk.builtin.func(function () {
+    const hasCompass =
+      typeof state.sensors !== "undefined" &&
+      state.sensors.some((sensor) => sensor.type === "compass");
 
-    robotObj.getCompass = getValue;
-    robotObj.compass = getValue; // Alias for convenience
-  };
+    if (hasCompass && typeof state.angle !== "undefined") {
+      return new Sk.builtin.int_(Math.round(state.angle));
+    }
+    return new Sk.builtin.int_(0);
+  });
+
+  robotObj.getCompass = getValue;
+  robotObj.compass = getValue;
 }

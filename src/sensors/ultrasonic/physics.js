@@ -1,37 +1,31 @@
-/**
- * Calculate distance using Raycasting
- * @param {number} startX - Start X coordinate
- * @param {number} startY - Start Y coordinate
- * @param {number} angleDeg - Ray angle in degrees
- * @param {string} targetColor - Hex color to detect (e.g., "#000000")
- * @returns {number} Distance in pixels (max 800)
- */
-window.getUltrasonicDistance = function(startX, startY, angleDeg, targetColor) {
-  if (!state.canvasPixelData) return 800;
+import { canvasArea, state } from "../../core/index.js";
+
+export function getUltrasonicDistance(startX, startY, angleDeg, targetColor) {
+  if (!state.canvasPixelData) {
+    return 800;
+  }
 
   const rad = (angleDeg * Math.PI) / 180;
-  const cosA = Math.cos(rad);
-  const sinA = Math.sin(rad);
+  const cosAngle = Math.cos(rad);
+  const sinAngle = Math.sin(rad);
 
-  // Parse target color
-  let tr = 0,
-    tg = 0,
-    tb = 0;
+  let targetR = 0;
+  let targetG = 0;
+  let targetB = 0;
   if (targetColor && targetColor.startsWith("#")) {
     const hex = targetColor.substring(1);
-    tr = parseInt(hex.substring(0, 2), 16);
-    tg = parseInt(hex.substring(2, 4), 16);
-    tb = parseInt(hex.substring(4, 6), 16);
+    targetR = parseInt(hex.substring(0, 2), 16);
+    targetG = parseInt(hex.substring(2, 4), 16);
+    targetB = parseInt(hex.substring(4, 6), 16);
   }
 
   let minDist = 800;
-  // --- 1. ตรวจสอบระยะห่างจากวัตถุบนแคนวาส (canvasObjects) ---
-  if (typeof state.canvasObjects !== "undefined" && state.canvasObjects) {
-    for (let i = 0; i < state.canvasObjects.length; i++) {
+  if (state.canvasObjects) {
+    for (let i = 0; i < state.canvasObjects.length; i += 1) {
       const obj = state.canvasObjects[i];
       const ocX = startX - obj.x;
       const ocY = startY - obj.y;
-      const b = 2 * (cosA * ocX + sinA * ocY);
+      const b = 2 * (cosAngle * ocX + sinAngle * ocY);
       const c = ocX * ocX + ocY * ocY - (obj.radius || 15) * (obj.radius || 15);
       const disc = b * b - 4 * c;
       if (disc >= 0) {
@@ -44,16 +38,14 @@ window.getUltrasonicDistance = function(startX, startY, angleDeg, targetColor) {
   }
 
   let dist = 0;
-  const step = 2; // Step size for optimization
-  const maxDist = minDist; // Max range
-  const threshold = 100; // Color distance threshold (0-441 approx)
+  const step = 2;
+  const threshold = 100;
 
-  while (dist < maxDist) {
+  while (dist < minDist) {
     dist += step;
-    const cx = startX + dist * cosA;
-    const cy = startY + dist * sinA;
+    const cx = startX + dist * cosAngle;
+    const cy = startY + dist * sinAngle;
 
-    // Check boundaries
     if (
       cx < 0 ||
       cx >= canvasArea.offsetWidth ||
@@ -65,19 +57,20 @@ window.getUltrasonicDistance = function(startX, startY, angleDeg, targetColor) {
 
     const pixelX = Math.round(cx);
     const pixelY = Math.round(cy);
-    const width = canvasArea.offsetWidth;
-    const idx = (pixelY * width + pixelX) * 4;
+    const idx = (pixelY * canvasArea.offsetWidth + pixelX) * 4;
 
-    if (idx < 0 || idx >= state.canvasPixelData.length) return dist;
+    if (idx < 0 || idx >= state.canvasPixelData.length) {
+      return dist;
+    }
 
     const r = state.canvasPixelData[idx];
     const g = state.canvasPixelData[idx + 1];
     const b = state.canvasPixelData[idx + 2];
 
-    // Calculate Euclidean distance between colors
-    // dist = sqrt((r1-r2)^2 + (g1-g2)^2 + (b1-b2)^2)
     const colorDist = Math.sqrt(
-      Math.pow(r - tr, 2) + Math.pow(g - tg, 2) + Math.pow(b - tb, 2),
+      Math.pow(r - targetR, 2) +
+        Math.pow(g - targetG, 2) +
+        Math.pow(b - targetB, 2),
     );
 
     if (colorDist < threshold) {
@@ -85,5 +78,7 @@ window.getUltrasonicDistance = function(startX, startY, angleDeg, targetColor) {
     }
   }
 
-  return maxDist;
-};
+  return minDist;
+}
+
+window.getUltrasonicDistance = getUltrasonicDistance;

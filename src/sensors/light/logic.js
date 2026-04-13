@@ -1,110 +1,89 @@
-window.SensorRegistry["light"] = {
-  create: function (id, count) {
+import { state } from "../../core/index.js";
+import { getPixelBrightness } from "./physics.js";
+import { sensorPercentToLocal, sensorPercentToWorld } from "../../core/robot-pose.js";
+
+const lightPlugin = {
+  create(id, count) {
     return {
       id,
       type: "light",
-      x: 45,
-      y: 25,
+      x: 10,
+      y: 0,
       color: "#ff0000",
       name: `Light ${count}`,
       isNew: true,
     };
   },
-  drawPreview: function (svg, sensor) {
-    const template = window.SensorTemplates && window.SensorTemplates["light"];
-    if (template) {
-      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      g.innerHTML = template;
-      g.setAttribute("transform", `translate(${sensor.x}, ${sensor.y})`);
-      g.classList.add("sensor-circle");
+  drawPreview(svg, sensor) {
+    const template = window.SensorTemplates && window.SensorTemplates.light;
+    if (!template) return;
 
-      // Update circle color
-      const circle = g.querySelector("circle");
-      if (circle) {
-        circle.setAttribute("fill", sensor.color || "#ff0000ff");
-        circle.setAttribute("stroke", sensor.color || "#ff0000ff");
-      }
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    group.innerHTML = template;
+    const { localX, localY } = sensorPercentToLocal(
+      sensor,
+      state.robotWidth,
+      state.robotHeight,
+    );
+    group.setAttribute("transform", `translate(${localX}, ${localY})`);
+    group.classList.add("sensor-circle");
 
-      svg.appendChild(g);
+    const circle = group.querySelector("circle");
+    if (circle) {
+      circle.setAttribute("fill", sensor.color || "#ff0000ff");
+      circle.setAttribute("stroke", sensor.color || "#ff0000ff");
     }
+
+    svg.appendChild(group);
   },
-  read: function (sensor, globals) {
-    const localX = sensor.x - 25;
-    const localY = sensor.y - 25;
-    const rad = (globals.angle * Math.PI) / 180;
+  read(sensor, globals) {
+    const { worldX: canvasX, worldY: canvasY } = sensorPercentToWorld(sensor, globals);
 
-    const rotatedX = localX * Math.cos(rad) - localY * Math.sin(rad);
-    const rotatedY = localX * Math.sin(rad) + localY * Math.cos(rad);
-
-    const canvasX = globals.robotX + 25 + rotatedX;
-    const canvasY = globals.robotY + 25 + rotatedY;
-
-    const brightness =
-      typeof getPixelBrightness === "function"
-        ? getPixelBrightness(canvasX, canvasY, sensor.color)
-        : 0;
-    console.log(`[Light Sensor Read] ${sensor.name}:
-      - Robot Pos: (${Math.round(globals.robotX)}, ${Math.round(globals.robotY)})
-      - Robot Angle: ${Math.round(globals.angle)}°
-      - Local Offset: (${localX}, ${localY})
-      - Rotated Offset: (${Math.round(rotatedX)}, ${Math.round(rotatedY)})
-      - Final Canvas Pos: (${Math.round(canvasX)}, ${Math.round(canvasY)})
-      - Value: ${brightness}`);
-    return brightness;
+    return getPixelBrightness(canvasX, canvasY, sensor.color);
   },
-  updateValue: function (id, axis, value) {
+  updateValue(id, axis, value) {
     window.updateSensorValueDOM(id, "light", axis, value);
   },
-  deleteItem: function (id) {
+  deleteItem(id) {
     window.deleteSensor(id, "light");
   },
-  drawCanvas: function (svg, sensor, globals, index) {
-    const isVisible = globals.sensorVisibility && globals.sensorVisibility["light"] !== false;
+  drawCanvas(svg, sensor, globals, index) {
+    const isVisible =
+      globals.sensorVisibility && globals.sensorVisibility.light !== false;
     if (!isVisible) return;
-    
-    const rad = (globals.angle * Math.PI) / 180;
-    const cos_a = Math.cos(rad);
-    const sin_a = Math.sin(rad);
 
-    const localX = sensor.x - 25;
-    const localY = sensor.y - 25;
-    const rotatedX = localX * cos_a - localY * sin_a;
-    const rotatedY = localX * sin_a + localY * cos_a;
-    const canvasX = globals.robotX + 25 + rotatedX;
-    const canvasY = globals.robotY + 25 + rotatedY;
+    const { worldX: canvasX, worldY: canvasY } = sensorPercentToWorld(sensor, globals);
 
-    // Use unified SVG template
-    const template = window.SensorTemplates && window.SensorTemplates["light"];
-    if (template) {
-      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      g.innerHTML = template;
-      g.setAttribute("transform", `translate(${canvasX}, ${canvasY})`);
+    const template = window.SensorTemplates && window.SensorTemplates.light;
+    if (!template) return;
 
-      // Update circle color
-      const circle = g.querySelector("circle");
-      if (circle) {
-        circle.setAttribute("fill", sensor.color || "#ff0000ff");
-        circle.setAttribute("stroke", sensor.color || "#ff0000ff");
-      }
+    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    group.innerHTML = template;
+    group.setAttribute("transform", `translate(${canvasX}, ${canvasY})`);
 
-      // Add title for tooltip (SVG <title> tag works well)
-      let brightness = 512;
-      if (typeof state.canvasPixelData !== "undefined" && state.canvasPixelData) {
-        brightness =
-          typeof getPixelBrightness === "function"
-            ? getPixelBrightness(canvasX, canvasY, sensor.color)
-            : 0;
-      }
-      sensor.value = brightness;
-
-      const title = document.createElementNS(
-        "http://www.w3.org/2000/svg",
-        "title",
-      );
-      title.textContent = `${sensor.name} [${index}]\nBrightness: ${brightness}`;
-      g.appendChild(title);
-
-      svg.appendChild(g);
+    const circle = group.querySelector("circle");
+    if (circle) {
+      circle.setAttribute("fill", sensor.color || "#ff0000ff");
+      circle.setAttribute("stroke", sensor.color || "#ff0000ff");
     }
+
+    const brightness = state.canvasPixelData
+      ? getPixelBrightness(canvasX, canvasY, sensor.color)
+      : 512;
+    sensor.value = brightness;
+
+    const title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    title.textContent = `${sensor.name} [${index}]\nBrightness: ${brightness}`;
+    group.appendChild(title);
+
+    svg.appendChild(group);
   },
 };
+
+if (window.registerSensorPlugin) {
+  window.registerSensorPlugin("light", lightPlugin);
+} else {
+  window.SensorRegistry.light = lightPlugin;
+}
+
+export default lightPlugin;

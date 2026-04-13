@@ -1,27 +1,38 @@
-window.SensorRegistry["wheel"] = {
-  create: function(id, count) {
+const wheelPlugin = {
+  create: function (id) {
     return {
       id,
       type: "wheel",
       name: "Wheel",
       motorPos: 0,
-      wheelType: "normal"
+      wheelType: "normal",
     };
   },
-  drawPreview: function(svg, sensor) {
-    if (typeof window.syncWheelDOM === "function") window.syncWheelDOM();
-  },
-  read: function(sensor, globals) {
-    return 0;
-  },
-  updateValue: function(id, axis, value) {
-    // Use the standard window.updateSensorValueDOM for non-singleton
-    if (typeof window.updateSensorValueDOM === "function") {
-        window.updateSensorValueDOM(id, "wheel", axis, value);
+  drawPreview: function () {
+    if (typeof window.syncWheelDOM === "function") {
+      window.syncWheelDOM(true);
     }
   },
-  getDisplayName: function(sensor, index) {
-    if (index === 0) return "FRONT WHEEL";
+  read: function () {
+    return 0;
+  },
+  updateValue: function (id, axis, value) {
+    if (typeof window.updateSensorValueDOM === "function") {
+      window.updateSensorValueDOM(id, "wheel", axis, value);
+    }
+  },
+  getDisplayName: function (sensor, index) {
+    if (index === 0) {
+      return "FRONT WHEEL";
+    }
     return "BACK WHEEL";
-  }
+  },
 };
+
+if (window.registerSensorPlugin) {
+  window.registerSensorPlugin("wheel", wheelPlugin);
+} else {
+  window.SensorRegistry["wheel"] = wheelPlugin;
+}
+
+export default wheelPlugin;

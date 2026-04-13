@@ -9,6 +9,7 @@
       async
       src="https://www.googletagmanager.com/gtag/js?id=G-4NYTPP2TN9"
     ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
@@ -29,7 +30,12 @@
         }
       }
     </script>
-    <link rel="icon" type="image/png" sizes="512x512" href="src/img/icon.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="512x512"
+      href="src/assets/img/icon.png"
+    />
     <link rel="stylesheet" href="style/base.css" />
     <link rel="stylesheet" href="style/toolbar.css" />
     <link rel="stylesheet" href="style/buttons.css" />
@@ -49,33 +55,31 @@
     />
     <link rel="stylesheet" href="style/tour-style.css" />
 
-    <link rel="stylesheet" href="src/cdn_file/fontawesome/css/all.min.css" />
-    <script src="src/cdn_file/skulpt/skulpt.min.js"></script>
-    <script src="src/cdn_file/skulpt/skulpt-stdlib.js"></script>
-    <script src="src/cdn_file/monaco-editor/min/vs/loader.js"></script>
+    <link rel="stylesheet" href="src/lib/fontawesome/css/all.min.css" />
+    <script src="src/lib/skulpt/skulpt.min.js"></script>
+    <script src="src/lib/skulpt/skulpt-stdlib.js"></script>
+    <script src="src/lib/monaco-editor/min/vs/loader.js"></script>
 
     <!-- Main modules (load in order) -->
-    <script src="src/variableGlobal.js" defer></script>
-    <script src="src/i18n.js" defer></script>
-    <script src="src/ui-manager.js" defer></script>
-    <script src="src/editor-controller.js" defer></script>
-    <script src="src/interaction-handler.js" defer></script>
-    <script src="src/physics.js" defer></script>
-    <script src="src/canvas.js" defer></script>
-    <script src="src/sensors.js" defer></script>
-    <script src="src/executor.js" defer></script>
-    <script src="src/storage.js" defer></script>
-    <script src="src/tour.js" defer></script>
-    <script src="src/script.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
-    <script src="src/config.js" defer></script>
-    <script src="src/sensorLoader.js" defer></script>
+    <script charset="UTF-8" type="module" src="src/main.js"></script>
+    <script charset="UTF-8" src="src/utils/i18n.js" defer></script>
+    <script charset="UTF-8" src="src/ui/editor-controller.js" defer></script>
+    <script charset="UTF-8" type="module" src="src/ui/interaction-handler.js"></script>
+    <script charset="UTF-8" type="module" src="src/core/physics.js"></script>
+    <script charset="UTF-8" type="module" src="src/core/canvas.js"></script>
+    <script charset="UTF-8" type="module" src="src/sensors/sensors-manager.js"></script>
+    <script charset="UTF-8" type="module" src="src/core/executor.js"></script>
+    <script charset="UTF-8" type="module" src="src/utils/storage.js"></script>
+    <script charset="UTF-8" type="module" src="src/ui/tour.js"></script>
+    <script charset="UTF-8" src="src/script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js" defer></script>
+    <script src="src/utils/config.js" defer></script>
   </head>
   <body>
     <header class="toolbar">
       <div class="logo-section">
         <div class="image-logo">
-          <img src="src/img/icon.png" alt="logo" />
+          <img src="src/assets/img/icon.png" alt="logo" />
         </div>
         <div class="logo">
           <span class="logo-robo">ROBO</span>-<span class="logo-python"
@@ -93,31 +97,22 @@
 
           <div class="dropdown-content">
             <a
+              id="menu-new-project"
               href="javascript:void(0)"
-              onclick="
-                newProject();
-                trackEvent('click', 'FileMenu', 'New');
-              "
               data-i18n="toolbar.new"
             >
               <i class="fas fa-file"></i> New
             </a>
             <a
+              id="menu-open-project"
               href="javascript:void(0)"
-              onclick="
-                openProject();
-                trackEvent('click', 'FileMenu', 'Open');
-              "
               data-i18n="toolbar.open"
             >
               <i class="fas fa-folder-open"></i> Open
             </a>
             <a
+              id="menu-export-project"
               href="javascript:void(0)"
-              onclick="
-                saveProjectAs();
-                trackEvent('click', 'FileMenu', 'Export');
-              "
               data-i18n="toolbar.export"
             >
               <i class="fas fa-download"></i> Export
@@ -152,10 +147,6 @@
         <button
           id="run-stop-btn"
           class="btn-run"
-          onclick="
-            toggleRunStop();
-            trackEvent('click', 'Toolbar', 'RunStop');
-          "
           data-i18n="toolbar.run"
         >
           <i class="fas fa-play"></i> Run
@@ -163,26 +154,11 @@
         <button
           id="reset-btn"
           class="btn-reset"
-          onclick="
-            resetPosition();
-            trackEvent('click', 'Toolbar', 'Reset');
-          "
           data-i18n="toolbar.reset"
         >
           <i class="fas fa-undo"></i> Reset
         </button>
         <div class="separator"></div>
-
-        <!-- <button
-          id="robot-settings-btn"
-          class="btn-tool"
-          onclick="
-            openRobotSettings();
-            trackEvent('click', 'Toolbar', 'SensorSettings');
-          "
-        >
-          <i class="fa-solid fa-gear"></i> Sensor
-        </button> -->
 
         <div class="separator"></div>
 
@@ -190,17 +166,17 @@
           <span data-i18n="toolbar.angle">Angle:</span>
           <div class="angle-buttons">
             <button
+              id="rotate-left-btn"
               class="btn-angle"
-              onclick="rotateRobot(-45)"
-              title="Rotate Left 45°"
+              title="Rotate Left 45?"
               data-i18n-title="toolbar.rotate_left"
             >
               <i class="fas fa-undo"></i>
             </button>
             <button
+              id="rotate-right-btn"
               class="btn-angle"
-              onclick="rotateRobot(45)"
-              title="Rotate Right 45°"
+              title="Rotate Right 45?"
               data-i18n-title="toolbar.rotate_right"
             >
               <i class="fas fa-redo"></i>
@@ -216,14 +192,12 @@
             type="number"
             id="canvas-w"
             value="800"
-            onchange="updateCanvasSize()"
           />
           <span>x</span>
           <input
             type="number"
             id="canvas-h"
             value="600"
-            onchange="updateCanvasSize()"
           />
 
           <div class="separator"></div>
@@ -232,10 +206,6 @@
           <label for="map-select" data-i18n="toolbar.map">Map:</label>
           <select
             id="map-select"
-            onchange="
-              handleMapSelectChange(this);
-              trackEvent('change', 'Settings', 'MapSelect:' + this.value);
-            "
           >
             <option value="default" data-i18n="toolbar.default_map">
               Default Map
@@ -259,8 +229,22 @@
             id="map-upload"
             accept="image/*"
             style="display: none"
-            onchange="loadMapFile(this)"
           />
+
+          <div class="separator"></div>
+
+          <!-- Physics Engine selector -->
+          <label for="engine-select" data-i18n="toolbar.physics">Physics:</label>
+          <select
+            id="engine-select"
+          >
+            <option value="custom" data-i18n="toolbar.engine_custom">
+              Custom Engine
+            </option>
+            <option value="matter" data-i18n="toolbar.engine_matter">
+              Matter.js (Realistic)
+            </option>
+          </select>
         </div>
       </div>
 
@@ -277,14 +261,12 @@
           <button
             id="lang-th"
             class="lang-btn active"
-            onclick="i18n.setLanguage('th')"
           >
             TH
           </button>
           <button
             id="lang-en"
             class="lang-btn"
-            onclick="i18n.setLanguage('en')"
           >
             EN
           </button>
@@ -292,10 +274,6 @@
         <button
           id="tour-btn"
           class="btn-tour-icon"
-          onclick="
-            if (typeof startTour === 'function') startTour();
-            trackEvent('click', 'Toolbar', 'Tour');
-          "
           title="Start Product Tour"
           data-i18n-title="toolbar.tour"
         >
@@ -311,7 +289,6 @@
           <button
             id="tab-btn-code"
             class="tab-btn active"
-            onclick="switchTab('code')"
             data-i18n="tabs.code"
           >
             <i class="fas fa-code"></i> Code
@@ -319,7 +296,6 @@
           <button
             id="tab-btn-settings"
             class="tab-btn"
-            onclick="switchTab('settings')"
             data-i18n="tabs.settings"
           >
             <i class="fa-solid fa-gear"></i> Robot Setting
@@ -337,10 +313,7 @@
               <span data-i18n="console.title">Console</span>
 
               <button
-                onclick="
-                  clearConsole();
-                  trackEvent('click', 'Console', 'Clear');
-                "
+                id="console-clear-btn"
                 style="padding: 2px 8px; font-size: 10px"
                 data-i18n="console.clear"
               >
@@ -374,6 +347,7 @@
                   height="160"
                 >
                   <rect
+                    id="robot-preview-body-rect"
                     x="0"
                     y="0"
                     width="50"
@@ -430,9 +404,11 @@
                     style="display: none"
                   ></rect>
                   <text
-                    x="25"
-                    y="-23"
+                    id="robot-preview-text"
+                    x="0"
+                    y="0"
                     text-anchor="middle"
+                    dominant-baseline="middle"
                     fill="white"
                     font-size="8"
                     font-weight="bold"
@@ -477,9 +453,8 @@
                 id="button1"
                 class="sensor-btn"
                 title="Button 1"
-                onclick="trackEvent('click', 'Input', 'SW1')"
               >
-                <img src="src/img/button.png" alt="btn1" />
+                <img src="src/assets/img/button.png" alt="btn1" />
               </button>
             </div>
             <div class="button-div">
@@ -488,9 +463,8 @@
                 id="button2"
                 class="sensor-btn"
                 title="Button 2"
-                onclick="trackEvent('click', 'Input', 'SW2')"
               >
-                <img src="src/img/button.png" alt="btn2" />
+                <img src="src/assets/img/button.png" alt="btn2" />
               </button>
             </div>
             <div class="button-div">
@@ -499,9 +473,8 @@
                 id="button3"
                 class="sensor-btn"
                 title="Button 3"
-                onclick="trackEvent('click', 'Input', 'SW3')"
               >
-                <img src="src/img/button.png" alt="btn3" />
+                <img src="src/assets/img/button.png" alt="btn3" />
               </button>
             </div>
           </div>
@@ -558,27 +531,26 @@
             </button>
             <div class="dropdown-content view-menu-content">
               <a
+                id="menu-zoom-in"
                 href="javascript:void(0)"
-                onclick="zoomIn()"
                 data-i18n="view_menu.zoom_in"
                 ><i class="fas fa-search-plus"></i> Zoom In</a
               >
               <a
+                id="menu-zoom-out"
                 href="javascript:void(0)"
-                onclick="zoomOut()"
                 data-i18n="view_menu.zoom_out"
                 ><i class="fas fa-search-minus"></i> Zoom Out</a
               >
               <a
                 href="javascript:void(0)"
                 id="menu-drag-mode"
-                onclick="toggleDragMode()"
                 data-i18n="view_menu.drag_mode"
                 ><i class="fas fa-arrows-alt"></i> Drag Mode</a
               >
               <a
+                id="menu-reset-view"
                 href="javascript:void(0)"
-                onclick="resetView()"
                 data-i18n="view_menu.reset_view"
                 ><i class="fas fa-sync-alt"></i> Reset View</a
               >
@@ -591,8 +563,9 @@
           <div id="canvas-area">
             <div
               id="robot"
-              style="left: 100px; top: 100px; transform: rotate(0deg)"
+              style="left: 400px; top: 300px; transform: rotate(0deg)"
             >
+              <div id="robot-bg"></div>
               <div class="wheel w-l"></div>
               <div class="wheel w-l-back" style="display: none"></div>
               <span
@@ -629,20 +602,9 @@
       id="file-input"
       accept=".json"
       style="display: none"
-      onchange="loadProject(this)"
     />
-    <script>
-      // เมื่อโหลดหน้าเว็บเสร็จ ให้ดึงข้อมูลจาก Storage มาใช้ทันที
-      window.addEventListener("DOMContentLoaded", () => {
-        // รอสักครู่เพื่อให้ Editor โหลดเสร็จ (ถ้ามี Delay)
-        setTimeout(() => {
-          loadFromWebStorage();
-          if (typeof loadExampleMenu === "function") {
-            loadExampleMenu();
-          }
-        }, 100);
-      });
-    </script>
     <div class="version-overlay"></div>
   </body>
 </html>
+
+

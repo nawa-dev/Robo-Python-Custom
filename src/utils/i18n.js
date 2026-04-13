@@ -11,8 +11,10 @@ class I18nManager {
 
   async init() {
     try {
-      const response = await fetch("src/lang.json");
-      this.translations = await response.json();
+      const response = await fetch("src/assets/lang.json");
+      const buffer = await response.arrayBuffer();
+      const jsonText = new TextDecoder("utf-8").decode(buffer);
+      this.translations = JSON.parse(jsonText);
       this.isLoaded = true;
       this.updateUI();
     } catch (error) {

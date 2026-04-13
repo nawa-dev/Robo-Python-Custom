@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "timestamp": "2026-03-21T17:14:17.661Z",
+  "timestamp": "2026-03-25T16:00:23.737Z",
   "projectName": "Gripper",
   "canvas": {
     "width": "800",
@@ -11,42 +11,63 @@
     "imageData": "none",
     "fileName": ""
   },
-  "sensors": [],
+  "sensors": [
+    {
+      "type": "wheel",
+      "index": 0,
+      "id": 1774453954331,
+      "name": "Wheel",
+      "motorPos": 50,
+      "isNew": false
+    }
+  ],
   "grips": [
     {
+      "type": "grip",
+      "index": 0,
       "id": 1774107747304,
       "name": "Grip 1",
-      "x": 50,
-      "y": 0,
-      "angle": 0
+      "x": 0,
+      "y": -50,
+      "angle": 0,
+      "isNew": false
     },
     {
+      "type": "grip",
+      "index": 1,
       "id": 1774107944312,
       "name": "Grip 2",
-      "x": 50,
+      "x": 0,
       "y": 50,
-      "angle": 0
+      "angle": 0,
+      "isNew": false
     },
     {
+      "type": "grip",
+      "index": 2,
       "id": 1774111053114,
       "name": "Grip 3",
-      "x": 0,
-      "y": 0,
-      "angle": 180
+      "x": 100,
+      "y": -50,
+      "angle": 180,
+      "isNew": false
     },
     {
+      "type": "grip",
+      "index": 3,
       "id": 1774111053426,
       "name": "Grip 4",
-      "x": 0,
+      "x": 100,
       "y": 50,
-      "angle": 180
+      "angle": 180,
+      "isNew": false
     }
   ],
   "canvasObjects": [
     {
       "id": "obj_1774106459099",
-      "x": 503.79998779296875,
-      "y": 246.70931672727409,
+      "x": 506.5999755859375,
+      "y": 322.004441020694,
       "radius": 15,
       "color": "#f1c40f",
       "vx": 0,
@@ -54,8 +75,8 @@
     },
     {
       "id": "obj_1774108205527",
-      "x": 453.79998779296875,
-      "y": 246.70931672727409,
+      "x": 456.5999755859375,
+      "y": 322.004441020694,
       "radius": 15,
       "color": "#e74c3c",
       "vx": 0,
@@ -64,9 +85,17 @@
   ],
   "sourceCode": "motor(50, 50) \ndelay(2000)    \nmotor(0, 0)   \n\ngrab(0)        \ngrab(1)         \n\n\nmotor(-50, -50)\ndelay(1000)\nmotor(0, 0)\n\nrelease(0)   \nrelease(1)\n\n\n   \nmotor(-50, -50)\ndelay(1000)\n\n\n   \n",
   "robotState": {
-    "x": 452.79998779296875,
-    "y": 300,
+    "x": 481.5999755859375,
+    "y": 435.0333302815735,
     "angle": 270,
-    "motorPos": 0
+    "motorPos": 0,
+    "width": 50,
+    "height": 50,
+    "color": "#ff4757",
+    "image": "",
+    "borderSize": 1,
+    "borderColor": "#333333",
+    "useMass": false,
+    "mass": 1
   }
 }

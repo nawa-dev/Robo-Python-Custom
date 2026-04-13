@@ -1,9 +1,11 @@
+import { switchTab } from "./ui-manager.js";
+
 /**
  * Robo-Python Product Tour
  * Uses Driver.js for interactive guidance
  */
 
-function startTour() {
+export function startTour() {
   // Check if Driver.js is loaded
   if (
     typeof window.driver === "undefined" ||
@@ -80,7 +82,7 @@ function startTour() {
       element: "#tab-btn-settings",
       popover: { side: "bottom", align: "center" },
       onHighlighted: () => {
-        if (typeof switchTab === "function") switchTab("settings");
+        switchTab("settings");
       },
     },
     {
@@ -99,7 +101,7 @@ function startTour() {
       element: "#tab-btn-code",
       popover: { side: "bottom", align: "center" },
       onHighlighted: () => {
-        if (typeof switchTab === "function") switchTab("code");
+        switchTab("code");
       },
     },
     {
@@ -153,18 +155,14 @@ function startTour() {
   driverObj.drive();
 }
 
-// Auto-start tour for first-time visitors
-window.addEventListener("DOMContentLoaded", () => {
-  // Wait a bit for other scripts and UI components (like Monaco) to initialize
-  setTimeout(() => {
+export function initTourAutoStart() {
+  window.setTimeout(() => {
     const hasSeenTour = localStorage.getItem("robo_python_tour_completed");
     if (!hasSeenTour) {
-      if (typeof startTour === "function") {
-        startTour();
-        // Mark as seen immediately so it doesn't pop up again on refresh
-        // if they've at least seen the welcome
-        localStorage.setItem("robo_python_tour_completed", "true");
-      }
+      startTour();
+      localStorage.setItem("robo_python_tour_completed", "true");
     }
   }, 1500);
-});
+}
+
+// Auto-start tour for first-time visitors

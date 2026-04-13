@@ -1,3 +1,12 @@
+import { state } from "./variableGlobal.js";
+import { getSensorPlugin } from "./sensor-plugin-registry.js";
+import { clearConsole, logToConsole } from "../ui/ui-manager.js";
+import {
+  addCanvasObject,
+  releaseAllObjects,
+} from "./physics/object-physics.js";
+import { resetDrive, setDriveTargets4 } from "./physics/drive-controller.js";
+
 /**
  * Code Execution System with Skulpt (Python)
  * รองรับการหยุดรอ (simulating blocking calls) ด้วย Suspension
@@ -6,7 +15,79 @@
 // Global state for Skulpt
 // let isRunning = false; // Used from variableGlobal.js
 let executionPromise = null; // Promise ของ Sk.misceval.asyncToPromise
-let stopRequest = false; // Flag สำหรับสั่งหยุด
+let stopRequest = false; // Stop flag for suspension-aware helpers
+const ENABLE_BROWSER_DEBUG_LOG = false;
+
+function getPlugin(type) {
+  return getSensorPlugin(type) || window.SensorRegistry[type];
+}
+
+function cloneForDebug(value) {
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch (error) {
+    return value;
+  }
+}
+
+function buildExecutionSnapshot(extra = {}) {
+  return {
+    timestamp: new Date().toISOString(),
+    robot: {
+      x: state.robotX,
+      y: state.robotY,
+      angle: state.angle,
+      width: state.robotWidth,
+      height: state.robotHeight,
+      color: state.robotColor,
+      image: state.robotImage,
+      borderSize: state.robotBorderSize,
+      borderColor: state.robotBorderColor,
+      useMass: state.robotUseMass,
+      mass: state.robotMass,
+      renderPose: cloneForDebug(state.robotRenderPose),
+    },
+    motors: {
+      left: state.motorL,
+      right: state.motorR,
+      frontLeft: state.motorFL,
+      frontRight: state.motorFR,
+      backLeft: state.motorBL,
+      backRight: state.motorBR,
+    },
+    canvas: {
+      zoom: state.zoom,
+      cameraX: state.cameraX,
+      cameraY: state.cameraY,
+      dragMode: state.dragMode,
+      physicsEngine: state.physicsEngine,
+    },
+    objects: {
+      canvasObjects: cloneForDebug(state.canvasObjects),
+      grabbedObjects: cloneForDebug(state.grabbedObjects),
+      grips: cloneForDebug(state.grips),
+    },
+    sensors: cloneForDebug(state.sensors),
+    flags: {
+      isRunning: state.isRunning,
+      isDragging: state.isDragging,
+      stopRequest,
+    },
+    ...extra,
+  };
+}
+
+function debugRunLog(label, payload) {
+  if (!ENABLE_BROWSER_DEBUG_LOG) return;
+  if (!window.console || typeof window.console.log !== "function") return;
+
+  const prefix = "[Robot Run Debug]";
+  if (payload === undefined) {
+    console.log(`${prefix} ${label}`);
+    return;
+  }
+  console.log(`${prefix} ${label}`, payload);
+}
 
 /* =========================
  * Run user code (Python)
@@ -18,11 +99,18 @@ function runCode() {
   }
 
   // เตรียมสถานะ
-  autoSaveToWebStorage();
+  if (typeof window.autoSaveToWebStorage === "function") {
+    window.autoSaveToWebStorage();
+  }
   stopProgram(); // หยุดโปรแกรมเดิมถ้ามีวิ่งอยู่
   clearConsole();
 
-  const code = editor.getValue();
+  if (!window.editor) {
+    logToConsole("Error: Editor is not ready yet.", "error");
+    return;
+  }
+
+  const code = window.editor.getValue();
   state.isRunning = true;
   stopRequest = false;
   updateRunStopButtonIO("stop");
@@ -35,7 +123,10 @@ function runCode() {
       // Skulpt จะส่ง output มาที่นี่ (เช่น print)
       // ตัด newline ท้ายคำออกถ้ามี เพราะ logToConsole สร้างบรรทัดใหม่ให้แล้ว
       if (text.endsWith("\n")) text = text.slice(0, -1);
-      if (text) logToConsole(text);
+      if (text) {
+        logToConsole(text);
+        debugRunLog("Python output", text);
+      }
     },
     read: builtinRead,
     __future__: Sk.python3, // ใช้ Python 3 syntax
@@ -50,6 +141,24 @@ function runCode() {
   const processedCode = preprocessCode(code);
   const finalCode = headerCode + processedCode;
 
+  if (ENABLE_BROWSER_DEBUG_LOG) {
+    console.groupCollapsed("[Robot Run Debug] Run started");
+    debugRunLog(
+      "Execution snapshot before start",
+      buildExecutionSnapshot({
+        editor: {
+          codeLength: code.length,
+          processedCodeLength: processedCode.length,
+          finalCodeLength: finalCode.length,
+        },
+      }),
+    );
+    debugRunLog("Original code", code);
+    debugRunLog("Processed code", processedCode);
+    debugRunLog("Final code", finalCode);
+    console.groupEnd();
+  }
+
   // รันโค้ด
   executionPromise = Sk.misceval
     .asyncToPromise(() => {
@@ -59,15 +168,30 @@ function runCode() {
       if (state.isRunning) {
         logToConsole("Program finished.", "info");
       }
+      debugRunLog("Program finished", buildExecutionSnapshot());
     })
     .catch((err) => {
       if (err.toString().includes("StopExecution")) {
         logToConsole("Program stopped.", "info");
+        debugRunLog(
+          "Program stopped",
+          buildExecutionSnapshot({
+            reason: err.toString(),
+          }),
+        );
       } else {
         logToConsole("Runtime Error: " + err.toString(), "error");
+        if (ENABLE_BROWSER_DEBUG_LOG) {
+          console.error(
+            "[Robot Run Debug] Runtime error",
+            err,
+            buildExecutionSnapshot(),
+          );
+        }
       }
     })
     .finally(() => {
+      debugRunLog("Execution cleanup", buildExecutionSnapshot());
       state.isRunning = false;
       stopProgram();
     });
@@ -146,6 +270,7 @@ function preprocessCode(code) {
 }
 
 function stopProgram() {
+  const wasRunning = state.isRunning;
   if (state.isRunning) {
     stopRequest = true; // บอกให้ custom functions รู้ว่าต้องหยุด
     state.isRunning = false;
@@ -157,34 +282,36 @@ function stopProgram() {
   state.motorFR = 0;
   state.motorBL = 0;
   state.motorBR = 0;
-  if (window.physics) {
-    if (typeof window.physics.resetCurrentSpeeds === "function") {
-      window.physics.resetCurrentSpeeds();
-    }
-    if (typeof window.physics.setTargets4 === "function") {
-      window.physics.setTargets4(0, 0, 0, 0);
-    } else {
-      window.physics.setTargets(0, 0);
-    }
-  }
-  if (typeof window.releaseAllObjects === "function") {
-    window.releaseAllObjects();
-  }
+  resetDrive();
+  releaseAllObjects();
   updateRunStopButtonIO("run");
+
+  if (wasRunning || stopRequest) {
+    debugRunLog("stopProgram invoked", buildExecutionSnapshot());
+  }
 }
 
+window.resetPosition = resetPosition;
 function resetPosition() {
   stopProgram();
   state.robotX = 100;
   state.robotY = 100;
   state.angle = 0;
-  updateRobotDOM();
+  if (typeof window.updateRobotDOM === "function") {
+    window.updateRobotDOM();
+  }
+  if (
+    window.physicsAdapter &&
+    typeof window.physicsAdapter.reset === "function"
+  ) {
+    window.physicsAdapter.reset();
+  }
   logToConsole("Robot position reset.", "info");
 
   // --- DYNAMIC HOOK: onReset ---
   if (window.SensorConfigs) {
     Object.keys(window.SensorConfigs).forEach((type) => {
-      const registry = window.SensorRegistry[type];
+      const registry = getPlugin(type);
       if (registry && typeof registry.onReset === "function") {
         registry.onReset({
           sensors: typeof state.sensors !== "undefined" ? state.sensors : [],
@@ -198,6 +325,7 @@ function resetPosition() {
 /* =========================
  * Toggle Run/Stop Logic
  * ========================= */
+window.toggleRunStop = toggleRunStop;
 function toggleRunStop() {
   if (state.isRunning) {
     stopProgram();
@@ -240,7 +368,7 @@ function builtinRead(x) {
     // --- DYNAMIC HOOK: Allow sensors to register custom Python functions ---
     if (window.SensorConfigs) {
       Object.keys(window.SensorConfigs).forEach((type) => {
-        const registry = window.SensorRegistry[type];
+        const registry = getPlugin(type);
         if (registry && typeof registry.registerPythonAPI === "function") {
           registry.registerPythonAPI(Sk, Sk.builtins.robot, {
             sensors: typeof state.sensors !== "undefined" ? state.sensors : [],
@@ -292,10 +420,11 @@ Sk.builtins.robot = {
     state.motorFR = r;
     state.motorBR = r;
 
-    if (window.physics) {
-      // In physics.js we will handle 4-wheel targets
-      window.physics.setTargets4(l, r, l, r);
-    }
+    setDriveTargets4(l, r, l, r);
+    debugRunLog("motor()", {
+      input: { left: l, right: r },
+      motors: buildExecutionSnapshot().motors,
+    });
 
     return Sk.builtin.none.none$;
   }),
@@ -320,9 +449,11 @@ Sk.builtins.robot = {
     state.motorL = (vFL + vBL) / 2;
     state.motorR = (vFR + vBR) / 2;
 
-    if (window.physics) {
-      window.physics.setTargets4(vFL, vFR, vBL, vBR);
-    }
+    setDriveTargets4(vFL, vFR, vBL, vBR);
+    debugRunLog("motor4()", {
+      input: { frontLeft: vFL, frontRight: vFR, backLeft: vBL, backRight: vBR },
+      motors: buildExecutionSnapshot().motors,
+    });
 
     return Sk.builtin.none.none$;
   }),
@@ -331,6 +462,12 @@ Sk.builtins.robot = {
   SW: new Sk.builtin.func(function (n) {
     Sk.builtin.pyCheckArgs("SW", arguments, 1, 1);
     let i = Sk.builtin.asnum$(n) - 1;
+    const pressed = i >= 0 && i < swStates.length ? swStates[i] : false;
+    debugRunLog("SW()", {
+      button: i + 1,
+      pressed,
+      allSwitches: [...swStates],
+    });
     if (i >= 0 && i < swStates.length) {
       return new Sk.builtin.bool(swStates[i]);
     }
@@ -341,6 +478,10 @@ Sk.builtins.robot = {
   waitSW: new Sk.builtin.func(function (n) {
     Sk.builtin.pyCheckArgs("waitSW", arguments, 1, 1);
     let btnIndex = Sk.builtin.asnum$(n) - 1;
+    debugRunLog("waitSW() start", {
+      button: btnIndex + 1,
+      allSwitches: [...swStates],
+    });
 
     let promise = new Promise(function (resolve, reject) {
       function checkBtn() {
@@ -351,6 +492,10 @@ Sk.builtins.robot = {
           return;
         }
         if (btnIndex >= 0 && btnIndex < swStates.length && swStates[btnIndex]) {
+          debugRunLog("waitSW() resolved", {
+            button: btnIndex + 1,
+            allSwitches: [...swStates],
+          });
           resolve(Sk.builtin.none.none$);
         } else {
           setTimeout(checkBtn, 50);
@@ -366,6 +511,10 @@ Sk.builtins.robot = {
   delay: new Sk.builtin.func(function (ms) {
     Sk.builtin.pyCheckArgs("delay", arguments, 1, 1);
     let duration = Sk.builtin.asnum$(ms);
+    debugRunLog("delay()", {
+      duration,
+      isRunning: state.isRunning,
+    });
 
     let promise = new Promise(function (resolve, reject) {
       // Initial check
@@ -389,6 +538,9 @@ Sk.builtins.robot = {
 
   // getSensorCount()
   getSensorCount: new Sk.builtin.func(function () {
+    debugRunLog("getSensorCount()", {
+      count: state.sensors.length,
+    });
     return new Sk.builtin.int_(state.sensors.length);
   }),
 
@@ -399,10 +551,17 @@ Sk.builtins.robot = {
   spawn_object: new Sk.builtin.func(function (color) {
     Sk.builtin.pyCheckArgs("spawn_object", arguments, 1, 1);
     if (stopRequest) throw "StopExecution";
-    let c = Sk.builtin.asnum$(color);
-    if (typeof window.addCanvasObject === "function") {
-      window.addCanvasObject(c);
+    let c = color;
+    if (color && typeof color.v === "string") {
+      c = color.v;
+    } else {
+      c = Sk.builtin.asnum$(color);
     }
+    addCanvasObject(c);
+    debugRunLog("spawn_object()", {
+      color: c,
+      canvasObjects: cloneForDebug(state.canvasObjects),
+    });
   }),
 };
 
@@ -437,12 +596,44 @@ swIds.forEach((id, index) => {
     btn.addEventListener("mousedown", () => {
       swStates[index] = true;
       logToConsole(`SW${index + 1} Pressed`);
+      debugRunLog("Switch pressed", {
+        button: index + 1,
+        allSwitches: [...swStates],
+      });
     });
     btn.addEventListener("mouseup", () => {
       swStates[index] = false;
+      debugRunLog("Switch released", {
+        button: index + 1,
+        allSwitches: [...swStates],
+      });
     });
     btn.addEventListener("mouseleave", () => {
       swStates[index] = false;
+      debugRunLog("Switch released", {
+        button: index + 1,
+        allSwitches: [...swStates],
+        reason: "mouseleave",
+      });
     });
   }
 });
+
+const executorApi = {
+  builtinRead,
+  preprocessCode,
+  resetPosition,
+  runCode,
+  stopProgram,
+  toggleRunStop,
+};
+
+export {
+  builtinRead,
+  executorApi,
+  preprocessCode,
+  resetPosition,
+  runCode,
+  stopProgram,
+  toggleRunStop,
+};
