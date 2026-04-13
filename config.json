@@ -1,7 +1,7 @@
 {
     "app": {
         "name": "ROBO-PYTHON",
-        "version": "v2.2.3",
+        "version": "v2.2.4",
         "title": "ROBO-PYTHON Simulator"
     },
     "ui": {

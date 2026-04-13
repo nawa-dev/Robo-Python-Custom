@@ -3,4 +3,7 @@ logo.ai
 logo_twotone.png
 logo.svg
 structural_review_and_recommendations.md
+node_modules/
+test-results/
+playwright-report/
 
