@@ -83,6 +83,27 @@ function applyConfig(config) {
   // 4. Update Logo Text (Optional, if structure allows)
   // If app name is specifically set and different from default HTML, we might textContent it
   // But our logo has spans relative to specific styling (ROBO-PYTHON), so we might skip this unless requested.
+
+  // 5. Physics Selector
+  if (config.physics) {
+    const engineSelect = document.getElementById("engine-select");
+    const engineLabel = document.querySelector('label[for="engine-select"]');
+    
+    if (engineSelect) {
+      if (config.physics.showSelector === false) {
+        engineSelect.style.display = "none";
+        if (engineLabel) engineLabel.style.display = "none";
+      }
+      
+      if (config.physics.defaultEngine && engineSelect.value !== config.physics.defaultEngine) {
+        engineSelect.value = config.physics.defaultEngine;
+        if (window.state) {
+            window.state.physicsEngine = config.physics.defaultEngine;
+        }
+        engineSelect.dispatchEvent(new Event("change"));
+      }
+    }
+  }
 }
 
 // Auto-load on DOMContentLoaded
