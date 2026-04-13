@@ -8,6 +8,10 @@
         "logoPosition": "left",
         "showVersionOverlay": true
     },
+    "physics": {
+        "showSelector": false,
+        "defaultEngine": "custom"
+    },
     "installed_sensors": [
         "wheel",
         "light",
