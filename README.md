@@ -24,6 +24,7 @@ A web-based **2D robot programming simulator** that lets users control a robot u
 - **In-browser Python execution** via [Skulpt](https://skulpt.org/)
 - **Automatic loop delay injection** to reduce browser freezing from tight `while` loops
 - **Configurable robot and sensor settings** such as position, angle, color, and interaction options
+- **Anti-Cheat & Code Playback**: Built-in system to track coding progress, capture tab switches (e.g. AI tools), and replay coding history to detect suspicious paste events. (Includes a mandatory Chrome Extension for students).
 
 ---
 
@@ -87,36 +88,11 @@ The project includes a Node-based automation test suite for the core execution f
 npm test
 ```
 
-### Run End-to-End Tests
-
-```bash
-npm run test:e2e
-```
-
-### Run End-to-End Tests With Browser Window
-
-```bash
-npm run test:e2e:headed
-```
-
-### Run End-to-End Tests In Playwright UI
-
-```bash
-npm run test:e2e:ui
-```
-
-### Run Everything
-
-```bash
-npm run test:all
-```
-
 ### Current Coverage
 
 - Core execution behavior in `src/core/executor.js`
 - Shared sensor contract checks for every sensor under `src/sensors/`
 - Optional sensor-specific behavior tests when a sensor provides its own `*.test.js`
-- Browser end-to-end coverage for app boot, run/stop/reset, sensor APIs, and settings flows
 
 ### Sensor Test Strategy
 
@@ -146,3 +122,13 @@ When adding a new sensor in `src/sensors/<name>/`:
 5. Run `npm run test:e2e` if the new sensor affects browser flows, rendering, or Python execution behavior
 
 This keeps every sensor testable by default while allowing richer tests for more complex sensors.
+
+---
+
+## Anti-Cheat System (Extension)
+
+To enforce academic integrity, Robo-Python includes a Chrome Extension (`extension.zip`) that monitors tab activity.
+
+1. **Enable in config**: Set `"enableExtensionCheck": true` and `"enablePlayback": true` in `config.json`.
+2. **Install Extension**: Load the unpacked `extension` folder (or unzip `extension.zip`) via `chrome://extensions/` in Developer Mode.
+3. **View Playback**: Teachers can click the "Playback" button in the toolbar to replay a student's coding history, view their tab switching history, and see automatically flagged suspicious behaviors (e.g., pasting large chunks of code immediately after switching tabs).

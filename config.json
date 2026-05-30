@@ -1,13 +1,13 @@
 {
     "app": {
         "name": "ROBO-PYTHON",
-        "version": "v2.2.4",
+        "version": "v3.0.0",
         "title": "ROBO-PYTHON Simulator"
     },
     "ui": {
         "logoPosition": "left",
         "showVersionOverlay": true,
-        "enablePlayback": true,
+        "enablePlayback": false,
         "enableExtensionCheck": true
     },
     "physics": {
