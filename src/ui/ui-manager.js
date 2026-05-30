@@ -120,3 +120,40 @@ document.addEventListener("DOMContentLoaded", () => {
 window.switchTab = switchTab;
 window.logToConsole = logToConsole;
 window.clearConsole = clearConsole;
+
+export function showModal(title, message) {
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  
+  const content = document.createElement("div");
+  content.className = "modal-content";
+  
+  const header = document.createElement("div");
+  header.className = "modal-header";
+  header.innerHTML = `<h2>${title}</h2>`;
+  
+  const body = document.createElement("div");
+  body.className = "modal-body";
+  body.innerHTML = `<p>${message}</p>`;
+  
+  const footer = document.createElement("div");
+  footer.className = "modal-footer";
+  
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "modal-btn";
+  closeBtn.innerText = window.i18n ? window.i18n.t("tour.closeBtnText") || "Close" : "Close";
+  
+  closeBtn.onclick = () => {
+    document.body.removeChild(modal);
+  };
+  
+  footer.appendChild(closeBtn);
+  
+  content.appendChild(header);
+  content.appendChild(body);
+  content.appendChild(footer);
+  modal.appendChild(content);
+  
+  document.body.appendChild(modal);
+}
+window.showModal = showModal;

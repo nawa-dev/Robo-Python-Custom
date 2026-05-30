@@ -46,7 +46,7 @@ require(["vs/editor/editor.main"], function () {
             .then((projectData) => {
               // Only apply if user hasn't changed the content or if it's still the default
               if (projectData.sourceCode && editor.getValue() === defaultCode) {
-                // We use applyProjectData from storage.js if available to load everything, 
+                // We use applyProjectData from storage.js if available to load everything,
                 // not just sourceCode, since we are loading an example project.
                 if (typeof window.applyProjectData === "function") {
                   window.applyProjectData(projectData);
@@ -55,7 +55,9 @@ require(["vs/editor/editor.main"], function () {
                 }
               }
             })
-            .catch((err) => console.error("Error loading initial project:", err));
+            .catch((err) =>
+              console.error("Error loading initial project:", err),
+            );
         }
       })
       .catch((err) => console.error("Error loading config for editor:", err));
@@ -64,7 +66,7 @@ require(["vs/editor/editor.main"], function () {
   // ✅ ซูมเฉพาะ Monaco (Ctrl + Scroll)
   editor.onMouseWheel((e) => {
     if (!e.ctrlKey) return;
-    e.preventDefault?.(); 
+    e.preventDefault?.();
     e.stopPropagation?.();
 
     if (e.deltaY < 0) {
@@ -77,9 +79,15 @@ require(["vs/editor/editor.main"], function () {
   });
 
   // Hotkeys
-  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Equal, () => zoomIn());
-  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Minus, () => zoomOut());
-  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit0, () => resetZoom());
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Equal, () =>
+    zoomIn(),
+  );
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Minus, () =>
+    zoomOut(),
+  );
+  editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit0, () =>
+    resetZoom(),
+  );
 
   // Actions
   editor.addAction({
@@ -88,7 +96,7 @@ require(["vs/editor/editor.main"], function () {
     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Equal],
     contextMenuGroupId: "navigation",
     contextMenuOrder: 1,
-    run: zoomIn
+    run: zoomIn,
   });
 
   editor.addAction({
@@ -97,7 +105,7 @@ require(["vs/editor/editor.main"], function () {
     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Minus],
     contextMenuGroupId: "navigation",
     contextMenuOrder: 2,
-    run: zoomOut
+    run: zoomOut,
   });
 
   editor.addAction({
@@ -106,7 +114,7 @@ require(["vs/editor/editor.main"], function () {
     keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.Digit0],
     contextMenuGroupId: "navigation",
     contextMenuOrder: 3,
-    run: resetZoom
+    run: resetZoom,
   });
 
   function zoomIn() {
@@ -126,7 +134,7 @@ require(["vs/editor/editor.main"], function () {
 
   setupRobotHighlighting(editor);
   setupAutocomplete();
-  
+
   // Expose editor globally if needed by other modules
   window.editor = editor;
 });
@@ -134,7 +142,15 @@ require(["vs/editor/editor.main"], function () {
 // --- API Highlighting ---
 function getDynamicAPIKeywords() {
   const baseKeywords = [
-    "motor", "motor4", "delay", "sleep", "analogRead", "getSensorCount", "print", "spawn_object"
+    "motor",
+    "motor4",
+    "delay",
+    "sleep",
+    "analogRead",
+    "getSensorCount",
+    "print",
+    "spawn_object",
+    "finish",
   ];
   if (window.SensorConfigs) {
     Object.values(window.SensorConfigs).forEach((config) => {
@@ -158,7 +174,9 @@ function setupRobotHighlighting(editor) {
     if (!model) return;
 
     const keywords = getDynamicAPIKeywords();
-    const sortedKeywords = [...keywords, "SW", "waitSW"].sort((a, b) => b.length - a.length);
+    const sortedKeywords = [...keywords, "SW", "waitSW"].sort(
+      (a, b) => b.length - a.length,
+    );
     const robotRegex = new RegExp(`\\b(${sortedKeywords.join("|")})\\b`, "g");
 
     const text = model.getValue();
@@ -175,7 +193,12 @@ function setupRobotHighlighting(editor) {
       if (lineContent.startsWith("#") || lineContent.length === 0) continue;
 
       decorations.push({
-        range: new monaco.Range(start.lineNumber, start.column, end.lineNumber, end.column),
+        range: new monaco.Range(
+          start.lineNumber,
+          start.column,
+          end.lineNumber,
+          end.column,
+        ),
         options: { inlineClassName: "robot-function" },
       });
     }
@@ -194,23 +217,27 @@ function setupAutocomplete() {
       label: "motor",
       kind: monaco.languages.CompletionItemKind.Function,
       insertText: "motor(${1:left}, ${2:right})",
-      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-      documentation: "Control robot motors. motor(left, right) - left/right: 0-100",
+      insertTextRules:
+        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      documentation:
+        "Control robot motors. motor(left, right) - left/right: 0-100",
       detail: "motor(left: number, right: number) -> void",
     },
     {
-       label: "motor4",
-       kind: monaco.languages.CompletionItemKind.Function,
-       insertText: "motor4(${1:fl}, ${2:fr}, ${3:bl}, ${4:br})",
-       insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-       documentation: "Control 4 robot motors independently.",
-       detail: "motor4(fl, fr, bl, br) -> void",
+      label: "motor4",
+      kind: monaco.languages.CompletionItemKind.Function,
+      insertText: "motor4(${1:fl}, ${2:fr}, ${3:bl}, ${4:br})",
+      insertTextRules:
+        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      documentation: "Control 4 robot motors independently.",
+      detail: "motor4(fl, fr, bl, br) -> void",
     },
     {
       label: "delay",
       kind: monaco.languages.CompletionItemKind.Function,
       insertText: "delay(${1:milliseconds})",
-      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      insertTextRules:
+        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
       documentation: "Pause program for specified milliseconds",
       detail: "delay(ms: number) -> Promise",
     },
@@ -218,7 +245,8 @@ function setupAutocomplete() {
       label: "analogRead",
       kind: monaco.languages.CompletionItemKind.Function,
       insertText: "analogRead(${1:sensorIndex})",
-      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      insertTextRules:
+        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
       documentation: "Read sensor value.",
       detail: "analogRead(index: number) -> number",
     },
@@ -233,7 +261,8 @@ function setupAutocomplete() {
       label: "SW",
       kind: monaco.languages.CompletionItemKind.Function,
       insertText: "SW(${1:n})",
-      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      insertTextRules:
+        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
       detail: "(n) -> boolean",
       documentation: "คืนค่า true หากปุ่มที่ระบุถูกกด (1=SW1, 2=SW2, 3=SW3)",
     },
@@ -241,7 +270,8 @@ function setupAutocomplete() {
       label: "waitSW",
       kind: monaco.languages.CompletionItemKind.Function,
       insertText: "waitSW(${1:n})",
-      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      insertTextRules:
+        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
       detail: "waitSW(n) -> void",
       documentation: "Pause program until button n is pressed",
     },
@@ -249,7 +279,8 @@ function setupAutocomplete() {
       label: "print",
       kind: monaco.languages.CompletionItemKind.Function,
       insertText: "print(${1:message})",
-      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      insertTextRules:
+        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
       documentation: "Print message to console",
       detail: "print(message) -> void",
     },
@@ -257,9 +288,18 @@ function setupAutocomplete() {
       label: "spawn_object",
       kind: monaco.languages.CompletionItemKind.Function,
       insertText: "spawn_object('${1:red}')",
-      insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-      documentation: "Spawn a new object on the canvas. Colors: red, blue, green, yellow",
+      insertTextRules:
+        monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+      documentation:
+        "Spawn a new object on the canvas. Colors: red, blue, green, yellow",
       detail: "spawn_object(color: string) -> void",
+    },
+    {
+      label: "finish",
+      kind: monaco.languages.CompletionItemKind.Function,
+      insertText: "finish()",
+      documentation: "Stop the execution and show execution time",
+      detail: "finish() -> void",
     },
   ];
 
@@ -275,8 +315,10 @@ function setupAutocomplete() {
                   label: apiDef.snippet.label,
                   kind: monaco.languages.CompletionItemKind.Function,
                   insertText: apiDef.snippet.insertText,
-                  insertTextRules: apiDef.snippet.insertTextRules === "snippet"
-                      ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                  insertTextRules:
+                    apiDef.snippet.insertTextRules === "snippet"
+                      ? monaco.languages.CompletionItemInsertTextRule
+                          .InsertAsSnippet
                       : undefined,
                   documentation: apiDef.snippet.documentation,
                   detail: apiDef.snippet.detail,

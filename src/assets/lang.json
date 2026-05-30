@@ -222,6 +222,10 @@
         "moved": "ย้ายวัตถุไปที่ ({x}, {y})",
         "deleted": "ลบวัตถุแล้ว"
       }
+    },
+    "execution": {
+      "finished": "ทำงานเสร็จสิ้น",
+      "total_time": "ใช้เวลาทั้งหมด: {time} วินาที"
     }
   },
   "en": {
@@ -447,6 +451,10 @@
         "moved": "Moved object to ({x}, {y})",
         "deleted": "Object deleted."
       }
+    },
+    "execution": {
+      "finished": "Execution Finished",
+      "total_time": "Total execution time: {time} seconds."
     }
   }
 }

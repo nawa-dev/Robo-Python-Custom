@@ -64,15 +64,26 @@
     <script charset="UTF-8" type="module" src="src/main.js"></script>
     <script charset="UTF-8" src="src/utils/i18n.js" defer></script>
     <script charset="UTF-8" src="src/ui/editor-controller.js" defer></script>
-    <script charset="UTF-8" type="module" src="src/ui/interaction-handler.js"></script>
+    <script
+      charset="UTF-8"
+      type="module"
+      src="src/ui/interaction-handler.js"
+    ></script>
     <script charset="UTF-8" type="module" src="src/core/physics.js"></script>
     <script charset="UTF-8" type="module" src="src/core/canvas.js"></script>
-    <script charset="UTF-8" type="module" src="src/sensors/sensors-manager.js"></script>
+    <script
+      charset="UTF-8"
+      type="module"
+      src="src/sensors/sensors-manager.js"
+    ></script>
     <script charset="UTF-8" type="module" src="src/core/executor.js"></script>
     <script charset="UTF-8" type="module" src="src/utils/storage.js"></script>
     <script charset="UTF-8" type="module" src="src/ui/tour.js"></script>
     <script charset="UTF-8" src="src/script.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js" defer></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"
+      defer
+    ></script>
     <script src="src/utils/config.js" defer></script>
   </head>
   <body>
@@ -144,18 +155,10 @@
           </div>
         </div>
         <div class="separator"></div>
-        <button
-          id="run-stop-btn"
-          class="btn-run"
-          data-i18n="toolbar.run"
-        >
+        <button id="run-stop-btn" class="btn-run" data-i18n="toolbar.run">
           <i class="fas fa-play"></i> Run
         </button>
-        <button
-          id="reset-btn"
-          class="btn-reset"
-          data-i18n="toolbar.reset"
-        >
+        <button id="reset-btn" class="btn-reset" data-i18n="toolbar.reset">
           <i class="fas fa-undo"></i> Reset
         </button>
         <div class="separator"></div>
@@ -188,25 +191,15 @@
 
         <div class="canvas-settings">
           <span data-i18n="toolbar.canvas">Canvas: </span>
-          <input
-            type="number"
-            id="canvas-w"
-            value="800"
-          />
+          <input type="number" id="canvas-w" value="800" />
           <span>x</span>
-          <input
-            type="number"
-            id="canvas-h"
-            value="600"
-          />
+          <input type="number" id="canvas-h" value="600" />
 
           <div class="separator"></div>
 
           <!-- Map selector -->
           <label for="map-select" data-i18n="toolbar.map">Map:</label>
-          <select
-            id="map-select"
-          >
+          <select id="map-select">
             <option value="default" data-i18n="toolbar.default_map">
               Default Map
             </option>
@@ -234,10 +227,10 @@
           <div class="separator"></div>
 
           <!-- Physics Engine selector -->
-          <label for="engine-select" data-i18n="toolbar.physics">Physics:</label>
-          <select
-            id="engine-select"
+          <label for="engine-select" data-i18n="toolbar.physics"
+            >Physics:</label
           >
+          <select id="engine-select">
             <option value="custom" data-i18n="toolbar.engine_custom">
               Custom Engine
             </option>
@@ -258,18 +251,8 @@
           <span data-i18n="toolbar.github">GITHUB</span>
         </a>
         <div class="lang-switcher">
-          <button
-            id="lang-th"
-            class="lang-btn active"
-          >
-            TH
-          </button>
-          <button
-            id="lang-en"
-            class="lang-btn"
-          >
-            EN
-          </button>
+          <button id="lang-th" class="lang-btn active">TH</button>
+          <button id="lang-en" class="lang-btn">EN</button>
         </div>
         <button
           id="tour-btn"
@@ -449,31 +432,19 @@
           <div class="button-sensor-group">
             <div class="button-div">
               <label for="" style="margin: 0px">SW1</label>
-              <button
-                id="button1"
-                class="sensor-btn"
-                title="Button 1"
-              >
+              <button id="button1" class="sensor-btn" title="Button 1">
                 <img src="src/assets/img/button.png" alt="btn1" />
               </button>
             </div>
             <div class="button-div">
               <label for="" style="margin: 0px">SW2</label>
-              <button
-                id="button2"
-                class="sensor-btn"
-                title="Button 2"
-              >
+              <button id="button2" class="sensor-btn" title="Button 2">
                 <img src="src/assets/img/button.png" alt="btn2" />
               </button>
             </div>
             <div class="button-div">
               <label for="" style="margin: 0px">SW3</label>
-              <button
-                id="button3"
-                class="sensor-btn"
-                title="Button 3"
-              >
+              <button id="button3" class="sensor-btn" title="Button 3">
                 <img src="src/assets/img/button.png" alt="btn3" />
               </button>
             </div>
@@ -597,14 +568,7 @@
       </section>
     </main>
 
-    <input
-      type="file"
-      id="file-input"
-      accept=".json"
-      style="display: none"
-    />
+    <input type="file" id="file-input" accept=".json" style="display: none" />
     <div class="version-overlay"></div>
   </body>
 </html>
-
-

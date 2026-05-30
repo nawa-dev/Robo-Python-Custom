@@ -1,6 +1,6 @@
 import { state } from "./variableGlobal.js";
 import { getSensorPlugin } from "./sensor-plugin-registry.js";
-import { clearConsole, logToConsole } from "../ui/ui-manager.js";
+import { clearConsole, logToConsole, showModal } from "../ui/ui-manager.js";
 import {
   addCanvasObject,
   releaseAllObjects,
@@ -16,6 +16,7 @@ import { resetDrive, setDriveTargets4 } from "./physics/drive-controller.js";
 // let isRunning = false; // Used from variableGlobal.js
 let executionPromise = null; // Promise ของ Sk.misceval.asyncToPromise
 let stopRequest = false; // Stop flag for suspension-aware helpers
+let runStartTime = null; // Time when run was clicked
 const ENABLE_BROWSER_DEBUG_LOG = false;
 
 function getPlugin(type) {
@@ -113,6 +114,7 @@ function runCode() {
   const code = window.editor.getValue();
   state.isRunning = true;
   stopRequest = false;
+  runStartTime = Date.now();
   updateRunStopButtonIO("stop");
 
   logToConsole("Starting Python execution...", "info");
@@ -562,6 +564,24 @@ Sk.builtins.robot = {
       color: c,
       canvasObjects: cloneForDebug(state.canvasObjects),
     });
+  }),
+
+  // finish()
+  finish: new Sk.builtin.func(function () {
+    if (stopRequest) throw "StopExecution";
+    let elapsedMs = Date.now() - runStartTime;
+    let elapsedSec = (elapsedMs / 1000).toFixed(2);
+    
+    stopRequest = true; // Signals everything to stop
+    
+    let title = window.i18n ? window.i18n.t("execution.finished") : "Execution Finished";
+    let messageTemplate = window.i18n ? window.i18n.t("execution.total_time") : "Total execution time: {time} seconds.";
+    let message = messageTemplate.replace("{time}", elapsedSec);
+
+    showModal(title, message);
+    
+    debugRunLog("finish() called", { time: elapsedSec });
+    throw "StopExecution";
   }),
 };
 
