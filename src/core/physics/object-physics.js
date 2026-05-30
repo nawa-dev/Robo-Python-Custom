@@ -43,6 +43,25 @@ export function addCanvasObject(color = "#e74c3c") {
 }
 
 export function releaseAllObjects() {
+  if (state.canvasObjects) {
+    state.canvasObjects.forEach((obj) => {
+      obj.vx = 0;
+      obj.vy = 0;
+    });
+  }
+
+  if (
+    state.physicsEngine === "matter" &&
+    state.matterState &&
+    state.matterState.objectBodies &&
+    typeof Matter !== "undefined"
+  ) {
+    state.matterState.objectBodies.forEach((body) => {
+      Matter.Body.setVelocity(body, { x: 0, y: 0 });
+      Matter.Body.setAngularVelocity(body, 0);
+    });
+  }
+
   if (!state.grabbedObjects) {
     return;
   }
