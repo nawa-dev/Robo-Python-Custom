@@ -6,7 +6,9 @@
     },
     "ui": {
         "logoPosition": "left",
-        "showVersionOverlay": true
+        "showVersionOverlay": true,
+        "enablePlayback": true,
+        "enableExtensionCheck": true
     },
     "physics": {
         "showSelector": false,

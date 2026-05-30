@@ -1,0 +1,128 @@
+/* Playback Modal Styles */
+
+.playback-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.playback-content {
+  background-color: var(--panel-bg);
+  width: 80vw;
+  height: 80vh;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.playback-header {
+  padding: 15px 20px;
+  background-color: var(--toolbar-bg);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.playback-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.playback-close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.playback-close-btn:hover {
+  color: var(--danger-color);
+}
+
+.playback-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+#playback-editor-container {
+  flex: 1;
+  width: 100%;
+}
+
+.playback-footer {
+  padding: 15px 20px;
+  background-color: var(--toolbar-bg);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.playback-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.playback-play-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.playback-play-btn:hover {
+  background-color: #2980b9;
+}
+
+.playback-play-btn.playing {
+  background-color: #f39c12;
+}
+
+.playback-play-btn.playing:hover {
+  background-color: #e67e22;
+}
+
+.playback-timeline {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.playback-slider {
+  flex: 1;
+  cursor: pointer;
+}
+
+.playback-info {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}

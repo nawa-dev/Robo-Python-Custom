@@ -102,6 +102,9 @@ export function createProjectData() {
       vy: 0,
     })),
     sourceCode: window.editor ? window.editor.getValue() : "",
+    codeHistory: state.codeHistory,
+    tabHistory: state.tabHistory,
+    suspiciousFlags: state.suspiciousFlags,
     robotState: {
       x: state.robotX,
       y: state.robotY,
@@ -231,6 +234,10 @@ export function applyProjectData(projectData) {
   const mapSelect = document.getElementById("map-select");
   const currentOpt = document.getElementById("current-map-option");
   const canvasConfig = projectData.canvas || {};
+
+  state.codeHistory = projectData.codeHistory || [];
+  state.tabHistory = projectData.tabHistory || [];
+  state.suspiciousFlags = projectData.suspiciousFlags || [];
 
   document.getElementById("canvas-w").value = canvasConfig.width || 800;
   document.getElementById("canvas-h").value = canvasConfig.height || 600;
@@ -427,6 +434,9 @@ export function newProject() {
   state.robotY = 100;
   state.angle = 0;
   state.motorPos = 50;
+  state.codeHistory = [];
+  state.tabHistory = [];
+  state.suspiciousFlags = [];
   updateRobotView();
 
   canvasArea.style.backgroundImage = "none";

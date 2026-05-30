@@ -60,7 +60,9 @@ class SimulationState {
     };
 
     this.motorPos = 50;
-    this.robotRenderPose = null;
+    this.codeHistory = [];
+    this.tabHistory = [];
+    this.suspiciousFlags = [];
   }
 }
 

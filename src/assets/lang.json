@@ -22,7 +22,8 @@
       "tour": "แนะนำการใช้งาน",
       "physics": "ระบบฟิสิกส์:",
       "engine_custom": "ระบบเดิม (Custom)",
-      "engine_matter": "Matter.js (สมจริง)"
+      "engine_matter": "Matter.js (สมจริง)",
+      "playback": "ดูประวัติโค้ด"
     },
     "tabs": {
       "code": "โค้ด",
@@ -251,7 +252,8 @@
       "tour": "Tour",
       "physics": "Physics Engine:",
       "engine_custom": "Custom Engine",
-      "engine_matter": "Matter.js (Realistic)"
+      "engine_matter": "Matter.js (Realistic)",
+      "playback": "Playback"
     },
     "tabs": {
       "code": "Code",

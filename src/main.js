@@ -9,6 +9,8 @@ import { initAppControls } from "./ui/app-controls.js";
 import { initTourAutoStart } from "./ui/tour.js";
 import { initSensors } from "./utils/sensorLoader.js";
 import { loadExampleMenu, loadFromWebStorage } from "./utils/storage.js";
+import { initCodePlayback, showPlaybackModal } from "./utils/code-playback.js";
+import { verifyExtensionInstallation } from "./utils/extension-enforcer.js";
 
 window.appBootstrap = {
   state,
@@ -52,6 +54,8 @@ function waitForCondition(predicate, timeoutMs = 5000, intervalMs = 25) {
 }
 
 async function bootstrapApp() {
+  verifyExtensionInstallation();
+  
   await waitForDomReady();
   initAppControls();
 
@@ -76,6 +80,28 @@ async function bootstrapApp() {
   );
 
   loadFromWebStorage();
+
+  const setupPlayback = () => {
+    if (window.editor) {
+      initCodePlayback(window.editor);
+    } else {
+      setTimeout(setupPlayback, 500);
+    }
+  };
+  setupPlayback();
+
+  fetch("./config.json")
+    .then((r) => r.json())
+    .then((config) => {
+      if (config.ui && config.ui.enablePlayback) {
+        const btn = document.getElementById("playback-btn");
+        if (btn) {
+          btn.style.display = "inline-flex";
+          btn.addEventListener("click", showPlaybackModal);
+        }
+      }
+    })
+    .catch((err) => console.error("Error loading config for playback:", err));
 
   return window.appBootstrap;
 }

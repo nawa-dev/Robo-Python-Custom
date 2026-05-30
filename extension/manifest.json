@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Robo-Python Monitor",
+  "version": "1.0",
+  "description": "Required extension for Robo-Python Simulator to verify testing environment.",
+  "permissions": [
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*",
+    "https://*.github.io/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://127.0.0.1/*",
+        "http://localhost/*",
+        "https://*.github.io/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
