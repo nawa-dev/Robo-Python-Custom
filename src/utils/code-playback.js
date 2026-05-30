@@ -142,7 +142,7 @@ export function showPlaybackModal() {
             const icon = tab.action === "lost_focus" ? "fa-eye-slash" : "fa-window-maximize";
             sidebarHTML += `<li style="padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                 <span style="color: #888;">${time}</span> <i class="fas ${icon}"></i> 
-                ${tab.title}
+                <a href="${tab.url}" target="_blank" style="color: #3498db; text-decoration: none; word-break: break-all;">${tab.url}</a>
             </li>`;
         });
         sidebarHTML += `</ul>`;

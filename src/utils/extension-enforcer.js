@@ -28,6 +28,22 @@ export function verifyExtensionInstallation() {
                 if (window.state.tabHistory.length > 1000) {
                     window.state.tabHistory.shift();
                 }
+
+                // Check for suspicious URLs
+                if (payload.url) {
+                    const urlLower = payload.url.toLowerCase();
+                    const suspiciousKeywords = ["chatgpt", "gemini", "claude", "openai", "deepseek"];
+                    const isSuspicious = suspiciousKeywords.some(keyword => urlLower.includes(keyword));
+                    
+                    if (isSuspicious) {
+                        if (!window.state.suspiciousFlags) window.state.suspiciousFlags = [];
+                        window.state.suspiciousFlags.push({
+                            timestamp: payload.timestamp || Date.now(),
+                            reason: `แอบเปิดเว็บ AI: ${payload.title || "Unknown Tab"}`,
+                            codeIndex: window.state.codeHistory ? Math.max(0, window.state.codeHistory.length - 1) : 0
+                        });
+                    }
+                }
             }
         }
     });

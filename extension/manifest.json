@@ -8,9 +8,7 @@
     "scripting"
   ],
   "host_permissions": [
-    "http://127.0.0.1/*",
-    "http://localhost/*",
-    "https://*.github.io/*"
+    "<all_urls>"
   ],
   "content_scripts": [
     {
