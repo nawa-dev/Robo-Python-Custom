@@ -66,19 +66,23 @@ function showExtensionBlocker() {
     blocker.style.color = "white";
     blocker.style.fontFamily = "sans-serif";
 
+    const t = (key, defaultStr) => {
+        return (window.i18n && window.i18n.t) ? (window.i18n.t(key) || defaultStr) : defaultStr;
+    };
+
     blocker.innerHTML = `
         <div style="background-color: var(--panel-bg, #2c3e50); padding: 40px; border-radius: 10px; text-align: center; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid #e74c3c;">
             <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #e74c3c; margin-bottom: 20px;"></i>
-            <h2 style="margin-top: 0;">Extension Required</h2>
+            <h2 style="margin-top: 0;">${t("extension_blocker.title", "Extension Required")}</h2>
             <p style="font-size: 16px; line-height: 1.5; margin-bottom: 25px;">
-                You must install the <strong>Robo-Python Monitor</strong> extension to use this application.<br><br>
-                Please download the extension, install it in your browser (Developer Mode -> Load Unpacked), and then refresh this page.
+                ${t("extension_blocker.desc1", "You must install the <strong>Robo-Python Monitor</strong> extension to use this application.")}<br><br>
+                ${t("extension_blocker.desc2", "Please download the extension, install it in your browser (Developer Mode -> Load Unpacked), and then refresh this page.")}
             </p>
             <a href="./extension.zip" download="robo-python-extension.zip" style="display: inline-block; background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px; transition: background-color 0.2s;">
-                <i class="fas fa-download"></i> Download Extension
+                <i class="fas fa-download"></i> ${t("extension_blocker.download", "Download Extension")}
             </a>
             <p style="font-size: 12px; color: #aaa; margin-top: 20px;">
-                If you have already installed it, please refresh the page.
+                ${t("extension_blocker.footer", "If you have already installed it, please refresh the page.")}
             </p>
         </div>
     `;

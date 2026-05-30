@@ -227,6 +227,13 @@
     "execution": {
       "finished": "ทำงานเสร็จสิ้น",
       "total_time": "ใช้เวลาทั้งหมด: {time} วินาที"
+    },
+    "extension_blocker": {
+      "title": "จำเป็นต้องติดตั้งส่วนขยาย",
+      "desc1": "คุณต้องติดตั้งส่วนขยาย <strong>Robo-Python Monitor</strong> เพื่อใช้งานแอปพลิเคชันนี้",
+      "desc2": "กรุณาดาวน์โหลด ติดตั้งลงเบราว์เซอร์ (โหมดนักพัฒนา -> โหลดส่วนขยายที่ยังไม่ได้แพ็ก) แล้วรีเฟรชหน้านี้",
+      "download": "ดาวน์โหลดส่วนขยาย",
+      "footer": "หากคุณติดตั้งแล้ว กรุณารีเฟรชหน้าต่างนี้"
     }
   },
   "en": {
@@ -457,6 +464,13 @@
     "execution": {
       "finished": "Execution Finished",
       "total_time": "Total execution time: {time} seconds."
+    },
+    "extension_blocker": {
+      "title": "Extension Required",
+      "desc1": "You must install the <strong>Robo-Python Monitor</strong> extension to use this application.",
+      "desc2": "Please download the extension, install it in your browser (Developer Mode -> Load Unpacked), and then refresh this page.",
+      "download": "Download Extension",
+      "footer": "If you have already installed it, please refresh the page."
     }
   }
 }

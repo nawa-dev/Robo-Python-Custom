@@ -3,13 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/all.test.js",
-    "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed",
-    "test:e2e:ui": "playwright test --ui",
-    "test:all": "npm test && npm run test:e2e"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
-    "@playwright/test": "^1.59.0"
-  }
+  "devDependencies": {}
 }
