@@ -3,13 +3,9 @@
   "icon": "fas fa-robot",
   "singleton": true,
   "inputs": [
-    { "key": "robotWidth", "label": "Width", "type": "number", "min": 50, "max": 500, "default": 50, "group": "dimensions" },
-    { "key": "robotHeight", "label": "Height", "type": "number", "min": 50, "max": 500, "default": 50, "group": "dimensions" },
     { "key": "robotColor", "label": "Color", "type": "color", "default": "#ff4757", "group": "appearance" },
     { "key": "robotImage", "label": "Image", "type": "image-upload", "default": "", "group": "appearance" },
     { "key": "robotBorderSize", "label": "Border Size", "type": "number", "min": 0, "max": 20, "default": 1, "group": "appearance" },
-    { "key": "robotBorderColor", "label": "Border Color", "type": "color", "default": "#333333", "group": "appearance" },
-    { "key": "robotUseMass", "label": "Enable Mass", "type": "checkbox", "default": false, "group": "physics" },
-    { "key": "robotMass", "label": "Mass (kg)", "type": "number", "min": 0.1, "max": 100, "default": 1.0, "group": "physics" }
+    { "key": "robotBorderColor", "label": "Border Color", "type": "color", "default": "#333333", "group": "appearance" }
   ]
 }

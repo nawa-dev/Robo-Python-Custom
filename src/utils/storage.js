@@ -1,8 +1,5 @@
 import { canvasArea, state } from "../core/index.js";
-import {
-  updateCanvasImageData,
-  updateCanvasSize,
-} from "../core/canvas.js";
+import { updateCanvasImageData, updateCanvasSize } from "../core/canvas.js";
 import { stopProgram } from "../core/executor.js";
 import { clearConsole, logToConsole } from "../ui/ui-manager.js";
 import {
@@ -237,7 +234,8 @@ export function applyProjectData(projectData) {
 
   document.getElementById("canvas-w").value = canvasConfig.width || 800;
   document.getElementById("canvas-h").value = canvasConfig.height || 600;
-  state.physicsEngine = canvasConfig.physicsEngine || state.physicsEngine || "custom";
+  state.physicsEngine =
+    canvasConfig.physicsEngine || state.physicsEngine || "custom";
 
   const engineSelect = document.getElementById("engine-select");
   if (engineSelect) {
@@ -246,7 +244,11 @@ export function applyProjectData(projectData) {
 
   updateCanvasSize();
 
-  if (projectData.map && projectData.map.type === "custom" && projectData.map.imageData) {
+  if (
+    projectData.map &&
+    projectData.map.type === "custom" &&
+    projectData.map.imageData
+  ) {
     canvasArea.style.backgroundImage = `url('${projectData.map.imageData}')`;
     canvasArea.style.backgroundColor = "transparent";
 
@@ -331,7 +333,7 @@ export function applyProjectData(projectData) {
   state.robotX = robotState.x ?? 100;
   state.robotY = robotState.y ?? 100;
   state.angle = robotState.angle ?? 0;
-  state.motorPos = robotState.motorPos ?? 0;
+  state.motorPos = robotState.motorPos ?? 50;
   state.robotWidth = robotState.width || 50;
   state.robotHeight = robotState.height || 50;
   state.robotColor = robotState.color || "#ff4757";
@@ -343,21 +345,30 @@ export function applyProjectData(projectData) {
   state.robotUseMass =
     robotState.robotUseMass !== undefined
       ? robotState.robotUseMass
-      : (robotState.useMass || false);
+      : robotState.useMass || false;
   state.robotMass =
-    robotState.robotMass !== undefined ? robotState.robotMass : (robotState.mass || 1.0);
+    robotState.robotMass !== undefined
+      ? robotState.robotMass
+      : robotState.mass || 1.0;
   state.objectMass =
     robotState.objectMass !== undefined
       ? robotState.objectMass
-      : (projectData.objectMass !== undefined ? projectData.objectMass : 1.0);
+      : projectData.objectMass !== undefined
+        ? projectData.objectMass
+        : 1.0;
   state.objectFriction =
     robotState.objectFriction !== undefined
       ? robotState.objectFriction
-      : (projectData.objectFriction !== undefined ? projectData.objectFriction : 0.92);
+      : projectData.objectFriction !== undefined
+        ? projectData.objectFriction
+        : 0.92;
 
   updateRobotView();
 
-  if (window.physicsAdapter && typeof window.physicsAdapter.reinitialize === "function") {
+  if (
+    window.physicsAdapter &&
+    typeof window.physicsAdapter.reinitialize === "function"
+  ) {
     window.physicsAdapter.reinitialize();
   }
 
@@ -366,7 +377,7 @@ export function applyProjectData(projectData) {
       id: Date.now(),
       type: "wheel",
       name: "Wheel",
-      motorPos: 0,
+      motorPos: 50,
       index: 0,
     });
   }
@@ -415,7 +426,7 @@ export function newProject() {
   state.robotX = 100;
   state.robotY = 100;
   state.angle = 0;
-  state.motorPos = 0;
+  state.motorPos = 50;
   updateRobotView();
 
   canvasArea.style.backgroundImage = "none";
@@ -455,5 +466,3 @@ window.newProject = newProject;
 window.autoSaveToWebStorage = autoSaveToWebStorage;
 window.applyProjectData = applyProjectData;
 window.loadFromWebStorage = loadFromWebStorage;
-
-

@@ -14,8 +14,8 @@ class SimulationState {
     this.robotY = 300;
     this.angle = 0;
 
-    this.motorL = 0;
-    this.motorR = 0;
+    this.motorL = 50;
+    this.motorR = 50;
     this.motorFL = 0;
     this.motorFR = 0;
     this.motorBL = 0;
@@ -59,7 +59,7 @@ class SimulationState {
       wallBodies: [],
     };
 
-    this.motorPos = 0;
+    this.motorPos = 50;
     this.robotRenderPose = null;
   }
 }

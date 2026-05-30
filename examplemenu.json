@@ -14,9 +14,5 @@
     {
         "name": "Compass",
         "file": "example/Compass.json"
-    },
-    {
-        "name": "Omni Wheel",
-        "file": "example/Omni Wheel.json"
     }
 ]

@@ -13,13 +13,13 @@
         "defaultEngine": "custom"
     },
     "installed_sensors": [
-        "wheel",
+     
         "light",
         "ultrasonic",
         "grip",
         "compass",
-        "robot",
-        "object"
+        "robot"
+       
     ],
-    "initialProject": "example/FollowLine.json"
+    "initialProject": ""
 }
