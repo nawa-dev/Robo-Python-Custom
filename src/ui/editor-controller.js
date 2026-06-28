@@ -13,16 +13,16 @@ require.config({
 
 require(["vs/editor/editor.main"], function () {
   const defaultCode = [
-    "print('Robot Start')",
+    "print('Robo-Python')",
     "",
-    "while True:",
-    "    motor(60, 60)",
-    "    delay(200)",
-    "",
-    "    motor(60, -60)",
-    "    delay(50)",
-    "",
-    "motor(0, 0)",
+    // "while True:",
+    // "    motor(60, 60)",
+    // "    delay(200)",
+    // "",
+    // "    motor(60, -60)",
+    // "    delay(50)",
+    // "",
+    // "motor(0, 0)",
   ].join("\n");
 
   editor = monaco.editor.create(document.getElementById("monaco-container"), {
@@ -173,13 +173,24 @@ function setupRobotHighlighting(editor) {
     const model = editor.getModel();
     if (!model) return;
 
+    const text = model.getValue();
+
+    // Find all user-defined functions
+    const userFunctions = [];
+    const defRegex = /def\s+([a-zA-Z_]\w*)\s*\(/g;
+    let defMatch;
+    while ((defMatch = defRegex.exec(text)) !== null) {
+      if (!userFunctions.includes(defMatch[1])) {
+        userFunctions.push(defMatch[1]);
+      }
+    }
+
     const keywords = getDynamicAPIKeywords();
-    const sortedKeywords = [...keywords, "SW", "waitSW"].sort(
+    const sortedKeywords = [...keywords, "SW", "waitSW", ...userFunctions].sort(
       (a, b) => b.length - a.length,
     );
     const robotRegex = new RegExp(`\\b(${sortedKeywords.join("|")})\\b`, "g");
 
-    const text = model.getValue();
     const decorations = [];
     let match;
 
@@ -306,6 +317,27 @@ function setupAutocomplete() {
   monaco.languages.registerCompletionItemProvider("python", {
     provideCompletionItems: (model, position) => {
       let dynamicAPI = [...robotAPI];
+      
+      // Add user-defined functions to autocomplete
+      const text = model.getValue();
+      const userFunctions = [];
+      const defRegex = /def\s+([a-zA-Z_]\w*)\s*\(/g;
+      let defMatch;
+      while ((defMatch = defRegex.exec(text)) !== null) {
+        const funcName = defMatch[1];
+        if (!userFunctions.includes(funcName)) {
+          userFunctions.push(funcName);
+          dynamicAPI.push({
+            label: funcName,
+            kind: monaco.languages.CompletionItemKind.Function,
+            insertText: funcName + "($1)",
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            documentation: "User-defined function",
+            detail: `def ${funcName}(...)`,
+          });
+        }
+      }
+
       if (window.SensorConfigs) {
         Object.values(window.SensorConfigs).forEach((config) => {
           if (config.api && Array.isArray(config.api)) {

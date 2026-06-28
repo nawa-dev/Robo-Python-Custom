@@ -7,12 +7,13 @@
     "ui": {
         "logoPosition": "left",
         "showVersionOverlay": true,
-        "enablePlayback": false,
-        "enableExtensionCheck": true
+        "enablePlayback": true,
+        "enableExtensionCheck": false
     },
     "physics": {
         "showSelector": false,
-        "defaultEngine": "custom"
+        "defaultEngine": "custom",
+        "enableInertia": false
     },
     "installed_sensors": [
      

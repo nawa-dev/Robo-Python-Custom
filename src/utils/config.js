@@ -103,6 +103,11 @@ function applyConfig(config) {
         engineSelect.dispatchEvent(new Event("change"));
       }
     }
+
+    // Inertia Toggle
+    if (window.state && config.physics.enableInertia !== undefined) {
+      window.state.enableInertia = config.physics.enableInertia;
+    }
   }
 }
 

@@ -51,6 +51,7 @@ class SimulationState {
     this.objectFriction = 0.92;
 
     this.physicsEngine = "custom";
+    this.enableInertia = true;
     this.matterState = {
       engine: null,
       world: null,

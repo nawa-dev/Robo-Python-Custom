@@ -5,7 +5,8 @@ export function registerCompassPythonAPI(Sk, robotObj) {
       state.sensors.some((sensor) => sensor.type === "compass");
 
     if (hasCompass && typeof state.angle !== "undefined") {
-      return new Sk.builtin.int_(Math.round(state.angle));
+      const angle = ((Math.round(state.angle) % 360) + 360) % 360;
+      return new Sk.builtin.int_(angle);
     }
     return new Sk.builtin.int_(0);
   });

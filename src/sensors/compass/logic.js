@@ -57,7 +57,7 @@ const compassPlugin = {
   },
 
   read: function (sensor, globals) {
-    const angle = Math.round(globals.angle);
+    const angle = (Math.round(globals.angle) % 360 + 360) % 360;
     console.log(`[Compass Read] ${sensor.name}: Robot Angle ${angle} deg`);
     return angle;
   },

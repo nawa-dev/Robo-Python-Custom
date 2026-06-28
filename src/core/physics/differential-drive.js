@@ -34,7 +34,12 @@ DifferentialDrive.prototype.step = function (pose, dt, isHolonomic) {
   if (!dt || dt <= 0) return;
 
   const limit = this.maxAccel * dt;
+  const inertiaEnabled = window.state ? window.state.enableInertia : true;
   const updateWheel = (m) => {
+    if (!inertiaEnabled) {
+      m.current = m.target;
+      return m.current;
+    }
     const diff = m.target - m.current;
     if (Math.abs(diff) <= limit) m.current = m.target;
     else m.current += Math.sign(diff) * limit;
